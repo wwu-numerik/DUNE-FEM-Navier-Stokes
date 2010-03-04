@@ -7,4 +7,4 @@ Module:dune-navier-stokes
 Version:0.1
 Maintainer:rene.milk@uni-muenster.de
 #depending on 
-Depends:dune-common dune-fem dune-grid
+Depends:dune-common dune-fem dune-grid dune-stokes dune-stuff
