@@ -59,6 +59,10 @@ SET( PROBLEM
 	"COCKBURN_PROBLEM" CACHE STRING
 	"PROBLEM" )
 
+SET( DIRICHLET_DATA 
+	"DirichletData" CACHE STRING
+	"DIRICHLET_DATA implementation for default dirichlet traits" )
+
 SET( ALUGRID_BASE_PATH
 	"/share/dune/Modules/modules_x86_64/ALUGrid-1.22" CACHE STRING
 	"ALUGRID_BASE_PATH" )
@@ -72,7 +76,7 @@ SET( GRAPE_PATH
 	"GRAPE_PATH" )
 
 SET( CXX_FLAGS
-	"-Wall -O3 -fomit-frame-pointer -funroll-loops -g -ggdb -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE STRING
+	"-Wall -O3 -fomit-frame-pointer -funroll-loops -g -ggdb -DENABLE_ADAPTIVE=1 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE STRING
 	"")
 
 SET( ENABLE_PARALELL
@@ -90,7 +94,7 @@ IF( ${GRIDTYPE} STREQUAL "UGGRID" )
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
 
 ADD_DEFINITIONS(-DHAVE_CONFIG_H )
-ADD_DEFINITIONS(-D${GRIDTYPE} -DGRIDDIM=${GRIDDIM} -D${PROBLEM} -DCOMMIT="${COMMIT}" )
+ADD_DEFINITIONS(-D${GRIDTYPE} -DGRIDDIM=${GRIDDIM} -D${PROBLEM} -DCOMMIT="${COMMIT}" -DDIRICHLET_DATA=${DIRICHLET_DATA} )
 ADD_DEFINITIONS(-DPOLORDER=${POLORDER} -DPRESSURE_POLORDER=${PRESSUREPOLORDER} -DVELOCITY_POLORDER=${VELOCITYPOLORDER} )
 ADD_DEFINITIONS(-DINNER_CG_SOLVERTYPE=${INNER_CG_SOLVERTYPE} -DOUTER_CG_SOLVERTYP=${OUTER_CG_SOLVERTYP} )
 ADD_DEFINITIONS( -I${GRAPE_PATH}
@@ -104,14 +108,13 @@ IF ( ENABLE_PARALELL )
 	ADD_DEFINITIONS( -I${ALUGRID_BASE_PATH}/include/parallel
 					-DMPIPP_H -DENABLE_MPI=1
 					)
-
 ENDIF ( ENABLE_PARALELL )
 
 
 #needs to come first to include correct config.h
 INCLUDE_DIRECTORIES( ${dune-navier-stokes_SOURCE_DIR} )
 
-SET( MODULES common istl grid fem stuff )
+SET( MODULES common istl grid fem stuff stokes)
 
 FOREACH( MODULE ${MODULES} )
     INCLUDE_DIRECTORIES( ${dune-navier-stokes_SOURCE_DIR}/../dune-${MODULE} )
@@ -128,12 +131,14 @@ SET(dune-navier-stokesSrc
 )
 
 FILE( GLOB header "src/*.hh" )
-FILE( GLOB_RECURSE navier "navier/*" )
-FILE( GLOB_RECURSE stokes_src "../dune-stokes/src/*.hh" )
+FILE( GLOB navier "navier/*" )
 FILE( GLOB stokes "../dune-stokes/stokes/*.hh" )
+FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
+FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
+LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 FILE( GLOB stuff "../dune-stuff/stuff/*.hh" )
 
-set_source_files_properties( ${stuff} ${navier} ${stokes} ${stokes_src} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
+set_source_files_properties( ${stuff} ${navier} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
 
-ADD_EXECUTABLE(dune_stokes ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} )
-TARGET_LINK_LIBRARIES(dune_stokes "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} )
+TARGET_LINK_LIBRARIES(navier "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
