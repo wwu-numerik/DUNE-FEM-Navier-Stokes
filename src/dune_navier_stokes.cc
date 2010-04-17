@@ -65,6 +65,7 @@
 #include <dune/fem/pass/pass.hh>
 #include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
 #include <dune/fem/misc/gridwidth.hh>
+#include <dune/fem/solver/timeprovider.hh>
 
 #include <dune/stokes/discretestokesfunctionspacewrapper.hh>
 #include <dune/stokes/discretestokesmodelinterface.hh>
@@ -121,8 +122,7 @@ typedef std::vector<std::string>
 
 **/
 RunInfo singleRun(  CollectiveCommunication& mpicomm,
-					int refine_level_factor,
-					Dune::StabilizationCoefficients stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients()  );
+					int refine_level_factor  );
 
 //! display last computed pressure/velo with grape
 int display( int argc, char** argv );
@@ -206,17 +206,13 @@ int main( int argc, char** argv )
 }
 
 RunInfo singleRun(  CollectiveCommunication& mpicomm,
-					int refine_level_factor,
-					Dune::StabilizationCoefficients stabil_coeff )
+					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
 	Logging::LogStream& infoStream = Logger().Info();
 	Logging::LogStream& debugStream = Logger().Dbg();
 	RunInfo info;
 
-	debugStream << "\nsingleRun( ";
-	stabil_coeff.print( debugStream );
-	debugStream << " )" << std::endl;
 
 	/* ********************************************************************** *
 	 * initialize the grid                                                    *
@@ -224,8 +220,8 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
 	static Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
-	static bool firstRun = true;
 	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
+	static bool firstRun = true;
 	if ( firstRun && refine_level_factor > 0 ) { //since we have a couple of local statics, only do this once, further refinement done in estimator
 		refine_level = ( refine_level_factor ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
 		gridPtr->globalRefine( refine_level );
@@ -242,9 +238,11 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
-	const double viscosity = Parameters().getParam( "viscosity", 1.0 );
-	debugStream << "  - viscosity: " << viscosity << std::endl;
-	const double alpha = Parameters().getParam( "alpha", 0.0 );
+	const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
+	const double alpha		= Parameters().getParam( "alpha", 0.0 );
+	const double startTime	= Parameters().getParam( "startTime", 0.0 );
+	const double endTime	= Parameters().getParam( "endTime", 1.0 );
+	const double deltaTime	= Parameters().getParam( "deltaTime", 1e-2 );
 
 	// analytical data
 
@@ -308,7 +306,7 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 			StokesModelTraitsImp::AnalyticalDirichletDataTraitsImplementation::getInstance( discreteStokesFunctionSpaceWrapper );
 //    Logger().Info().Resume();
 
-	StokesModelImpType stokesModel( stabil_coeff,
+	StokesModelImpType stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
 									analyticalForce,
 									analyticalDirichletData,
 									viscosity,
@@ -330,9 +328,16 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 								gridPart,
 								discreteStokesFunctionSpaceWrapper );
 
-	profiler().StartTiming( "Pass -- APPLY" );
+/*	profiler().StartTiming( "Pass -- APPLY" );
 	stokesPass.apply( computedSolutions, computedSolutions );
-	profiler().StopTiming( "Pass -- APPLY" );
+	profiler().StopTiming( "Pass -- APPLY" )*/;
+	Dune::TimeProvider<CollectiveCommunication> timeprovider( startTime );
+	timeprovider.provideCflEstimate( 1 );
+	//not manually setting the delta in tp.nexxt() results in assertions cause TimepRoiver claims dt isn't valid ie unset..
+	for( timeprovider.init( deltaTime ); timeprovider.time() < endTime; timeprovider.next( deltaTime ) )
+	{
+		std::cout << "current time: " << timeprovider.time() << std::endl;
+	}
 	info.run_time = profiler().GetTiming( "Pass -- APPLY" );
 	stokesPass.getRuninfo( info );
 
@@ -362,6 +367,7 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	info.L2Errors = postProcessor.getError();
 	typedef Dune::StabilizationCoefficients::ValueType
 		Pair;
+	Dune::StabilizationCoefficients  stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ;
 	info.c11 = Pair( stabil_coeff.Power( "C11" ), stabil_coeff.Factor( "C11" ) );
 	info.c12 = Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
 	info.d11 = Pair( stabil_coeff.Power( "D11" ), stabil_coeff.Factor( "D11" ) );

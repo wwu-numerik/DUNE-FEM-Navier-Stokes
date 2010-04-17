@@ -42,3 +42,6 @@ CMakeLists.txt.user
 *REMOTE*
 *LOCAL*
 *BASE*
+*.swp
+dependencies.m4
+config.lt

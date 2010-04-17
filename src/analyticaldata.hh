@@ -57,8 +57,6 @@ class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceIm
 			Dune::CompileTimeChecker< ( dim_ > 1 && dim_ < 4 ) > Force_Unsuitable_WorldDim;
 
 			if ( dim_ == 2 ) {
-                const double x1 = arg[0];
-                const double x2 = arg[1];
 #ifdef SIMPLE_PROBLEM
                 ret[0] = 0.0;//arg[1];
                 ret[1] = 0.0;//-1.0;//arg[0];
@@ -68,33 +66,12 @@ class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceIm
 #elif defined(ROTATE_PROBLEM)
                 ret[0] = arg[1];
                 ret[1] = -1.0 * arg[0];
-#elif defined(POROSITY_PROBLEM)
-                ret[ 0 ] = 0.0;
-                ret[ 1 ] = 1.0;
-#elif defined(POROSITY_PROBLEM_WOIDS)
-                ret[ 0 ] = 0.0;
-                ret[ 1 ] = 0.0;
 #elif defined(GENRALIZED_STOKES_PROBLEM)
                 const double x = arg[0];
                 const double y = arg[1];
                 const double tmp = alpha_ * std::cos( M_PI_2 * (x+y) ) + M_PI_2 * M_PI * std::cos( M_PI_2 * ( x + y ) ) + M_PI_2 * std::cos( M_PI_2 * ( x - y ) ) ;
                 ret[0]  =      tmp;
                 ret[1] =    -  tmp;
-
-#elif defined(DARCY_PROBLEM)
-                // im verhältnis zu [-1,1]^2
-                double scaleX = Parameters().getParam( "domain_scale_x", 2.0 );
-                double scaleY = Parameters().getParam( "domain_scale_y", 2.0 );
-                double shiftX = Parameters().getParam( "domain_shift_x", -1.0 );
-                double shiftY = Parameters().getParam( "domain_shift_y", -1.0 );
-                ret[0] = ( arg[1] * scaleY ) + shiftY;
-                ret[1] = -1.0 * ( ( arg[0] * scaleX ) + shiftX );
-#elif defined(MICRO_PROBLEM_X)
-                ret[0] = 1.0;
-                ret[1] = 0.0;
-#elif defined(MICRO_PROBLEM_Y)
-                ret[0] = 0.0;
-                ret[1] = 1.0;
 #elif defined(COCKBURN_PROBLEM)
                 ret[0] = 0.0;//arg[1];
                 ret[1] = 0.0;//arg[0];
@@ -111,16 +88,6 @@ class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceIm
                 ret[0] = 0.0;//arg[1];
                 ret[1] = 0.0;//arg[0];
                 ret[2] = -1.0;//arg[0];
-#elif defined(ROTATE_PROBLEM)
-                assert( !"ROTATE_PROBLEM not implemented in 3D!" );
-#elif defined(POROSITY_PROBLEM)
-                assert( !"POROSITY_PROBLEM not implemented in 3D!" );
-#elif defined(POROSITY_PROBLEM_WOIDS)
-                assert( !"POROSITY_PROBLEM_WOIDS not implemented in 3D!" );
-#elif defined(GENRALIZED_STOKES_PROBLEM)
-                assert( !"GENRALIZED_STOKES_PROBLEM not implemented in 3D!" );
-#elif defined(DARCY_PROBLEM)
-                assert( !"DARCY_PROBLEM not implemented in 3D!" );
 #elif defined(AORTA_PROBLEM)
                 ret[0] = 0.0;//arg[1];
                 ret[1] = 0.0;//-1.0;//arg[0];
