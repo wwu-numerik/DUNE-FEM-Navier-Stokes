@@ -61,14 +61,24 @@ namespace Dune {
 
 					void nextFractional()
 					{
-						assert( currentStepType_ != StokesStepB );
-						++currentStepType_;
+						if ( currentStepType_ == StokesStepB ) {
+							next( deltaT() );
+						}
+						else
+							++currentStepType_;
 					}
 
-					void next ( double timeStep )
+				protected:
+					void next ( const double timeStep )
 					{
 						currentStepType_ = StokesStepA;
 						BaseType::next( timeStep );
+					}
+
+					//! hidden since outside calling is nonsensical
+					void next (  )
+					{
+						assert( false );//make whatever triggers this call nextFractional instead
 					}
 
 		};

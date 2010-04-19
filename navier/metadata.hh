@@ -36,12 +36,11 @@ namespace Dune {
 
 				{}
 
-
 				void dummy () {
 					timeprovider_.provideCflEstimate( 1 );
 					//not manually setting the delta in tp.nexxt() results in assertions cause TimepRoiver claims dt isn't valid ie unset..
 					const double endTime	= Parameters().getParam( "endTime", 1.0 );
-					for( timeprovider_.init( deltaTime_ ); timeprovider_.time() < endTime; timeprovider_.next( deltaTime_ ) )
+					for( timeprovider_.init( deltaTime_ ); timeprovider_.time() < endTime; )
 					{
 						for ( unsigned int i =0 ; i< 3 ; ++i, timeprovider_.nextFractional() )
 							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime() << std::endl;
