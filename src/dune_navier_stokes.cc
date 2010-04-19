@@ -79,7 +79,7 @@
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 
-#include <dune/navier/fractionaltimeprovider.hh>
+#include <dune/navier/metadata.hh>
 
 #include "analyticaldata.hh"
 #include "velocity.hh"
@@ -241,9 +241,6 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 	const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
 	const double alpha		= Parameters().getParam( "alpha", 0.0 );
-	const double startTime	= Parameters().getParam( "startTime", 0.0 );
-	const double endTime	= Parameters().getParam( "endTime", 1.0 );
-	const double deltaTime	= Parameters().getParam( "deltaTime", 1e-2 );
 
 	// analytical data
 
@@ -332,15 +329,9 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 /*	profiler().StartTiming( "Pass -- APPLY" );
 	stokesPass.apply( computedSolutions, computedSolutions );
 	profiler().StopTiming( "Pass -- APPLY" )*/;
-	const double theta = 1 - std::pow( 2.0, -1/2.0 );
-	Dune::FractionalTimeProvider<CollectiveCommunication> timeprovider( startTime, theta, mpicomm );
-	timeprovider.provideCflEstimate( 1 );
-	//not manually setting the delta in tp.nexxt() results in assertions cause TimepRoiver claims dt isn't valid ie unset..
-	for( timeprovider.init( deltaTime ); timeprovider.time() < endTime; timeprovider.next( deltaTime ) )
-	{
-		for ( unsigned int i =0 ; i< 3 ; ++i )
-			std::cout << "current time (substep " << i << "): " << timeprovider.subTime(i) << std::endl;
-	}
+
+	Dune::NavierStokes::ThetaScheme<CollectiveCommunication> thetaScheme;
+	thetaScheme.dummy();
 	info.run_time = profiler().GetTiming( "Pass -- APPLY" );
 	stokesPass.getRuninfo( info );
 
