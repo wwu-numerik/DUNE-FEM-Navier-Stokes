@@ -246,7 +246,7 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 
 	// model traits
 	#if 0 //defined( AORTA_PROBLEM )
-	typedef Dune::DiscreteStokesModelDefaultTraits<
+	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					GridPartType,
 					Force,
 					Dune::GeometryBasedBoundaryFunctionTraits<VariableDirichletData,FirstOrderBoundaryShapeFunction>,
@@ -254,9 +254,9 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 					polOrder,
 					VELOCITY_POLORDER,
 					PRESSURE_POLORDER >
-		StokesModelTraitsImp;
+		ThetaSchemeTraitsType;
 	#else
-	typedef Dune::DiscreteStokesModelDefaultTraits<
+	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					GridPartType,
 					Force,
 					DefaultDirichletDataTraits<DIRICHLET_DATA>,
@@ -264,76 +264,32 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 					polOrder,
 					VELOCITY_POLORDER,
 					PRESSURE_POLORDER >
-		StokesModelTraitsImp;
+		ThetaSchemeTraitsType;
 	#endif
-	typedef Dune::DiscreteStokesModelDefault< StokesModelTraitsImp >
-		StokesModelImpType;
 
-	// treat as interface
-	typedef Dune::DiscreteStokesModelInterface< StokesModelTraitsImp >
-		StokesModelType;
-
-	// function wrapper for the solutions
-	typedef StokesModelTraitsImp::DiscreteStokesFunctionSpaceWrapperType
-		DiscreteStokesFunctionSpaceWrapperType;
-
-	static DiscreteStokesFunctionSpaceWrapperType
-		discreteStokesFunctionSpaceWrapper( gridPart );
-
-	typedef StokesModelTraitsImp::DiscreteStokesFunctionWrapperType
-		DiscreteStokesFunctionWrapperType;
-
-	static DiscreteStokesFunctionWrapperType
-		computedSolutions(  "computed_",
-							discreteStokesFunctionSpaceWrapper,
-							gridPart );
 
 	info.codim0 = gridPtr->size( 0 );
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 	info.grid_width = grid_width;
 
-	typedef StokesModelTraitsImp::AnalyticalForceType
-		AnalyticalForceType;
-	AnalyticalForceType analyticalForce( viscosity , discreteStokesFunctionSpaceWrapper.discreteVelocitySpace(), alpha );
 
-//    Logger().Info().Suspend();
-	typedef StokesModelTraitsImp::AnalyticalDirichletDataType
-		AnalyticalDirichletDataType;
-	AnalyticalDirichletDataType analyticalDirichletData =
-			StokesModelTraitsImp::AnalyticalDirichletDataTraitsImplementation::getInstance( discreteStokesFunctionSpaceWrapper );
-//    Logger().Info().Resume();
-
-	StokesModelImpType stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
-									analyticalForce,
-									analyticalDirichletData,
-									viscosity,
-									alpha );
 
 	/* ********************************************************************** *
 	 * initialize passes                                                      *
 	 * ********************************************************************** */
 	infoStream << "\n- starting pass" << std::endl;
 
-	typedef Dune::StartPass< DiscreteStokesFunctionWrapperType, -1 >
-		StartPassType;
-	StartPassType startPass;
-
-	typedef Dune::StokesPass< StokesModelType, StartPassType, 0 >
-		StokesPassType;
-	StokesPassType stokesPass(  startPass,
-								stokesModel,
-								gridPart,
-								discreteStokesFunctionSpaceWrapper );
 
 /*	profiler().StartTiming( "Pass -- APPLY" );
 	stokesPass.apply( computedSolutions, computedSolutions );
 	profiler().StopTiming( "Pass -- APPLY" )*/;
 
-	Dune::NavierStokes::ThetaScheme<CollectiveCommunication> thetaScheme;
+	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
+			thetaScheme;
 	thetaScheme.dummy();
 	info.run_time = profiler().GetTiming( "Pass -- APPLY" );
-	stokesPass.getRuninfo( info );
+//	stokesPass.getRuninfo( info );
 
 	/* ********************************************************************** *
 	 * Problem postprocessing
