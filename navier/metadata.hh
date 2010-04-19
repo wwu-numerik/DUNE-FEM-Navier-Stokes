@@ -10,12 +10,6 @@
 namespace Dune {
 	namespace NavierStokes {
 
-		enum StepType {
-			StokesStepA		= 0,
-			NonLinearStep	= 1,
-			StokesStepB		= 2,
-		};
-
 		template < class Communicator >
 		class ThetaScheme {
 
@@ -24,8 +18,9 @@ namespace Dune {
 				const double operator_weight_alpha_;
 				const double operator_weight_beta_;
 				const double deltaTime_;
-				typedef Dune::NavierStokes::FractionalTimeProvider<Communicator> TPP;
-				TPP timeprovider_;
+				typedef FractionalTimeProvider<Communicator>
+						TimeProviderType;
+				TimeProviderType timeprovider_;
 			public:
 				ThetaScheme(
 							 const double theta = 1 - std::pow( 2.0, -1/2.0 ),
@@ -48,8 +43,8 @@ namespace Dune {
 					const double endTime	= Parameters().getParam( "endTime", 1.0 );
 					for( timeprovider_.init( deltaTime_ ); timeprovider_.time() < endTime; timeprovider_.next( deltaTime_ ) )
 					{
-						for ( unsigned int i =0 ; i< 3 ; ++i )
-							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime(i) << std::endl;
+						for ( unsigned int i =0 ; i< 3 ; ++i, timeprovider_.nextFractional() )
+							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime() << std::endl;
 					}
 				}
 		};

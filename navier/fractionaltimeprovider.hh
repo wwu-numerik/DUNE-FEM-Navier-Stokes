@@ -6,6 +6,13 @@
 
 namespace Dune {
 	namespace NavierStokes {
+
+		typedef unsigned int
+				StepType;
+		const StepType StokesStepA		= 0;
+		const StepType NonlinearStep	= 1;
+		const StepType StokesStepB		= 2;
+
 		template< class CommProvider = DefaultCollectiveCommunicationType >
 		class FractionalTimeProvider : public TimeProvider < CommProvider > {
 					typedef FractionalTimeProvider< CommProvider >
@@ -28,6 +35,7 @@ namespace Dune {
 					using BaseType :: valid_;
 					using BaseType :: timeStep_;
 					const double theta_;
+					StepType currentStepType_;
 
 				public:
 					FractionalTimeProvider ( const double startTime,
@@ -37,17 +45,30 @@ namespace Dune {
 								Parameter :: getValidValue( "fem.timeprovider.factor", (double)1.0,
 																	   ValidateGreater< double >( 0.0 ) ),
 								comm ),
-					  theta_( theta )
+					  theta_( theta ),
+					  currentStepType_( StokesStepA )
 					{}
 
-					const double subTime( const unsigned int fractionStep = 0 ) const
+					const double subTime( ) const
 					{
-						assert( fractionStep >= 0 && fractionStep <= 2 );
-						switch ( fractionStep ) {
+						switch ( currentStepType_ ) {
+							case StokesStepA:
 							default: return time();
-							case 1: return time()+ deltaT() * theta_ ;
-							case 2: return time()+ deltaT() * (1 - theta_);
+							case NonlinearStep: return time()+ deltaT() * theta_ ;
+							case StokesStepB: return time()+ deltaT() * (1 - theta_);
 						}
+					}
+
+					void nextFractional()
+					{
+						assert( currentStepType_ != StokesStepB );
+						++currentStepType_;
+					}
+
+					void next ( double timeStep )
+					{
+						currentStepType_ = StokesStepA;
+						BaseType::next( timeStep );
 					}
 
 		};
