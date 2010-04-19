@@ -45,3 +45,4 @@ CMakeLists.txt.user
 *.swp
 dependencies.m4
 config.lt
+libtool

@@ -65,7 +65,6 @@
 #include <dune/fem/pass/pass.hh>
 #include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
 #include <dune/fem/misc/gridwidth.hh>
-#include <dune/fem/solver/timeprovider.hh>
 
 #include <dune/stokes/discretestokesfunctionspacewrapper.hh>
 #include <dune/stokes/discretestokesmodelinterface.hh>
@@ -79,6 +78,8 @@
 #include <dune/stuff/parametercontainer.hh>
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
+
+#include <dune/navier/fractionaltimeprovider.hh>
 
 #include "analyticaldata.hh"
 #include "velocity.hh"
@@ -331,12 +332,14 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 /*	profiler().StartTiming( "Pass -- APPLY" );
 	stokesPass.apply( computedSolutions, computedSolutions );
 	profiler().StopTiming( "Pass -- APPLY" )*/;
-	Dune::TimeProvider<CollectiveCommunication> timeprovider( startTime );
+	const double theta = 1 - std::pow( 2.0, -1/2.0 );
+	Dune::FractionalTimeProvider<CollectiveCommunication> timeprovider( startTime, theta, mpicomm );
 	timeprovider.provideCflEstimate( 1 );
 	//not manually setting the delta in tp.nexxt() results in assertions cause TimepRoiver claims dt isn't valid ie unset..
 	for( timeprovider.init( deltaTime ); timeprovider.time() < endTime; timeprovider.next( deltaTime ) )
 	{
-		std::cout << "current time: " << timeprovider.time() << std::endl;
+		for ( unsigned int i =0 ; i< 3 ; ++i )
+			std::cout << "current time (substep " << i << "): " << timeprovider.subTime(i) << std::endl;
 	}
 	info.run_time = profiler().GetTiming( "Pass -- APPLY" );
 	stokesPass.getRuninfo( info );
