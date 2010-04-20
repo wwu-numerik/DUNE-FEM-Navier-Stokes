@@ -140,5 +140,5 @@ FILE( GLOB stuff "../dune-stuff/stuff/*.hh" )
 
 set_source_files_properties( ${stuff} ${navier} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
 
-ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} )
+ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} ${navier} )
 TARGET_LINK_LIBRARIES(navier "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )

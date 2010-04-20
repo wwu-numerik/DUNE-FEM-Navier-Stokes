@@ -205,6 +205,7 @@ int main( int argc, char** argv )
 	std::cerr << "Unknown exception thrown!" << std::endl;
   }
 }
+#include <dune/navier/testdata.hh>
 
 RunInfo singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
@@ -257,9 +258,10 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 		ThetaSchemeTraitsType;
 	#else
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
+					CollectiveCommunication,
 					GridPartType,
-					Force,
-					DefaultDirichletDataTraits<DIRICHLET_DATA>,
+					Dune::NavierStokes::TestCase::Force,
+					Dune::NavierStokes::TestCase::DirichletData,
 					gridDim,
 					polOrder,
 					VELOCITY_POLORDER,
@@ -273,8 +275,6 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 	info.grid_width = grid_width;
 
-
-
 	/* ********************************************************************** *
 	 * initialize passes                                                      *
 	 * ********************************************************************** */
@@ -286,7 +286,7 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	profiler().StopTiming( "Pass -- APPLY" )*/;
 
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
-			thetaScheme;
+			thetaScheme( gridPart );
 	thetaScheme.dummy();
 	info.run_time = profiler().GetTiming( "Pass -- APPLY" );
 //	stokesPass.getRuninfo( info );
@@ -298,7 +298,7 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 
 
 	profiler().StartTiming( "Problem/Postprocessing" );
-
+#if 0
 #if defined (AORTA_PROBLEM) || defined (COCKBURN_PROBLEM) || defined (GENRALIZED_STOKES_PROBLEM) //bool tpl-param toggles ana-solution output in post-proc
 	typedef Problem< gridDim, DiscreteStokesFunctionWrapperType, true, AnalyticalDirichletDataType >
 		ProblemType;
@@ -340,6 +340,8 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	profiler().StopTiming( "SingleRun" );
 	firstRun = false;
 	return info;
+#endif
+	return RunInfo();
 }
 
 void eocCheck( const RunInfoVector& runInfos )

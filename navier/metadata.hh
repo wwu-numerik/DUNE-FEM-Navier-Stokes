@@ -4,7 +4,7 @@
 #include <dune/stokes/discretestokesmodelinterface.hh>
 #include <dune/stokes/stokespass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
-
+#include <dune/navier/stokestraits.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
@@ -12,13 +12,21 @@
 namespace Dune {
 	namespace NavierStokes {
 		template <	class CommunicatorImp,
-					class GridPartImp, template <class > class AnalyticalForceImp, class AnalyticalDirichletDataTraits,
+					class GridPartImp,
+					template <class > class AnalyticalForceImp,
+					template <class > class AnalyticalDirichletDataImp,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
-		class ThetaSchemeTraits {
-			typedef Dune::DiscreteStokesModelDefaultTraits<
-						GridPartImp,
+		struct ThetaSchemeTraits {
+			typedef GridPartImp
+					GridPartType;
+			typedef FractionalTimeProvider<CommunicatorImp>
+					TimeProviderType;
+
+			typedef StokesStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
 						AnalyticalForceImp,
-						AnalyticalDirichletDataTraits,
+						AnalyticalDirichletDataImp,
 						gridDim,
 						sigmaOrder,
 						velocityOrder,
@@ -26,21 +34,19 @@ namespace Dune {
 					StokesModelTraits;
 			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
 					StokesModelType;
-			typedef StokesModelTraits::DiscreteStokesFunctionSpaceWrapperType
+			typedef typename StokesModelTraits::DiscreteStokesFunctionSpaceWrapperType
 				DiscreteStokesFunctionSpaceWrapperType;
 
-			typedef StokesModelTraits::DiscreteStokesFunctionWrapperType
+			typedef typename StokesModelTraits::DiscreteStokesFunctionWrapperType
 				DiscreteStokesFunctionWrapperType;
-			typedef StokesModelTraits::AnalyticalForceType
+			typedef typename StokesModelTraits::AnalyticalForceType
 				AnalyticalForceType;
-			typedef StokesModelTraits::AnalyticalDirichletDataType
+			typedef typename StokesModelTraits::AnalyticalDirichletDataType
 				AnalyticalDirichletDataType;
 
 			typedef Dune::StartPass< DiscreteStokesFunctionWrapperType, -1 >
-				StartPassType;
-
-
-			typedef Dune::StokesPass< StokesModelType, StartPassType, 0 >
+				StokesStartPassType;
+			typedef Dune::StokesPass< StokesModelType, StokesStartPassType, 0 >
 				StokesPassType;
 
 			typedef CommunicatorImp
@@ -54,44 +60,43 @@ namespace Dune {
 						Traits;
 				typedef typename Traits::CommunicatorType
 						CommunicatorType;
-				CommunicatorType communicator_;
+				CommunicatorType& communicator_;
 				const double theta_;
 				const double operator_weight_alpha_;
 				const double operator_weight_beta_;
 				const double deltaTime_;
-				typedef FractionalTimeProvider<Communicator>
-						TimeProviderType;
-				TimeProviderType timeprovider_;
+				typename Traits::GridPartType gridPart_;
+				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
+
+				typename Traits::TimeProviderType timeprovider_;
 			public:
-				ThetaScheme(
+				ThetaScheme( typename Traits::GridPartType gridPart,
 							 const double theta = 1 - std::pow( 2.0, -1/2.0 ),
 							 CommunicatorType comm = Dune::MPIManager::helper().getCommunicator()
 						)
-				:theta_(theta),
+				: gridPart_( gridPart ),
+				theta_(theta),
 				operator_weight_alpha_( ( 1-2*theta_ ) / ( 1-theta_ ) ),
 				operator_weight_beta_( 1 - operator_weight_alpha_ ),
 				communicator_( comm ),
 				deltaTime_( Parameters().getParam( "deltaTime", 1e-2 ) ),
-				timeprovider_( deltaTime_, theta_, communicator_ )
-	//			const double startTime	= Parameters().getParam( "startTime", 0.0 );
-
+	//			const double startTime	= Parameters().getParam( "startTime", 0.0 ),
+				timeprovider_( deltaTime_, theta_, communicator_ ),
+				functionSpaceWrapper_( gridPart_ )
 				{
-					typename Traits::AnalyticalForceType analyticalForce( viscosity , discreteStokesFunctionSpaceWrapper.discreteVelocitySpace(), alpha );
-					typename Traits::AnalyticalDirichletDataType analyticalDirichletData =
-							typename Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation::getInstance( discreteStokesFunctionSpaceWrapper );
 
 				}
 
 				void dummy ()
 				{
-					// function wrapper for the solutions
-					typename Traits::DiscreteStokesFunctionSpaceWrapperType
-						discreteStokesFunctionSpaceWrapper( gridPart );
-
 					typename Traits::DiscreteStokesFunctionWrapperType
-						computedSolutions(  "computed_",
-											discreteStokesFunctionSpaceWrapper,
-											gridPart );
+						currentFunctions(  "current_",
+											functionSpaceWrapper_,
+											gridPart_ );
+					typename Traits::DiscreteStokesFunctionWrapperType
+						nextFunctions(  "next_",
+											functionSpaceWrapper_,
+											gridPart_ );
 
 					timeprovider_.provideCflEstimate( 1 );
 					//not manually setting the delta in tp.nexxt() results in assertions cause TimepRoiver claims dt isn't valid ie unset..
@@ -101,23 +106,29 @@ namespace Dune {
 						for ( unsigned int i =0 ; i< 3 ; ++i, timeprovider_.nextFractional() )
 							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime() << std::endl;
 					}
-					getStokesPass().apply(computedSolutions,computedSolutions);
+					getStokesPass(currentFunctions).apply(currentFunctions,nextFunctions);
 				}
 
-				typename Traits::StokesPassType getStokesPass()
+				typename Traits::StokesPassType getStokesPass( const typename Traits::DiscreteStokesFunctionWrapperType& currentFunctions )
 				{
+					const double viscosity = 48102.;
+					const double alpha = 48102.;
+					typename Traits::AnalyticalForceType analyticalForce( timeprovider_, currentFunctions.discreteVelocity() );
+					typename Traits::AnalyticalDirichletDataType analyticalDirichletData =
+							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+											::getInstance( timeprovider_,functionSpaceWrapper_ );
+
 					typename Traits::StokesModelType
 							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
 										analyticalForce,
 										analyticalDirichletData,
 										viscosity,
 										alpha );
-					StartPassType startPass;
-					StokesPassType stokesPass(  startPass,
-												stokesModel,
-												gridPart,
-												discreteStokesFunctionSpaceWrapper );
-					return stokesPass;
+					typename Traits::StokesStartPassType startPass;
+					return typename Traits::StokesPassType ( startPass,
+											stokesModel,//reference goes out-of-scope??
+											gridPart_,
+											functionSpaceWrapper_ );
 				}
 		};
 	}//end namespace NavierStokes
