@@ -144,49 +144,49 @@ void eocCheck( const RunInfoVector& runInfos );
  **/
 int main( int argc, char** argv )
 {
-  try{
+	try{
 
-	Dune::MPIManager::initialize(argc, argv);
-	//assert( Dune::Capabilities::isParallel< GridType >::v );
-	CollectiveCommunication mpicomm( Dune::MPIManager::helper().getCommunicator() );
+		Dune::MPIManager::initialize(argc, argv);
+		//assert( Dune::Capabilities::isParallel< GridType >::v );
+		CollectiveCommunication mpicomm( Dune::MPIManager::helper().getCommunicator() );
 
-	/* ********************************************************************** *
-	 * initialize all the stuff we need                                       *
-	 * ********************************************************************** */
-	if ( argc < 2 ) {
-		std::cerr << "\nUsage: " << argv[0] << " parameterfile \n" << "\n\t --- OR --- \n";
-		std::cerr << "\nUsage: " << argv[0] << " paramfile:"<<"file" << " more-opts:val ..." << std::endl;
-		std::cerr << "\nUsage: " << argv[0] << " -d paramfile "<< "\n\t(for displaying solutions in grape) "<< std::endl;
-		Parameters().PrintParameterSpecs( std::cerr );
-		std::cerr << std::endl;
-		return 2;
+		/* ********************************************************************** *
+		 * initialize all the stuff we need                                       *
+		 * ********************************************************************** */
+		if ( argc < 2 ) {
+			std::cerr << "\nUsage: " << argv[0] << " parameterfile \n" << "\n\t --- OR --- \n";
+			std::cerr << "\nUsage: " << argv[0] << " paramfile:"<<"file" << " more-opts:val ..." << std::endl;
+			std::cerr << "\nUsage: " << argv[0] << " -d paramfile "<< "\n\t(for displaying solutions in grape) "<< std::endl;
+			Parameters().PrintParameterSpecs( std::cerr );
+			std::cerr << std::endl;
+			return 2;
+		}
+		#if USE_GRPAE_VISUALISATION
+		if ( !strcmp( argv[1], "-d" ) || !strcmp( argv[1], "-r" ) ) {
+			return display( argc, argv );
+		}
+		#endif
+		if ( !(  Parameters().ReadCommandLine( argc, argv ) ) ) {
+			return 1;
+		}
+
+		// LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
+		//--> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_CONSOLE | LOG_FILE = 62
+		const bool useLogger = false;
+		Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
+						 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
+						 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
+						);
+
+		int err = 0;
+
+		profiler().Reset( 1 );
+		RunInfoVector rf;
+		rf.push_back(singleRun( mpicomm, Parameters().getParam( "minref", 0 ) ) );
+		profiler().Output( mpicomm, rf );
+		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
+		return err;
 	}
-#if USE_GRPAE_VISUALISATION
-	if ( !strcmp( argv[1], "-d" ) || !strcmp( argv[1], "-r" ) ) {
-		return display( argc, argv );
-	}
-#endif
-	if ( !(  Parameters().ReadCommandLine( argc, argv ) ) ) {
-		return 1;
-	}
-
-	// LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
-	//--> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_CONSOLE | LOG_FILE = 62
-	const bool useLogger = false;
-	Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
-					 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
-					 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
-					);
-
-	int err = 0;
-
-	profiler().Reset( 1 );
-	RunInfoVector rf;
-	rf.push_back(singleRun( mpicomm, Parameters().getParam( "minref", 0 ) ) );
-	profiler().Output( mpicomm, rf );
-	Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
-	return err;
-  }
 
 
 
@@ -287,7 +287,7 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
 			thetaScheme( gridPart );
-	thetaScheme.dummy();
+	thetaScheme.run();
 	info.run_time = profiler().GetTiming( "Pass -- APPLY" );
 //	stokesPass.getRuninfo( info );
 

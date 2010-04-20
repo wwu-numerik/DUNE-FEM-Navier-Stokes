@@ -74,20 +74,20 @@ namespace Dune {
 							 const double theta = 1 - std::pow( 2.0, -1/2.0 ),
 							 CommunicatorType comm = Dune::MPIManager::helper().getCommunicator()
 						)
-				: gridPart_( gridPart ),
-				theta_(theta),
-				operator_weight_alpha_( ( 1-2*theta_ ) / ( 1-theta_ ) ),
-				operator_weight_beta_( 1 - operator_weight_alpha_ ),
-				communicator_( comm ),
-				deltaTime_( Parameters().getParam( "deltaTime", 1e-2 ) ),
-	//			const double startTime	= Parameters().getParam( "startTime", 0.0 ),
-				timeprovider_( deltaTime_, theta_, communicator_ ),
-				functionSpaceWrapper_( gridPart_ )
+					: gridPart_( gridPart ),
+					theta_(theta),
+					operator_weight_alpha_( ( 1-2*theta_ ) / ( 1-theta_ ) ),
+					operator_weight_beta_( 1 - operator_weight_alpha_ ),
+					communicator_( comm ),
+					deltaTime_( Parameters().getParam( "deltaTime", 1e-2 ) ),
+		//			const double startTime	= Parameters().getParam( "startTime", 0.0 ),
+					timeprovider_( deltaTime_, theta_, communicator_ ),
+					functionSpaceWrapper_( gridPart_ )
 				{
 
 				}
 
-				void dummy ()
+				void run()
 				{
 					typename Traits::DiscreteStokesFunctionWrapperType
 						currentFunctions(  "current_",
@@ -97,6 +97,24 @@ namespace Dune {
 						nextFunctions(  "next_",
 											functionSpaceWrapper_,
 											gridPart_ );
+					const double viscosity = 48102.;
+					const double alpha = 48102.;
+					typename Traits::AnalyticalForceType stokesForce( timeprovider_, currentFunctions.discreteVelocity() );
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+											::getInstance( timeprovider_,functionSpaceWrapper_ );
+					typename Traits::StokesModelType
+							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+										stokesForce,
+										stokesDirichletData,
+										viscosity,
+										alpha );
+					typename Traits::StokesStartPassType stokesStartPass;
+					typename Traits::StokesPassType stokesPass( stokesStartPass,
+											stokesModel,//reference goes out-of-scope??
+											gridPart_,
+											functionSpaceWrapper_ );
+
 
 					timeprovider_.provideCflEstimate( 1 );
 					//not manually setting the delta in tp.nexxt() results in assertions cause TimepRoiver claims dt isn't valid ie unset..
@@ -106,29 +124,7 @@ namespace Dune {
 						for ( unsigned int i =0 ; i< 3 ; ++i, timeprovider_.nextFractional() )
 							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime() << std::endl;
 					}
-					getStokesPass(currentFunctions).apply(currentFunctions,nextFunctions);
-				}
-
-				typename Traits::StokesPassType getStokesPass( const typename Traits::DiscreteStokesFunctionWrapperType& currentFunctions )
-				{
-					const double viscosity = 48102.;
-					const double alpha = 48102.;
-					typename Traits::AnalyticalForceType analyticalForce( timeprovider_, currentFunctions.discreteVelocity() );
-					typename Traits::AnalyticalDirichletDataType analyticalDirichletData =
-							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-											::getInstance( timeprovider_,functionSpaceWrapper_ );
-
-					typename Traits::StokesModelType
-							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
-										analyticalForce,
-										analyticalDirichletData,
-										viscosity,
-										alpha );
-					typename Traits::StokesStartPassType startPass;
-					return typename Traits::StokesPassType ( startPass,
-											stokesModel,//reference goes out-of-scope??
-											gridPart_,
-											functionSpaceWrapper_ );
+					stokesPass.apply(currentFunctions,nextFunctions);
 				}
 		};
 	}//end namespace NavierStokes
