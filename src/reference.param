@@ -9,9 +9,11 @@ logfile: dune_stokes
 
 #path (relative to binary) where .vtu etc will be saved
 fem.io.datadir: data
+fem.prefix: data
 #path (relative to binary) where logs and matlab files will be saved
 fem.io.logdir: log
-fem.io.outputformat: 0
+#0: grape, 1: vtk,  2: vtkvtx, 3: gnuplot
+fem.io.outputformat: 2
 fem.io.datafileprefix: solu_
 fem.io.savestep: 0
 fem.io.savecount: 0
