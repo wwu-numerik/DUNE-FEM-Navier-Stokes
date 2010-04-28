@@ -80,6 +80,7 @@
 #include <dune/stuff/profiler.hh>
 
 #include <dune/navier/metadata.hh>
+#include <dune/navier/testdata.hh>
 
 #include "analyticaldata.hh"
 #include "velocity.hh"
@@ -144,7 +145,10 @@ void eocCheck( const RunInfoVector& runInfos );
  **/
 int main( int argc, char** argv )
 {
-	try{
+#ifdef NDEBUG
+	try
+#endif
+	{
 
 		Dune::MPIManager::initialize(argc, argv);
 		//assert( Dune::Capabilities::isParallel< GridType >::v );
@@ -189,7 +193,7 @@ int main( int argc, char** argv )
 	}
 
 
-
+#ifdef NDEBUG
   catch (Dune::Exception &e){
 	std::cerr << "Dune reported error: " << e << std::endl;
   }
@@ -204,8 +208,8 @@ int main( int argc, char** argv )
   catch (...){
 	std::cerr << "Unknown exception thrown!" << std::endl;
   }
+#endif
 }
-#include <dune/navier/testdata.hh>
 
 RunInfo singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
@@ -243,20 +247,7 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
 	const double alpha		= Parameters().getParam( "alpha", 0.0 );
 
-	// analytical data
-
 	// model traits
-	#if 0 //defined( AORTA_PROBLEM )
-	typedef Dune::NavierStokes::ThetaSchemeTraits<
-					GridPartType,
-					Force,
-					Dune::GeometryBasedBoundaryFunctionTraits<VariableDirichletData,FirstOrderBoundaryShapeFunction>,
-					gridDim,
-					polOrder,
-					VELOCITY_POLORDER,
-					PRESSURE_POLORDER >
-		ThetaSchemeTraitsType;
-	#else
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
 					GridPartType,
@@ -267,8 +258,6 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 					VELOCITY_POLORDER,
 					PRESSURE_POLORDER >
 		ThetaSchemeTraitsType;
-	#endif
-
 
 	info.codim0 = gridPtr->size( 0 );
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
@@ -298,14 +287,10 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 
 
 	profiler().StartTiming( "Problem/Postprocessing" );
+
 #if 0
-#if defined (AORTA_PROBLEM) || defined (COCKBURN_PROBLEM) || defined (GENRALIZED_STOKES_PROBLEM) //bool tpl-param toggles ana-solution output in post-proc
-	typedef Problem< gridDim, DiscreteStokesFunctionWrapperType, true, AnalyticalDirichletDataType >
+	typedef Problem< gridDim, ThetaSchemeTraitsType::DiscreteStokesFunctionWrapperType, true, ThetaSchemeTraitsType::AnalyticalDirichletDataType >
 		ProblemType;
-#else
-	typedef Problem< gridDim, DiscreteStokesFunctionWrapperType, false, AnalyticalDirichletDataType >
-		ProblemType;
-#endif
 	ProblemType problem( viscosity , computedSolutions, analyticalDirichletData );
 
 	typedef PostProcessor< StokesPassType, ProblemType >
