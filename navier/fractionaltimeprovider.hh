@@ -34,20 +34,34 @@ namespace Dune {
 					using BaseType :: dtUpperBound_;
 					using BaseType :: valid_;
 					using BaseType :: timeStep_;
+					const double startTime_;
+					const double endTime_;
 					const double theta_;
+					const double theta_alpha_;
+					const double theta_beta_;
 					StepType currentStepType_;
 
 				public:
-					FractionalTimeProvider ( const double startTime,
+					FractionalTimeProvider (
 								   const double theta,
+								   const double theta_alpha,
+								   const double theta_beta,
 								   const CommProvider &comm )
-					: BaseType( startTime,
-								Parameter :: getValidValue( "fem.timeprovider.factor", (double)1.0,
-																	   ValidateGreater< double >( 0.0 ) ),
-								comm ),
-					  theta_( theta ),
-					  currentStepType_( StokesStepA )
-					{}
+						: BaseType( comm ),
+						startTime_ ( Parameter :: getValue( "fem.timeprovider.starttime", //this is somewhat duplicated in empty basetype ctor
+															   (double)0.0 ) ),
+						endTime_ ( Parameter :: getValue( "fem.timeprovider.endtime",
+															   (double)1.0 ) ),
+						theta_( theta ),
+						theta_alpha_( theta_alpha ),
+						theta_beta_( theta_beta ),
+						currentStepType_( StokesStepA )
+					{
+						dt_ = Parameter :: getValidValue( "fem.timeprovider.dt",
+														 (double)0.1,
+														 ValidateGreater<double>(0.0) );
+						init( dt_ );
+					}
 
 					const double subTime( ) const
 					{
@@ -67,6 +81,11 @@ namespace Dune {
 						else
 							++currentStepType_;
 					}
+
+					const double alpha ()		const { return theta_alpha_;}
+					const double beta ()		const { return theta_beta_; }
+					const double startTime()	const { return startTime_;	}
+					const double endTime()		const { return endTime_;	}
 
 				protected:
 					void next ( const double timeStep )
