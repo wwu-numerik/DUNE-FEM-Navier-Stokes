@@ -15,8 +15,8 @@ fem.io.logdir: log
 #0: grape, 1: vtk,  2: vtkvtx, 3: gnuplot
 fem.io.outputformat: 2
 fem.io.datafileprefix: solu_
-fem.io.savestep: 0
-fem.io.savecount: 0
+fem.io.savestep: 1
+fem.io.savecount: 1
 fem.timeprovider.starttime: 0
 fem.timeprovider.endtime: 1
 fem.timeprovider.dt: 0.01

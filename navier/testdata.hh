@@ -177,7 +177,7 @@ namespace Dune {
 					   ~Velocity()
 					   {}
 
-					  void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+					  void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					  {
 						  Dune::CompileTimeChecker< ( dim_ == 3 ) > DirichletData_Unsuitable_WorldDim;
 						  VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
@@ -190,7 +190,7 @@ namespace Dune {
 						* \param  ret
 						*         value of dirichlet boundary data at given point
 						**/
-					  inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					  inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
 
 				  private:
 					  static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -233,7 +233,7 @@ namespace Dune {
 					   ~Pressure()
 					   {}
 
-					  void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+					  void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					  {
 						  Dune::CompileTimeChecker< ( dim_ == 3 ) > Pressure_Unsuitable_WorldDim;
 						  const double x		= arg[0];
@@ -265,7 +265,7 @@ namespace Dune {
 						* \param  ret
 						*         value of dirichlet boundary data at given point
 						**/
-					  inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					  inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
 
 				  private:
 					  static const int dim_ = FunctionSpaceImp::dimDomain ;

@@ -55,10 +55,6 @@ namespace Dune {
 			typedef CommunicatorImp
 				CommunicatorType;
 
-			typedef TimeAwareDataWriter<	TimeProviderType,
-											typename GridPartType::GridType,
-											typename DiscreteStokesFunctionWrapperType::Traits::FunctionTupleType >
-				DataWriterType;
 			typedef ExactPressureImp< typename StokesModelTraits::PressureFunctionSpaceType,
 									  TimeProviderType >
 				ExactPressureType;
@@ -71,6 +67,7 @@ namespace Dune {
 		class ExactSolution : public ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType {
 				typedef typename ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType
 					BaseType;
+
 				const typename ThetaSchemeTraitsType::TimeProviderType&
 						timeprovider_;
 				typename ThetaSchemeTraitsType::StokesModelTraits::PressureFunctionSpaceType
@@ -92,20 +89,57 @@ namespace Dune {
 					velocity_( timeprovider_, continousVelocitySpace_ ),
 					pressure_( timeprovider_, continousPressureSpace_ )
 				{
-
+					project();
 				}
 
+				void project() {
+					projectInto( velocity_, pressure_ );
+				}
+
+			public:
+				typedef typename BaseType::Traits::FunctionTupleType
+						FunctionTupleType;
+
+		};
+
+		template < class T1, class T2 >
+		struct TupleSerializer {
+			typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
+									const typename T1::DiscretePressureFunctionType*,
+									const typename T2::DiscreteVelocityFunctionType*,
+									const typename T2::DiscretePressureFunctionType* >
+				TupleType;
+
+			static TupleType& getTuple( T1& t1,
+										T2& t2 )
+			{
+				static TupleType t( &(t1.discreteVelocity()),
+									&(t1.discretePressure()),
+									&(t2.discreteVelocity()),
+									&(t2.discretePressure()) );
+				return t;
+			}
 		};
 
 		template < class TraitsImp >
 		class ThetaScheme {
 			protected:
 				typedef TraitsImp
-						Traits;
+					Traits;
 				typedef typename Traits::CommunicatorType
-						CommunicatorType;
+					CommunicatorType;
 				typedef ExactSolution<Traits>
-						ExactSolutionType;
+					ExactSolutionType;
+				typedef TupleSerializer< typename Traits::DiscreteStokesFunctionWrapperType,
+										 ExactSolutionType >
+					TupleSerializerType;
+				typedef typename TupleSerializerType::TupleType
+					OutputTupleType;
+				typedef TimeAwareDataWriter<	typename Traits::TimeProviderType,
+												typename Traits::GridPartType::GridType,
+												OutputTupleType >
+					DataWriterType;
+
 				CommunicatorType& communicator_;
 				const double theta_;
 				const double operator_weight_alpha_;
@@ -116,7 +150,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				ExactSolutionType exactSolution_;
-				typename Traits::DataWriterType dataWriter_;
+				DataWriterType dataWriter_;
 
 			public:
 				ThetaScheme( typename Traits::GridPartType gridPart,
@@ -141,7 +175,10 @@ namespace Dune {
 									functionSpaceWrapper_ ),
 					dataWriter_( timeprovider_,
 								 gridPart_.grid(),
-								 nextFunctions_.functionTuple() )
+								 TupleSerializerType::getTuple(
+										 nextFunctions_,
+										 exactSolution_ )
+								)
 				{}
 
 				void run()
@@ -169,6 +206,7 @@ namespace Dune {
 					{
 						for ( unsigned int i =0 ; i< 3 ; ++i, timeprovider_.nextFractional() )
 							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime() << std::endl;
+						exactSolution_.project();
 						dataWriter_.write();
 					}
 //					stokesPass.apply(currentFunctions_,nextFunctions_);
