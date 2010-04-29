@@ -10,8 +10,8 @@ namespace Dune {
 		namespace StokesStep {
 			template <	class TimeProviderType,
 						class GridPartImp,
-						template <class > class AnalyticalForceImp,
-						template <class > class AnalyticalDirichletDataImp,
+						template < class > class AnalyticalForceImp,
+						template < class > class AnalyticalDirichletDataImp,
 						int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 			class DiscreteStokesModelTraits
 			{

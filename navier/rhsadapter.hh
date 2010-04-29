@@ -25,7 +25,7 @@ namespace Dune {
 										  const VelocityDiscreteFunctionType& velocity )
 						: BaseType( velocity.space() ),
 						timeProvider_( timeProvider ),
-						force_(0.0 /*visc*/, velocity.space()),
+						force_( 0.0 /*visc*/, velocity.space()),
 						velocity_( velocity )
 					{}
 
@@ -65,7 +65,7 @@ namespace Dune {
 										  const typename AnalyticalDirichletType::FunctionSpaceType space )
 						: BaseType( space ),
 						timeProvider_( timeProvider ),
-						gd_(space)
+						gd_( space )
 					{}
 
 					template < class IntersectionIteratorType >

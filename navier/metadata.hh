@@ -16,12 +16,14 @@ namespace Dune {
 					class GridPartImp,
 					template < class > class AnalyticalForceImp,
 					template < class > class AnalyticalDirichletDataImp,
+					template < class,class > class ExactPressureImp,
+					template < class,class > class ExactVelocityImp,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		struct ThetaSchemeTraits {
 			typedef GridPartImp
-					GridPartType;
+				GridPartType;
 			typedef FractionalTimeProvider<CommunicatorImp>
-					TimeProviderType;
+				TimeProviderType;
 
 			typedef StokesStep::DiscreteStokesModelTraits<
 						TimeProviderType,
@@ -34,7 +36,7 @@ namespace Dune {
 						pressureOrder >
 					StokesModelTraits;
 			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
-					StokesModelType;
+				StokesModelType;
 			typedef typename StokesModelTraits::DiscreteStokesFunctionSpaceWrapperType
 				DiscreteStokesFunctionSpaceWrapperType;
 
@@ -51,12 +53,48 @@ namespace Dune {
 				StokesPassType;
 
 			typedef CommunicatorImp
-					CommunicatorType;
+				CommunicatorType;
 
 			typedef TimeAwareDataWriter<	TimeProviderType,
-								typename GridPartType::GridType,
-								typename DiscreteStokesFunctionWrapperType::Traits::FunctionTupleType >
-					DataWriterType;
+											typename GridPartType::GridType,
+											typename DiscreteStokesFunctionWrapperType::Traits::FunctionTupleType >
+				DataWriterType;
+			typedef ExactPressureImp< typename StokesModelTraits::PressureFunctionSpaceType,
+									  TimeProviderType >
+				ExactPressureType;
+			typedef ExactVelocityImp< typename StokesModelTraits::VelocityFunctionSpaceType,
+									  TimeProviderType >
+				ExactVelocityType;
+		};
+
+		template < class ThetaSchemeTraitsType >
+		class ExactSolution : public ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType {
+				typedef typename ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType
+					BaseType;
+				const typename ThetaSchemeTraitsType::TimeProviderType&
+						timeprovider_;
+				typename ThetaSchemeTraitsType::StokesModelTraits::PressureFunctionSpaceType
+						continousPressureSpace_;
+				typename ThetaSchemeTraitsType::StokesModelTraits::VelocityFunctionSpaceType
+						continousVelocitySpace_;
+				const typename ThetaSchemeTraitsType::ExactVelocityType
+						velocity_;
+				const typename ThetaSchemeTraitsType::ExactPressureType
+						pressure_;
+			public:
+				ExactSolution(	const typename ThetaSchemeTraitsType::TimeProviderType& timeprovider,
+								typename ThetaSchemeTraitsType::GridPartType& gridPart,
+							  typename ThetaSchemeTraitsType::DiscreteStokesFunctionSpaceWrapperType& space_wrapper)
+					: BaseType( "exact",
+								space_wrapper,
+								gridPart ),
+					timeprovider_( timeprovider ),
+					velocity_( timeprovider_, continousVelocitySpace_ ),
+					pressure_( timeprovider_, continousPressureSpace_ )
+				{
+
+				}
+
 		};
 
 		template < class TraitsImp >
@@ -66,6 +104,8 @@ namespace Dune {
 						Traits;
 				typedef typename Traits::CommunicatorType
 						CommunicatorType;
+				typedef ExactSolution<Traits>
+						ExactSolutionType;
 				CommunicatorType& communicator_;
 				const double theta_;
 				const double operator_weight_alpha_;
@@ -75,6 +115,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
 				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
+				ExactSolutionType exactSolution_;
 				typename Traits::DataWriterType dataWriter_;
 
 			public:
@@ -95,10 +136,13 @@ namespace Dune {
 					nextFunctions_(  "next_",
 									functionSpaceWrapper_,
 									gridPart_ ),
-					dataWriter_( timeprovider_, gridPart_.grid(), nextFunctions_.functionTuple() )
-				{
-
-				}
+					exactSolution_( timeprovider_,
+									gridPart_,
+									functionSpaceWrapper_ ),
+					dataWriter_( timeprovider_,
+								 gridPart_.grid(),
+								 nextFunctions_.functionTuple() )
+				{}
 
 				void run()
 				{
