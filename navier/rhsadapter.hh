@@ -17,9 +17,9 @@ namespace Dune {
 							ThisType;
 					typedef Function< typename AnalyticalForceType::FunctionSpaceType, ThisType >
 							BaseType;
+					const TimeProviderType& timeProvider_;
 					const AnalyticalForceType force_;
 					const VelocityDiscreteFunctionType& velocity_;
-					const TimeProviderType& timeProvider_;
 				public:
 					ForceAdapterFunction( const TimeProviderType& timeProvider,
 										  const VelocityDiscreteFunctionType& velocity )
@@ -58,8 +58,8 @@ namespace Dune {
 							ThisType;
 					typedef Function< typename AnalyticalDirichletType::FunctionSpaceType, ThisType >
 							BaseType;
-					const AnalyticalDirichletType gd_;
 					const TimeProviderType& timeProvider_;
+					const AnalyticalDirichletType gd_;
 				public:
 					DirichletAdapterFunction( const TimeProviderType& timeProvider,
 										  const typename AnalyticalDirichletType::FunctionSpaceType space )

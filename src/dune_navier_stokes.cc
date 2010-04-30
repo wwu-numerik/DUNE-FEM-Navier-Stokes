@@ -79,7 +79,7 @@
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 
-#include <dune/navier/metadata.hh>
+#include <dune/navier/thetascheme.hh>
 #include <dune/navier/testdata.hh>
 
 #include "analyticaldata.hh"
