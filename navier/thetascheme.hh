@@ -140,11 +140,11 @@ namespace Dune {
 												OutputTupleType >
 					DataWriterType;
 
-				CommunicatorType& communicator_;
+				typename Traits::GridPartType gridPart_;
 				const double theta_;
 				const double operator_weight_alpha_;
 				const double operator_weight_beta_;
-				typename Traits::GridPartType gridPart_;
+				CommunicatorType& communicator_;
 				typename Traits::TimeProviderType timeprovider_;
 				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
 				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
