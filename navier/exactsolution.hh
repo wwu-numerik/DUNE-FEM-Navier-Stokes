@@ -4,8 +4,11 @@
 namespace Dune {
 	namespace NavierStokes {
 
-		template < class ThetaSchemeTraitsType >
-		class ExactSolution : public ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType {
+		template < class ThetaSchemeTraitsImp >
+		class ExactSolution : public ThetaSchemeTraitsImp ::DiscreteStokesFunctionWrapperType {
+
+				typedef ThetaSchemeTraitsImp
+					ThetaSchemeTraitsType;
 				typedef typename ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType
 					BaseType;
 
@@ -22,7 +25,7 @@ namespace Dune {
 			public:
 				ExactSolution(	const typename ThetaSchemeTraitsType::TimeProviderType& timeprovider,
 								typename ThetaSchemeTraitsType::GridPartType& gridPart,
-							  typename ThetaSchemeTraitsType::DiscreteStokesFunctionSpaceWrapperType& space_wrapper)
+								typename ThetaSchemeTraitsType::DiscreteStokesFunctionSpaceWrapperType& space_wrapper)
 					: BaseType( "exact",
 								space_wrapper,
 								gridPart ),
@@ -35,6 +38,16 @@ namespace Dune {
 
 				void project() {
 					projectInto( velocity_, pressure_ );
+				}
+
+				const typename ThetaSchemeTraitsType::ExactVelocityType& exactVelocity() const
+				{
+					return velocity_;
+				}
+
+				const typename ThetaSchemeTraitsType::ExactPressureType& exactPressure() const
+				{
+					return pressure_;
 				}
 
 			public:

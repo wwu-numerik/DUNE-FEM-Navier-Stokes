@@ -244,8 +244,6 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
-	const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
-	const double alpha		= Parameters().getParam( "alpha", 0.0 );
 
 	// model traits
 	typedef Dune::NavierStokes::ThetaSchemeTraits<

@@ -55,7 +55,7 @@ domain_shift_y: -1.0
 runtype: 0
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 0
+minref: 4
 maxref: 10
 
 #in runtype 1 vary

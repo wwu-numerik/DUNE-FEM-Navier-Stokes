@@ -145,9 +145,11 @@ namespace Dune {
 
 				void run()
 				{
-					currentFunctions_.clear(); //actually load initial velocity/pressure
-					const double viscosity = 48102.;
-					const double alpha = 48102.;
+					//initial flow field
+					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
+
+					const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
+					const double alpha		= Parameters().getParam( "alpha", 0.0 );
 					typename Traits::AnalyticalForceType stokesForce( timeprovider_, currentFunctions_.discreteVelocity() );
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
