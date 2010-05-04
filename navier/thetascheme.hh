@@ -5,6 +5,7 @@
 #include <dune/stokes/stokespass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
+#include <dune/navier/exactsolution.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/common/collectivecommunication.hh>
@@ -61,45 +62,6 @@ namespace Dune {
 			typedef ExactVelocityImp< typename StokesModelTraits::VelocityFunctionSpaceType,
 									  TimeProviderType >
 				ExactVelocityType;
-		};
-
-		template < class ThetaSchemeTraitsType >
-		class ExactSolution : public ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType {
-				typedef typename ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType
-					BaseType;
-
-				const typename ThetaSchemeTraitsType::TimeProviderType&
-						timeprovider_;
-				typename ThetaSchemeTraitsType::StokesModelTraits::PressureFunctionSpaceType
-						continousPressureSpace_;
-				typename ThetaSchemeTraitsType::StokesModelTraits::VelocityFunctionSpaceType
-						continousVelocitySpace_;
-				const typename ThetaSchemeTraitsType::ExactVelocityType
-						velocity_;
-				const typename ThetaSchemeTraitsType::ExactPressureType
-						pressure_;
-			public:
-				ExactSolution(	const typename ThetaSchemeTraitsType::TimeProviderType& timeprovider,
-								typename ThetaSchemeTraitsType::GridPartType& gridPart,
-							  typename ThetaSchemeTraitsType::DiscreteStokesFunctionSpaceWrapperType& space_wrapper)
-					: BaseType( "exact",
-								space_wrapper,
-								gridPart ),
-					timeprovider_( timeprovider ),
-					velocity_( timeprovider_, continousVelocitySpace_ ),
-					pressure_( timeprovider_, continousPressureSpace_ )
-				{
-					project();
-				}
-
-				void project() {
-					projectInto( velocity_, pressure_ );
-				}
-
-			public:
-				typedef typename BaseType::Traits::FunctionTupleType
-						FunctionTupleType;
-
 		};
 
 		template < class T1, class T2 >
