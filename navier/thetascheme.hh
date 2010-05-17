@@ -159,7 +159,9 @@ namespace Dune {
 										stokesForce,
 										stokesDirichletData,
 										viscosity,
-										alpha );
+										alpha,
+										&currentFunctions_.discreteVelocity(),
+										&currentFunctions_.discreteVelocity() );
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::StokesPassType stokesPass( stokesStartPass,
 											stokesModel,

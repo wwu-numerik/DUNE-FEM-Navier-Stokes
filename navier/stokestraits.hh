@@ -118,6 +118,8 @@ namespace Dune {
 					typedef typename AnalyticalDirichletDataTraitsImplementation::AnalyticalDirichletDataType
 						AnalyticalDirichletDataType;
 
+					typedef DiscreteVelocityFunctionType
+						ExtraDataDiscreteFunctionType;
 					/**
 					 *  \name   types needed for the pass
 					 *  \{
