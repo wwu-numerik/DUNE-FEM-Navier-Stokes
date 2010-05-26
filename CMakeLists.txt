@@ -131,7 +131,7 @@ SET(dune-navier-stokesSrc
 )
 
 FILE( GLOB header "src/*.hh" )
-FILE( GLOB navier "navier/*" )
+FILE( GLOB_RECURSE navier "navier/*.hh" )
 FILE( GLOB stokes "../dune-stokes/stokes/*.hh" )
 FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
