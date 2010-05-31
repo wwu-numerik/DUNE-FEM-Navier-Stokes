@@ -1,5 +1,5 @@
-#ifndef MODELS_HH
-#define MODELS_HH
+#ifndef DUNE_NAVIERSTOKES_NONLINEAR_MODELS_HH
+#define DUNE_NAVIERSTOKES_NONLINEAR_MODELS_HH
 
 #include <dune/grid/io/file/dgfparser/dgfgridtype.hh>
 #include <dune/fem/gridpart/gridpart.hh>

@@ -1,5 +1,5 @@
-#ifndef DISCRETEMODELS_HH
-#define DISCRETEMODELS_HH
+#ifndef DUNE_NAVIERSTOKES_NONLINEAR_DISCRETEMODELS_HH
+#define DUNE_NAVIERSTOKES_NONLINEAR_DISCRETEMODELS_HH
 
 #include <dune/fem/pass/dgpass.hh>
 #include <dune/fem/pass/discretemodel.hh>

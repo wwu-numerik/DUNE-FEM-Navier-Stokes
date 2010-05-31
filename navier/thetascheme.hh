@@ -179,6 +179,9 @@ namespace Dune {
 						unsigned int eocId =90;
 						const int verbose_ = 1;
 						typename NonlinearTraits::ODEType * odeptr = new typename NonlinearTraits::ODEType( dg_, timeprovider_, 1, verbose_ );
+						typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
+						odeptr->initialize( vl );
+						odeptr->solve(currentFunctions_.discreteVelocity());
 						double cfl_ = 0.1;
 
 					}

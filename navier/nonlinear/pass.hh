@@ -1,5 +1,5 @@
-#ifndef PASS_HH
-#define PASS_HH
+#ifndef DUNE_NAVIERSTOKES_NONLINEAR_PASS_HH
+#define DUNE_NAVIERSTOKES_NONLINEAR_PASS_HH
 
 #include <map>
 
