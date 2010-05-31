@@ -16,7 +16,7 @@ namespace Dune {
 	}//end namespace NavierStokes
 }//end namespace Dune
 
-#include "advectdiff.hh"
+#include "dgoperator.hh"
 
 #include "problem.hh"
 
@@ -335,25 +335,23 @@ namespace Dune {
 			/************************************************/  /*@LST0@*/
 			/* Definition of model and solver                *
 			 ************************************************/
+			template < class GridPartImp >
+			struct Traits {
 
+				// The initial function u_0 and the exact solution
+				typedef U0<typename GridPartImp::GridType> InitialDataType;
+				// An analytical version of our model
+				typedef AdvectionDiffusionModel<GridPartImp, InitialDataType> ModelType;
+				// The flux for the discretization of advection terms
+				typedef UpwindFlux<ModelType> FluxType;
+				// The DG Operator (using 2 Passes)
+				typedef DGAdvectionDiffusionOperator<ModelType,UpwindFlux,order> DgType;
+				// The ODE Solver
+				typedef DuneODE::ExplicitRungeKuttaSolver<typename DgType::DestinationType> ODEType;
 
-			// Choose a suitable GridView
-			typedef Dune::LeafGridPart<GridType> GridPartType;
-
-			// The initial function u_0 and the exact solution
-			typedef U0<GridType> InitialDataType;
-			// An analytical version of our model
-			typedef AdvectionDiffusionModel<GridPartType, InitialDataType> ModelType;
-			// The flux for the discretization of advection terms
-			typedef UpwindFlux<ModelType> FluxType;
-			// The DG Operator (using 2 Passes)
-			typedef DGAdvectionDiffusionOperator<ModelType,UpwindFlux,order> DgType;
-			// The ODE Solver
-			typedef DuneODE::ExplicitRungeKuttaSolver<DgType::DestinationType> ODEType;
-
-			// This is needed for the dataWriter that can write solutions to harddisk.
-			typedef Tuple< DgType :: DestinationType * > IOTupleType;  /*@LST1@*/
-
+				// This is needed for the dataWriter that can write solutions to harddisk.
+				typedef Tuple< typename DgType :: DestinationType * > IOTupleType;  /*@LST1@*/
+			};
 
 		}//end namespace NonlinearStep
 	}//end namespace NavierStokes

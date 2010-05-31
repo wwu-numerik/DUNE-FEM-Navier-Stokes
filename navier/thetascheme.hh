@@ -6,6 +6,7 @@
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
+#include <dune/navier/nonlinear/models.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/common/collectivecommunication.hh>
@@ -167,6 +168,20 @@ namespace Dune {
 											stokesModel,
 											gridPart_,
 											functionSpaceWrapper_ );
+					{//loca;dg test
+						typedef NonlinearStep::Traits<typename Traits::GridPartType>
+							NonlinearTraits;
+						typename NonlinearTraits::InitialDataType problem_;
+						typename NonlinearTraits::ModelType model_( problem_ );
+						// Initial flux for advection discretization (UpwindFlux)
+						typename NonlinearTraits::FluxType convectionFlux_( model_ );
+						typename NonlinearTraits::DgType dg_( gridPart_.grid(), convectionFlux_ );
+						unsigned int eocId =90;
+						const int verbose_ = 1;
+						typename NonlinearTraits::ODEType * odeptr = new typename NonlinearTraits::ODEType( dg_, timeprovider_, 1, verbose_ );
+						double cfl_ = 0.1;
+
+					}
 
 					for( timeprovider_.init( timeprovider_.deltaT() ); timeprovider_.time() < timeprovider_.endTime(); )
 					{

@@ -10,7 +10,7 @@ namespace Dune {
 		typedef unsigned int
 				StepType;
 		const StepType StokesStepA		= 0;
-		const StepType NonlinearStep	= 1;
+		const StepType NonlinearStepID	= 1;
 		const StepType StokesStepB		= 2;
 
 		template< class CommProvider = DefaultCollectiveCommunicationType >
@@ -68,7 +68,7 @@ namespace Dune {
 						switch ( currentStepType_ ) {
 							case StokesStepA:
 							default: return time();
-							case NonlinearStep: return time()+ deltaT() * theta_ ;
+							case NonlinearStepID: return time()+ deltaT() * theta_ ;
 							case StokesStepB: return time()+ deltaT() * (1 - theta_);
 						}
 					}
