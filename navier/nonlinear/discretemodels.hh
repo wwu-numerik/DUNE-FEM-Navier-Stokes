@@ -40,21 +40,28 @@ namespace Dune {
 			template <class Model,int dimRange,int polOrd>
 			class PassTraits {
 			public:
-			  typedef typename Model::Traits ModelTraits;
-			  typedef typename ModelTraits::GridPartType GridPartType;
-			  typedef typename GridPartType :: GridType GridType;
+			  typedef typename Model::Traits
+					ModelTraits;
+			  typedef typename ModelTraits::ThetaSchemeTraits
+					ThetaSchemeTraits;
+			  typedef typename ModelTraits::GridPartType
+					GridPartType;
+			  typedef typename GridPartType :: GridType
+					GridType;
 			  enum { dimDomain = Model::Traits::dimDomain };
 
 			  typedef CachingQuadrature<GridPartType,0> VolumeQuadratureType;
 			  typedef CachingQuadrature<GridPartType,1> FaceQuadratureType;
 
-			  typedef FunctionSpace<double, double, dimDomain, 1> FunctionSpaceType;
-			  typedef DiscontinuousGalerkinSpace<FunctionSpaceType, GridPartType,
-						 polOrd,CachingStorage> SingleDiscreteFunctionSpaceType;
-			  // Allow generalization to systems
-			  typedef CombinedSpace<SingleDiscreteFunctionSpaceType, dimRange>
+//			  typedef FunctionSpace<double, double, dimDomain, 1>
+				typedef typename ThetaSchemeTraits::StokesModelTraits::VelocityFunctionSpaceType
+					  FunctionSpaceType;
+
+				typedef typename ThetaSchemeTraits::StokesModelTraits::DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType
 					  DiscreteFunctionSpaceType;
-			  typedef AdaptiveDiscreteFunction<DiscreteFunctionSpaceType> DestinationType;
+
+				typedef typename ThetaSchemeTraits::StokesModelTraits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
+					  DestinationType;
 			};
 
 			/*********************************************

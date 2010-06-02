@@ -27,24 +27,38 @@ namespace Dune {
 			/**
 			 * @brief Traits class for AdvectionDiffusionModel
 			 */
-			template <class GridPart,int dimRange2,
-					 int dimRange1=dimRange2* GridPart::GridType::dimensionworld>
+			template <class ThetaSchemeTraitsImp,int dimRange2,
+					 int dimRange1 >
 			class AdvDiffModelTraits {
 			public:
-			  typedef GridPart GridPartType;
-			  typedef typename GridPartType :: GridType GridType;
+				typedef ThetaSchemeTraitsImp
+					ThetaSchemeTraits;
+				typedef typename ThetaSchemeTraits::GridPartType
+					GridPartType;
+				typedef typename GridPartType :: GridType
+					GridType;
+
 			  enum { dimDomain = GridType::dimensionworld };
 			  enum { dimRange = dimRange2, dimGradRange = dimRange1 };
+
 			  // Definition of domain and range types
-			  typedef FieldVector<double, dimDomain> DomainType;
-			  typedef FieldVector<double, dimDomain-1> FaceDomainType;
-			  typedef FieldVector<double,dimRange> RangeType;
-			  typedef FieldVector<double,dimGradRange> GradientType;
+			  typedef FieldVector<double, dimDomain>
+					DomainType;
+			  typedef FieldVector<double, dimDomain-1>
+					FaceDomainType;
+			  typedef FieldVector<double,dimRange>
+					RangeType;
+			  typedef FieldVector<double,dimGradRange>
+					GradientType;
 			  // ATTENTION: These are matrices (c.f. AdvectionDiffusionModel)
-			  typedef FieldMatrix<double,dimRange,dimDomain> FluxRangeType;
-			  typedef FieldMatrix<double,dimGradRange,dimDomain> DiffusionRangeType;
-			  typedef typename GridPartType::IntersectionIteratorType IntersectionIterator;
-			  typedef typename GridType::template Codim<0>::Entity EntityType;
+			  typedef FieldMatrix<double,dimRange,dimDomain>
+					FluxRangeType;
+			  typedef FieldMatrix<double,dimGradRange,dimDomain>
+					DiffusionRangeType;
+			  typedef typename GridPartType::IntersectionIteratorType
+					IntersectionIterator;
+			  typedef typename GridType::template Codim<0>::Entity
+					EntityType;
 			};
 
 			/**
@@ -74,14 +88,14 @@ namespace Dune {
 			 * @param GridPart GridPart for extraction of dimension
 			 * @param ProblemType Class describing the initial(t=0) and exact solution
 			 */
-			template <class GridPartType,class ProblemType>
+			template <class ThetaSchemeTraitsImp,class ProblemType>
 			class AdvectionDiffusionModel {
 			 public:
 			  enum { ConstantVelocity = ProblemType :: ConstantVelocity };
-			  typedef typename GridPartType :: GridType GridType;
+			  typedef typename ThetaSchemeTraitsImp::GridPartType :: GridType GridType;
 			  enum { dimDomain = GridType::dimensionworld };
 			  enum { dimRange = 1};
-			  typedef AdvDiffModelTraits<GridPartType,dimRange,dimRange*dimDomain> Traits;
+			  typedef AdvDiffModelTraits<ThetaSchemeTraitsImp,dimRange,dimRange*dimDomain> Traits;
 			  typedef typename Traits::DomainType DomainType;
 			  typedef typename Traits::RangeType RangeType;
 			  typedef typename Traits::GradientType GradientType;
@@ -335,13 +349,13 @@ namespace Dune {
 			/************************************************/  /*@LST0@*/
 			/* Definition of model and solver                *
 			 ************************************************/
-			template < class GridPartImp >
+			template < class ThetaSchemeTraits >
 			struct Traits {
 
 				// The initial function u_0 and the exact solution
-				typedef U0<typename GridPartImp::GridType> InitialDataType;
+				typedef U0<typename ThetaSchemeTraits::GridPartType::GridType> InitialDataType;
 				// An analytical version of our model
-				typedef AdvectionDiffusionModel<GridPartImp, InitialDataType> ModelType;
+				typedef AdvectionDiffusionModel<ThetaSchemeTraits, InitialDataType> ModelType;
 				// The flux for the discretization of advection terms
 				typedef UpwindFlux<ModelType> FluxType;
 				// The DG Operator (using 2 Passes)

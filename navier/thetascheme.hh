@@ -169,7 +169,7 @@ namespace Dune {
 											gridPart_,
 											functionSpaceWrapper_ );
 					{//loca;dg test
-						typedef NonlinearStep::Traits<typename Traits::GridPartType>
+						typedef NonlinearStep::Traits<Traits>
 							NonlinearTraits;
 						typename NonlinearTraits::InitialDataType problem_;
 						typename NonlinearTraits::ModelType model_( problem_ );
