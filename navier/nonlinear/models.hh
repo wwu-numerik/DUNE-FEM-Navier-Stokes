@@ -27,8 +27,7 @@ namespace Dune {
 			/**
 			 * @brief Traits class for AdvectionDiffusionModel
 			 */
-			template <class ThetaSchemeTraitsImp,int dimRange2,
-					 int dimRange1 >
+			template <class ThetaSchemeTraitsImp >
 			class AdvDiffModelTraits {
 			public:
 				typedef ThetaSchemeTraitsImp

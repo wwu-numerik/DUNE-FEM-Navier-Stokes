@@ -50,8 +50,6 @@ namespace Dune {
 					GridType;
 			  enum { dimDomain = Model::Traits::dimDomain };
 
-			  typedef CachingQuadrature<GridPartType,0> VolumeQuadratureType;
-			  typedef CachingQuadrature<GridPartType,1> FaceQuadratureType;
 
 //			  typedef FunctionSpace<double, double, dimDomain, 1>
 				typedef typename ThetaSchemeTraits::StokesModelTraits::VelocityFunctionSpaceType
