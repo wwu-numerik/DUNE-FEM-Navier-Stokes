@@ -26,7 +26,7 @@ namespace Dune {
 			template <class Model,template<class M> class NumFlux,int polOrd >
 			class DGAdvectionDiffusionOperator :
 			  public SpaceOperatorInterface<
-			  typename PassTraits<Model, Model::Traits::dimRange, polOrd>::DestinationType>
+			  typename PassTraits<Model>::DestinationType>
 			  {
 			public:
 			  // Id's for the three Passes (including StartPass)

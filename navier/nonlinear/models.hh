@@ -37,23 +37,32 @@ namespace Dune {
 				typedef typename GridPartType :: GridType
 					GridType;
 
-			  enum { dimDomain = GridType::dimensionworld };
-			  enum { dimRange = dimRange2, dimGradRange = dimRange1 };
+				typedef typename ThetaSchemeTraits::StokesModelTraits::DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType
+					  DiscreteFunctionSpaceType;
+
+
+			  enum { dimDomain = DiscreteFunctionSpaceType::dimDomain };
+			  enum { dimRange = DiscreteFunctionSpaceType::dimRange };
+//			  enum { dimGradRange =  DiscreteFunctionSpaceType::RangeType::dimension};
+			  enum { dimGradRange = dimRange*dimDomain };
 
 			  // Definition of domain and range types
-			  typedef FieldVector<double, dimDomain>
+				typedef typename DiscreteFunctionSpaceType::DomainType
 					DomainType;
-			  typedef FieldVector<double, dimDomain-1>
-					FaceDomainType;
-			  typedef FieldVector<double,dimRange>
+			  typedef typename DiscreteFunctionSpaceType::RangeType
 					RangeType;
-			  typedef FieldVector<double,dimGradRange>
+			  typedef typename DiscreteFunctionSpaceType::JacobianRangeType
 					GradientType;
+//			  typedef FieldVector<typename DiscreteFunctionSpaceType::DomainFieldType, typename GridType::template Codim<1>::Entity::mydimension>
+			  typedef FieldVector<typename DiscreteFunctionSpaceType::DomainFieldType, dimDomain - 1>
+					FaceDomainType;
+
 			  // ATTENTION: These are matrices (c.f. AdvectionDiffusionModel)
 			  typedef FieldMatrix<double,dimRange,dimDomain>
 					FluxRangeType;
 			  typedef FieldMatrix<double,dimGradRange,dimDomain>
 					DiffusionRangeType;
+
 			  typedef typename GridPartType::IntersectionIteratorType
 					IntersectionIterator;
 			  typedef typename GridType::template Codim<0>::Entity
@@ -94,7 +103,7 @@ namespace Dune {
 			  typedef typename ThetaSchemeTraitsImp::GridPartType :: GridType GridType;
 			  enum { dimDomain = GridType::dimensionworld };
 			  enum { dimRange = 1};
-			  typedef AdvDiffModelTraits<ThetaSchemeTraitsImp,dimRange,dimRange*dimDomain> Traits;
+			  typedef AdvDiffModelTraits<ThetaSchemeTraitsImp> Traits;
 			  typedef typename Traits::DomainType DomainType;
 			  typedef typename Traits::RangeType RangeType;
 			  typedef typename Traits::GradientType GradientType;

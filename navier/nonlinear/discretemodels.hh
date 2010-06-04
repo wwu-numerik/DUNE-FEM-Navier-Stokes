@@ -37,7 +37,7 @@ namespace Dune {
 
 
 			// General Traits class
-			template <class Model,int dimRange,int polOrd>
+			template <class Model>
 			class PassTraits {
 			public:
 			  typedef typename Model::Traits
@@ -60,6 +60,11 @@ namespace Dune {
 
 				typedef typename ThetaSchemeTraits::StokesModelTraits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
 					  DestinationType;
+
+				typedef typename ThetaSchemeTraits::StokesModelTraits::VolumeQuadratureType
+					  VolumeQuadratureType;
+				typedef typename ThetaSchemeTraits::StokesModelTraits::FaceQuadratureType
+					  FaceQuadratureType;
 			};
 
 			/*********************************************
@@ -74,7 +79,7 @@ namespace Dune {
 			  enum { dimRange = ModelTraits::dimGradRange };
 			  enum { dimDomain = ModelTraits::dimDomain };
 
-			  typedef PassTraits<Model,dimRange,polOrd> Traits;
+			  typedef PassTraits<Model> Traits;
 			  typedef typename Traits::FunctionSpaceType FunctionSpaceType;
 
 			  typedef typename Traits::VolumeQuadratureType VolumeQuadratureType;
@@ -102,7 +107,7 @@ namespace Dune {
 			  enum { dimRange = ModelTraits::dimRange };
 			  enum { dimDomain = ModelTraits::dimDomain };
 
-			  typedef PassTraits<Model,dimRange,polOrd> Traits;
+			  typedef PassTraits<Model> Traits;
 			  typedef typename Traits::FunctionSpaceType FunctionSpaceType;
 
 			  typedef typename Traits::VolumeQuadratureType VolumeQuadratureType;
