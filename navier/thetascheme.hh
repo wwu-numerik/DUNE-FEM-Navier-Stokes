@@ -181,11 +181,16 @@ namespace Dune {
 						typename NonlinearTraits::ODEType * odeptr = new typename NonlinearTraits::ODEType( dg_, timeprovider_, 1, verbose_ );
 //						typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
 						typename NonlinearTraits:: DgType :: SpaceType  sp(gridPart_);
-						typename NonlinearTraits:: DgType :: DestinationType v1	("de",sp);
+						typedef typename NonlinearTraits:: DgType :: DestinationType
+							NonLinearVelocityType;
+						NonLinearVelocityType nonlinear_velocity("de",sp);
 
-						odeptr->initialize( v1 );
-						odeptr->solve(v1);
+						odeptr->initialize( nonlinear_velocity );
+						odeptr->solve(nonlinear_velocity);
 						double cfl_ = 0.1;
+						L2Projection< double, double,                         /*@\label{dg:l2pro0}@*/
+						NonLinearVelocityType, typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType  > l2pro(2);
+							  l2pro(nonlinear_velocity, currentFunctions_.discreteVelocity());
 
 					}
 
