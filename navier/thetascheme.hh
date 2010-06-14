@@ -9,6 +9,7 @@
 #include <dune/navier/nonlinear/models.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
+#include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
 
@@ -188,9 +189,10 @@ namespace Dune {
 						odeptr->initialize( nonlinear_velocity );
 						odeptr->solve(nonlinear_velocity);
 						double cfl_ = 0.1;
-						L2Projection< double, double,                         /*@\label{dg:l2pro0}@*/
-						NonLinearVelocityType, typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType  > l2pro(2);
-							  l2pro(nonlinear_velocity, currentFunctions_.discreteVelocity());
+//						L2Projection< double, double,                         /*@\label{dg:l2pro0}@*/
+//						NonLinearVelocityType, typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType  > l2pro(2);
+						Dune::BetterL2Projection::project( nonlinear_velocity, currentFunctions_.discreteVelocity() );
+//							  currentFunctions_.discreteVelocity().assign( nonlinear_velocity );
 
 					}
 
@@ -198,10 +200,10 @@ namespace Dune {
 					{
 						for ( unsigned int i =0 ; i< 3 ; ++i, timeprovider_.nextFractional() )
 							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime() << std::endl;
-						exactSolution_.project();
-						dataWriter_.write();
+//						exactSolution_.project();
+//						dataWriter_.write();
 					}
-//					stokesPass.apply(currentFunctions_,nextFunctions_);
+					stokesPass.apply(currentFunctions_,nextFunctions_);
 				}
 		};
 	}//end namespace NavierStokes
