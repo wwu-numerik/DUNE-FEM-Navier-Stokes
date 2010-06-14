@@ -20,6 +20,11 @@ fem.io.savecount: 1
 fem.timeprovider.starttime: 0
 fem.timeprovider.endtime: 1
 fem.timeprovider.dt: 0.01
+
+#nonlinear - models.hh
+femhowto.diffusionTimeStep: 0
+femhowto.verbose: 1
+
 # write solution vtk every N iterations ( < 1 to disable )
 save_interval: -1
 
@@ -52,10 +57,10 @@ domain_shift_y: -1.0
 #			4: minref, accuracy_start <= accuracy_stop
 #			5: one single run with minref
 # no runtype set --> old minrun behavior
-runtype: 0
+runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 4
+minref: 0
 maxref: 10
 
 #in runtype 1 vary
