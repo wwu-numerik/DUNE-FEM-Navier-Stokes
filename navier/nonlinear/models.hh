@@ -80,7 +80,7 @@ namespace Dune {
 			  enum { ConstantVelocity = ProblemType :: ConstantVelocity };
 			  typedef typename GridPartType :: GridType GridType;
 			  enum { dimDomain = GridType::dimensionworld };
-			  enum { dimRange = 3};
+			  enum { dimRange = GridType::dimensionworld };
 			  typedef AdvDiffModelTraits<GridPartType,dimRange,dimRange*dimDomain> Traits;
 			  typedef typename Traits::DomainType DomainType;
 			  typedef typename Traits::RangeType RangeType;
