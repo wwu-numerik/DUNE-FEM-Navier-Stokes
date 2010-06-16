@@ -28,14 +28,14 @@ namespace Dune {
 template <class GridType>
 class U0 : public Dune::Function<
             Dune::FunctionSpace<double, double,
-                                GridType::dimensionworld, 1>, U0<GridType> > {
+								GridType::dimensionworld, 3>, U0<GridType> > {
  public:
   enum { ConstantVelocity = true };
   enum { dimDomain = GridType::dimensionworld };  
   typedef FieldVector<double,dimDomain> DomainType;
-  typedef FieldVector<double,1> RangeType;
+  typedef FieldVector<double,3> RangeType;
 
-  typedef Dune::FunctionSpace<double, double,GridType::dimensionworld, 1>
+  typedef Dune::FunctionSpace<double, double,GridType::dimensionworld, 3>
     FunctionSpaceType;
   typedef Dune::Function<FunctionSpaceType, U0<GridType> > BaseType;
   typedef double DomainFieldType;
