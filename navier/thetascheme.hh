@@ -180,19 +180,17 @@ namespace Dune {
 						unsigned int eocId =90;
 						const int verbose_ = 1;
 						typename NonlinearTraits::ODEType * odeptr = new typename NonlinearTraits::ODEType( dg_, timeprovider_, 1, verbose_ );
-//						typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
+						typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
 						typename NonlinearTraits:: DgType :: SpaceType  sp(gridPart_);
 						typedef typename NonlinearTraits:: DgType :: DestinationType
 							NonLinearVelocityType;
 						NonLinearVelocityType nonlinear_velocity("de",sp);
 
+						//set starttime to current, endtime to next
 						odeptr->initialize( nonlinear_velocity );
-						odeptr->solve(nonlinear_velocity);
+						odeptr->solve( nonlinear_velocity );
 						double cfl_ = 0.1;
-//						L2Projection< double, double,                         /*@\label{dg:l2pro0}@*/
-//						NonLinearVelocityType, typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType  > l2pro(2);
 						Dune::BetterL2Projection::project( nonlinear_velocity, currentFunctions_.discreteVelocity() );
-//							  currentFunctions_.discreteVelocity().assign( nonlinear_velocity );
 
 					}
 
