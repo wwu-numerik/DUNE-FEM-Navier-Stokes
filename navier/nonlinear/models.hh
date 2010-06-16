@@ -130,7 +130,8 @@ namespace Dune {
 				// evaluate velocity
 				problem_.velocity(en.geometry().global(x),f[0]);
 				// multiply with u
-				f *= u;
+//				f *= u;
+				f[0] = u;
 			  }
 
 			  /**
@@ -154,8 +155,11 @@ namespace Dune {
 									 DiffusionRangeType& a) const
 			  {
 				a = 0;
+				RangeType d = u;
+				d *= std::sqrt(epsilon);
 				for (int i=0;i<dimDomain;i++)
-				  a[i][i]=std::sqrt(epsilon)*u;
+//				  a[i][i]=d;
+					a[i]=d;
 			  }
 
 			  /**
@@ -168,7 +172,7 @@ namespace Dune {
 									  const GradientType& v,
 									  FluxRangeType& A) const {
 
-				A[0] = v;
+				A = v;
 				A *= std::sqrt(epsilon);
 				// QUESTION: Beieinflusst diese Größe das deltaT? Und wenn ja, wie?
 				return tstep_eps;
