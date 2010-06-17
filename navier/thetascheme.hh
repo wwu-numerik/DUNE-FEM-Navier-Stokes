@@ -103,6 +103,10 @@ namespace Dune {
 												typename Traits::GridPartType::GridType,
 												OutputTupleType >
 					DataWriterType;
+				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
+					DiscreteVelocityFunctionType;
+				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType
+					DiscretePressureFunctionType;
 
 				typename Traits::GridPartType gridPart_;
 				const double theta_;
@@ -170,7 +174,7 @@ namespace Dune {
 											gridPart_,
 											functionSpaceWrapper_ );
 					{//loca;dg test
-						typedef NonlinearStep::Traits<typename Traits::GridPartType>
+						typedef NonlinearStep::Traits<typename Traits::GridPartType, DiscreteVelocityFunctionType>
 							NonlinearTraits;
 						typename NonlinearTraits::InitialDataType problem_;
 						typename NonlinearTraits::ModelType model_( problem_ );
@@ -180,7 +184,7 @@ namespace Dune {
 						unsigned int eocId =90;
 						const int verbose_ = 1;
 						typename NonlinearTraits::ODEType * odeptr = new typename NonlinearTraits::ODEType( dg_, timeprovider_, 1, verbose_ );
-						typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
+						DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
 						typename NonlinearTraits:: DgType :: SpaceType  sp(gridPart_);
 						typedef typename NonlinearTraits:: DgType :: DestinationType
 							NonLinearVelocityType;

@@ -339,11 +339,11 @@ namespace Dune {
 			/************************************************/  /*@LST0@*/
 			/* Definition of model and solver                *
 			 ************************************************/
-			template < class GridPartImp >
+			template < class GridPartImp, class VelocityDiscreteFunctionImp >
 			struct Traits {
 
 				// The initial function u_0 and the exact solution
-				typedef U0<typename GridPartImp::GridType> InitialDataType;
+				typedef ProblemAdapter<VelocityDiscreteFunctionImp> InitialDataType;
 				// An analytical version of our model
 				typedef AdvectionDiffusionModel<GridPartImp, InitialDataType> ModelType;
 				// The flux for the discretization of advection terms

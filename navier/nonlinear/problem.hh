@@ -245,9 +245,9 @@ namespace NavierStokes {
 	  typedef typename DiscreteFunctionType::FunctionSpaceType
 		FunctionSpaceType;
 //	  typedef Dune::Function<FunctionSpaceType, U0<GridType> >BaseType;
-	  typedef typename DomainType::FieldType
+	  typedef typename DomainType::field_type
 			DomainFieldType;
-	  typedef typename RangeType::FieldType
+	  typedef typename RangeType::field_type
 			  RangeFieldType;
 
 
