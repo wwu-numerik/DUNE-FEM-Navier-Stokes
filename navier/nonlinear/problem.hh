@@ -227,5 +227,94 @@ class U0 : public Dune::Function<
   std::string myName;
 };
 
-};
+namespace NavierStokes {
+	namespace NonlinearStep {
+	template < class DiscreteFunctionImp >
+	class ProblemAdapter
+	{
+	 public:
+		typedef DiscreteFunctionImp
+			DiscreteFunctionType;
+	  enum { ConstantVelocity = true };
+	  enum { dimDomain = GridType::dimensionworld };
+	  typedef typename DiscreteFunctionType::DomainType
+			DomainType;
+	  typedef typename DiscreteFunctionType::DomainType
+			RangeType;
+
+	  typedef typename DiscreteFunctionType::FunctionSpaceType
+		FunctionSpaceType;
+//	  typedef Dune::Function<FunctionSpaceType, U0<GridType> >BaseType;
+	  typedef typename DomainType::FieldType
+			DomainFieldType;
+	  typedef typename RangeType::FieldType
+			  RangeFieldType;
+
+
+	  /**
+	   * @brief define problem parameters
+	   */
+	  ProblemAdapter()
+//		space_(),
+//		BaseType(space_),
+//		velocity_(0),
+//		startTime_(Parameter::getValue<double>("femhowto.startTime",0.0)),
+//		epsilon(Parameter::getValue<double>("femhowto.epsilon",0.1))
+	  {
+
+		}
+
+
+	  /**
+	   * @brief getter for the velocity
+	   */
+	  void velocity(const DomainType& x, DomainType& v) const {
+		assert ( false );
+	  }
+
+	  /**
+	   * @brief evaluates \f$ u_0(x) \f$
+	   */
+	  void evaluate(const DomainType& arg, RangeType& res) const {             /*@LST0@@LST1@*/
+		evaluate(arg, startTime_, res);
+	  }
+
+	  /**
+	   * @brief old version of the exact solution
+	   *
+	   * old version of evaluate(const DomainType& arg, double t, RangeType& res),
+	   * which is still needed by the DataWriter
+	   */
+	  inline void evaluate(double t,  const DomainType& arg, RangeType& res) const {
+		evaluate(arg, t, res);
+	  }
+
+	  /**
+	   * @brief evaluate exact solution
+	   */
+	  void evaluate(const DomainType& arg, double t, RangeType& res) const
+	  {
+		assert( false );
+	  }
+
+	  /**
+	   * @brief latex output for EocOutput
+	   */
+	  std::string description()
+	  {
+		assert( false );
+	  }
+	 private:
+//	  FunctionSpaceType space_;
+//	  DomainType velocity_;
+
+	  double startTime_;
+	 public:
+	  double epsilon;
+	  std::string myName;
+	};
+}//end namespace NonlinearStep
+}//end namespace NavierStokes
+
+}//end namespace dune
 #endif  /*DUNE_PROBLEM_HH__*/
