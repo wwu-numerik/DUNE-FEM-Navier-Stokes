@@ -283,7 +283,7 @@ namespace Dune {
 				numflux_(numf)
 			  {}
 
-			  bool hasSource() const { return false; }  /*@\label{dm:hasSource}@*/
+			  bool hasSource() const { return true; }  /*@\label{dm:hasSource}@*/
 			  bool hasFlux() const { return true; }     /*@LST1@*/
 
 			  /**

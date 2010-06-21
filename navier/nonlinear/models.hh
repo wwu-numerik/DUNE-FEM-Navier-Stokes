@@ -235,6 +235,18 @@ namespace Dune {
 				problem_.evaluate(xgl,time,uRight);
 			  }
 
+			  template <class ArgumentTuple, class JacobianTuple>
+			  double source(const typename Traits::EntityType& en,
+						  const double time,
+						  const DomainType& x,
+						  const ArgumentTuple& u,
+						  const JacobianTuple& jac,
+						  RangeType& s)
+			  {
+				  NEEDS_IMPLEMENTATION
+				  return 0;
+			  }
+
 			  /**
 			   * @brief return an estimate for deltaT that can be passed to the TimeProvider
 			   */

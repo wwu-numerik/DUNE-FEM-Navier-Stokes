@@ -261,7 +261,7 @@ namespace NavierStokes {
 		   * @brief getter for the velocity
 		   */
 			void velocity(const DomainType& x, RangeType& v) const {
-				assert ( false );
+				NEEDS_IMPLEMENTATION
 			}
 
 			/**
