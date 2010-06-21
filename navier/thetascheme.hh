@@ -175,10 +175,10 @@ namespace Dune {
 											functionSpaceWrapper_ );
 					{//loca;dg test
 						DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
-						typedef NonlinearStep::Traits<typename Traits::GridPartType, DiscreteVelocityFunctionType>
+						typedef NonlinearStep::Traits<typename Traits::GridPartType,  typename Traits::DiscreteStokesFunctionWrapperType>
 							NonlinearTraits;
 						typename NonlinearTraits::InitialDataType problem_( vl );
-						typename NonlinearTraits::ModelType model_( problem_ );
+						typename NonlinearTraits::ModelType model_( problem_, currentFunctions_ );//copy current function, mult u with alpha/RE
 						// Initial flux for advection discretization (UpwindFlux)
 						typename NonlinearTraits::FluxType convectionFlux_( model_ );
 						typename NonlinearTraits::DgType dg_( gridPart_.grid(), convectionFlux_ );

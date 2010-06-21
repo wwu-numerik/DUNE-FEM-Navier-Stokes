@@ -74,7 +74,7 @@ namespace Dune {
 			 * @param GridPart GridPart for extraction of dimension
 			 * @param ProblemType Class describing the initial(t=0) and exact solution
 			 */
-			template <class GridPartType,class ProblemType>
+			template <class GridPartType,class ProblemType, class DiscreteStokesFunctionWrapperType >
 			class AdvectionDiffusionModel {
 			 public:
 			  enum { ConstantVelocity = ProblemType :: ConstantVelocity };
@@ -95,8 +95,9 @@ namespace Dune {
 			   *
 			   * @param problem Class describing the initial(t=0) and exact solution
 			   */
-			  AdvectionDiffusionModel(const ProblemType& problem) :
+			  AdvectionDiffusionModel(const ProblemType& problem, const DiscreteStokesFunctionWrapperType& extraSource) :
 				problem_(problem),
+				extraSource_(extraSource),
 				velocity_(0),
 				epsilon(problem.epsilon)
 				{
@@ -132,6 +133,7 @@ namespace Dune {
 				// multiply with u
 //				f *= u;
 				f[0] = u;
+				NEEDS_IMPLEMENTATION
 			  }
 
 			  /**
@@ -167,6 +169,7 @@ namespace Dune {
 				for (int i=0;i<dimDomain;i++)
 //				  a[i][i]=d;
 					a[i]=d;
+				NEEDS_IMPLEMENTATION
 			  }
 
 			  /**
@@ -247,6 +250,7 @@ namespace Dune {
 
 			 protected:
 			  const ProblemType& problem_;
+			  const DiscreteStokesFunctionWrapperType& extraSource_;
 			 public:
 			  mutable DomainType velocity_;
 			 protected:
@@ -349,13 +353,13 @@ namespace Dune {
 			/************************************************/  /*@LST0@*/
 			/* Definition of model and solver                *
 			 ************************************************/
-			template < class GridPartImp, class VelocityDiscreteFunctionImp >
+			template < class GridPartImp, class DiscreteStokesFunctionWrapperImp >
 			struct Traits {
 
 				// The initial function u_0 and the exact solution
-				typedef ProblemAdapter<VelocityDiscreteFunctionImp> InitialDataType;
+				typedef ProblemAdapter<typename DiscreteStokesFunctionWrapperImp::DiscreteVelocityFunctionType> InitialDataType;
 				// An analytical version of our model
-				typedef AdvectionDiffusionModel<GridPartImp, InitialDataType> ModelType;
+				typedef AdvectionDiffusionModel<GridPartImp, InitialDataType, DiscreteStokesFunctionWrapperImp> ModelType;
 				// The flux for the discretization of advection terms
 				typedef UpwindFlux<ModelType> FluxType;
 				// The DG Operator (using 2 Passes)
