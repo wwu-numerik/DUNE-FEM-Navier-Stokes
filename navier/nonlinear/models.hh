@@ -177,9 +177,11 @@ namespace Dune {
 									  const DomainType& x,
 									  const RangeType& u,
 									  const GradientType& v,
-									  FluxRangeType& A) const {
-
-				A = v;
+									  FluxRangeType& A) const
+			  {
+//				A = v;
+				//v ist FieldVector<9>, A Fieldmatrix <3,3>
+				  NEEDS_IMPLEMENTATION
 				A *= std::sqrt(epsilon);
 				// QUESTION: Beieinflusst diese Größe das deltaT? Und wenn ja, wie?
 				return tstep_eps;
@@ -235,17 +237,6 @@ namespace Dune {
 				problem_.evaluate(xgl,time,uRight);
 			  }
 
-			  template <class ArgumentTuple, class JacobianTuple>
-			  double source(const typename Traits::EntityType& en,
-						  const double time,
-						  const DomainType& x,
-						  const ArgumentTuple& u,
-						  const JacobianTuple& jac,
-						  RangeType& s)
-			  {
-				  NEEDS_IMPLEMENTATION
-				  return 0;
-			  }
 
 			  /**
 			   * @brief return an estimate for deltaT that can be passed to the TimeProvider

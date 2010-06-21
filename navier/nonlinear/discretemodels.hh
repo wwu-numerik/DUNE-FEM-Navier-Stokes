@@ -378,7 +378,17 @@ namespace Dune {
 				}
 				return ldt;
 			  }
-															/*@LST0@*/
+			  template <class ArgumentTuple, class JacobianTuple>
+			  double source(const EntityType& en,
+						  const double time,
+						  const DomainType& x,
+						  const ArgumentTuple& u,
+						  const JacobianTuple& jac,
+						  RangeType& s)
+			  {
+				  NEEDS_IMPLEMENTATION
+				  return 0;
+			  }											/*@LST0@*/
 			  /**
 			   * @brief analytical flux function $f_2(u_0,u_1)$
 			   */
