@@ -145,6 +145,13 @@ namespace Dune {
 				problem_.velocity(en.geometry().global(x),v);
 			  }
 
+			  //! called by upwind flux calc
+			  inline  void velocity(const DomainType& x,
+									double time,
+									RangeType& v) const
+			  {
+				problem_.evaluate(x,time,v);
+			  }
 			  /**
 			   * @brief diffusion term \f$a\f$
 			   */
@@ -272,10 +279,10 @@ namespace Dune {
 											  const RangeType& uLeft)
 				  {
 					const typename Traits::DomainType normal = it.integrationOuterNormal(x);
-					DomainType velocity;
-					model.velocity(*it.inside(),time,
-								   it.intersectionSelfLocal().global(x),
-								   uLeft,velocity);
+					RangeType velocity;
+					const DomainType global_x = it.intersectionSelfLocal().global(x);
+					model.velocity( global_x,
+								   time,velocity);
 					return normal*velocity;
 				  }
 				};

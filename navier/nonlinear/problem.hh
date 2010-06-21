@@ -229,17 +229,17 @@ class U0 : public Dune::Function<
 
 namespace NavierStokes {
 	namespace NonlinearStep {
-		template < class DiscreteFunctionImp >
+		template < class DiscreteVelocityFunctionImp >
 		class ProblemAdapter
 		{
 			public:
-				typedef DiscreteFunctionImp
-					DiscreteFunctionType;
+				typedef DiscreteVelocityFunctionImp
+					DiscreteVelocityFunctionType;
 				enum { ConstantVelocity = false };
 				enum { dimDomain = GridType::dimensionworld };
-				typedef typename DiscreteFunctionType::DomainType
+				typedef typename DiscreteVelocityFunctionType::DomainType
 					DomainType;
-				typedef typename DiscreteFunctionType::DomainType
+				typedef typename DiscreteVelocityFunctionType::RangeType
 					RangeType;
 				typedef typename DomainType::field_type
 					DomainFieldType;
@@ -250,12 +250,8 @@ namespace NavierStokes {
 			/**
 			* @brief define problem parameters
 		   */
-			ProblemAdapter()
-					//		space_(),
-					//		BaseType(space_),
-					//		velocity_(0),
-					//		startTime_(Parameter::getValue<double>("femhowto.startTime",0.0)),
-					//		epsilon(Parameter::getValue<double>("femhowto.epsilon",0.1))
+			ProblemAdapter( const DiscreteVelocityFunctionType initialVelocity )
+				: initialVelocity_( initialVelocity )
 			{
 
 			}
@@ -264,7 +260,7 @@ namespace NavierStokes {
 			/**
 		   * @brief getter for the velocity
 		   */
-			void velocity(const DomainType& x, DomainType& v) const {
+			void velocity(const DomainType& x, RangeType& v) const {
 				assert ( false );
 			}
 
@@ -302,7 +298,7 @@ namespace NavierStokes {
 			}
 
 		private:
-
+			const DiscreteVelocityFunctionType& initialVelocity_;
 			double startTime_;
 		public:
 			double epsilon;
