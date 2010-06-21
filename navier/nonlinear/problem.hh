@@ -286,7 +286,7 @@ namespace NavierStokes {
 			   */
 			void evaluate(const DomainType& arg, double t, RangeType& res) const
 			{
-				assert( false );
+				NEEDS_IMPLEMENTATION
 			}
 
 			/**
@@ -294,7 +294,8 @@ namespace NavierStokes {
 			   */
 			std::string description()
 			{
-				assert( false );
+				NEEDS_IMPLEMENTATION
+				return std::string();
 			}
 
 		private:

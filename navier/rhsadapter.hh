@@ -79,7 +79,9 @@ namespace Dune {
 
 					inline void evaluate(	const typename AnalyticalDirichletType::DomainType& arg,
 											typename AnalyticalDirichletType::RangeType& ret ) const
-					{assert(false);}
+					{
+						NEEDS_IMPLEMENTATION
+					}
 
 			};
 			template < template < class > class DiricheltDataImp,
