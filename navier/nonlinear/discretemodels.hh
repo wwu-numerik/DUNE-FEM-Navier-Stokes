@@ -386,6 +386,8 @@ namespace Dune {
 						  const JacobianTuple& jac,
 						  RangeType& s)
 			  {
+				model_.extraSource();
+				model_.force();
 				  NEEDS_IMPLEMENTATION
 				  return 0;
 			  }											/*@LST0@*/
