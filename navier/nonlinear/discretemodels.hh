@@ -387,7 +387,8 @@ namespace Dune {
 						  RangeType& s)
 			  {
 				model_.extraSource();
-				model_.force();
+				typename Model::AnalyticalForceType::RangeType r;
+//				model_.force().evaluateGradient();
 				  NEEDS_IMPLEMENTATION
 				  return 0;
 			  }											/*@LST0@*/

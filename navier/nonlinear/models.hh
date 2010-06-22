@@ -90,8 +90,8 @@ namespace Dune {
 			 */
 			template <	class GridPartType,
 						class ProblemType,
-						class DiscreteStokesFunctionWrapperType,
-						class AnalyticalForceType >
+						class DiscreteStokesFunctionWrapperImp,
+						class AnalyticalForceImp >
 			class AdvectionDiffusionModel
 			{
 				public:
@@ -112,6 +112,10 @@ namespace Dune {
 						FluxRangeType;
 					typedef typename Traits::DiffusionRangeType
 						DiffusionRangeType;
+					typedef DiscreteStokesFunctionWrapperImp
+						DiscreteStokesFunctionWrapperType;
+					typedef AnalyticalForceImp
+						AnalyticalForceType;
 				public:
 				  /**
 				   * @brief Constructor
