@@ -26,6 +26,10 @@
 namespace Dune {
 	namespace NavierStokes {
 		namespace NonlinearStep {
+			template <class SomeRangeType >
+			static double colonProduct(    const SomeRangeType& arg1,
+									const SomeRangeType& arg2 );
+
 			// forward declaration of Models
 			template <class Model, class NumFlux, int polOrd,
 					 int passUId >
@@ -379,16 +383,38 @@ namespace Dune {
 				return ldt;
 			  }
 			  template <class ArgumentTuple, class JacobianTuple>
-			  double source(const EntityType& en,
+			  double source(const EntityType& entity,
 						  const double time,
 						  const DomainType& x,
 						  const ArgumentTuple& u,
 						  const JacobianTuple& jac,
 						  RangeType& s)
 			  {
-				model_.extraSource();
-				typename Model::AnalyticalForceType::RangeType r;
-//				model_.force().evaluateGradient();
+				  const typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType& velocity =
+					model_.extraSource().discreteVelocity();
+				  const typename Model::DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType& pressure =
+					model_.extraSource().discretePressure();
+				  const typename Model::AnalyticalForceType& force = model_.force();
+
+				  typename Model::AnalyticalForceType::DomainType xWorld = entity.geometry().global( x );
+				  typename Model::AnalyticalForceType::RangeType eval_force;
+				  force.evaluate( xWorld, eval_force );
+
+				  typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::JacobianRangeType
+						  eval_velocity_jacobian;
+				  typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::JacobianRangeType
+						  eval_basefunc_grad_velo;
+				  velocity.space().baseFunctionSet( entity ).jacobian( x, eval_basefunc_grad_velo );
+				  velocity.localFunction( entity ).jacobian( x, eval_velocity_jacobian );
+
+				  const double grad_v_j_times_jacobian_u = colonProduct( eval_velocity_jacobian, eval_basefunc_grad_velo );
+
+				  FieldVector<deriType,2> a;
+				  typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType d;
+
+
+					typename Model::AnalyticalForceType::RangeType r;
+					velocity.evaluate( x, d );
 				  NEEDS_IMPLEMENTATION
 				  return 0;
 			  }											/*@LST0@*/
@@ -416,6 +442,35 @@ namespace Dune {
 			  const NumFlux& numflux_;
 			};                                              /*@LST1@*/
 
+			template <class SomeRangeType >
+			static double colonProduct(    const SomeRangeType& arg1,
+									const SomeRangeType& arg2 )
+			{
+				Dune::CompileTimeChecker< SomeRangeType::cols == SomeRangeType::rows > SigmaRangeType_is_not_a_square_matrix;
+
+				double ret = 0.0;
+				// iterators
+				typedef typename SomeRangeType::ConstRowIterator
+					ConstRowIteratorType;
+				typedef typename SomeRangeType::row_type::ConstIterator
+					ConstIteratorType;
+				ConstRowIteratorType arg1RowItEnd = arg1.end();
+				ConstRowIteratorType arg2RowItEnd = arg2.end();
+				ConstRowIteratorType arg2RowIt = arg2.begin();
+				for (   ConstRowIteratorType arg1RowIt = arg1.begin();
+						arg1RowIt != arg1RowItEnd, arg2RowIt != arg2RowItEnd;
+						++arg1RowIt, ++arg2RowIt ) {
+					ConstIteratorType row1ItEnd = arg1RowIt->end();
+					ConstIteratorType row2ItEnd = arg2RowIt->end();
+					ConstIteratorType row2It = arg2RowIt->begin();
+					for (   ConstIteratorType row1It = arg1RowIt->begin();
+							row1It != row1ItEnd, row2It != row2ItEnd;
+							++row1It, ++row2It ) {
+						ret += *row1It * *row2It;
+					}
+				}
+				return ret;
+			}
 		}//end namespace NonlinearStep
 	}//end namespace NavierStokes
 }//end namespace Dune
