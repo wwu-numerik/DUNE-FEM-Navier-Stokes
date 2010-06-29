@@ -152,7 +152,7 @@ namespace Dune {
 							LocalFType;
 
 						typename DiscreteFunctionSpaceType::RangeType ret (0.0);
-						typename DiscreteFunctionSpaceType::RangeType phi (0.0);
+
 						const DiscreteFunctionSpaceType& space =  velocity.space();
 
 						// type of quadrature
@@ -177,7 +177,9 @@ namespace Dune {
 						  // get entity
 						  const typename GridType::template Codim<0>::Entity& entity = *it;
 						  // get geometry
-						  const typename GridType::template Codim<0>::Geometry& geo = entity.geometry();
+						  typedef  typename GridType::template Codim<0>::Geometry
+								Geometry;
+						  const Geometry& geo = entity.geometry();
 
 						  // get quadrature
 						  QuadratureType quad(entity, quadOrd);
@@ -195,26 +197,42 @@ namespace Dune {
 
 						  for(int qP = 0; qP < quadNop ; ++qP)
 						  {
+							const typename DiscreteFunctionSpaceType::DomainType xLocal = quad.point(qP);
+
 							const double intel = (affineMapping) ?
-								 quad.weight(qP) : // affine case
-								 quad.weight(qP) * geo.integrationElement( quad.point(qP) ); // general case
+								  quad.weight(qP): // affine case
+								 quad.weight(qP)* geo.integrationElement( xLocal ); // general case
+
+							typename DiscreteFunctionSpaceType::DomainType
+								xWorld = geo.global( xLocal );
 
 							// evaluate function
 							typename DiscreteFunctionSpaceType::RangeType
-									dummy;
-							velocity_local.evaluate(quad.point(qP), dummy);
-							ret =dummy;
+									velocity_eval;
+							velocity_local.evaluate( xLocal, velocity_eval );
 
-							typename DiscreteFunctionSpaceType::DomainType
-								xWorld = geo.global( quad.point(qP) );
+							typename DiscreteFunctionSpaceType::JacobianRangeType
+									velocity_jacobian_eval;
+							velocity_local.jacobian( xLocal, velocity_jacobian_eval );
+
 							typename AnalyticalForceType::RangeType force_eval;
 							force.evaluate( xWorld, force_eval );
+
+							typename DiscretePressureFunctionType::JacobianRangeType pressure_jacobian_eval;
+							pressure.localFunction( entity ).jacobian( xLocal, pressure_jacobian_eval );
 
 							// do projection
 							for(int i=0; i<numDofs; ++i)
 							{
+								typename DiscreteFunctionSpaceType::RangeType phi (0.0);
+								typename DiscreteFunctionSpaceType::JacobianRangeType phi_jacobian (0.0);
 							  baseset.evaluate(i, quad[qP], phi);
-							  self_local[i] += intel * (ret * phi) ;
+							  baseset.jacobian(i, quad[qP], phi_jacobian );
+							  const double velocity_jacobian_eval_times_phi_jacobian = Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
+							  const double force_eval_times_phi = force_eval * phi;
+							  double pressure_jacobian_eval_times_phi ;
+							  pressure_jacobian_eval.mv( phi, pressure_jacobian_eval_times_phi );
+							  self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi + pressure_jacobian_eval_times_phi ) ;
 							}
 						  }
 
