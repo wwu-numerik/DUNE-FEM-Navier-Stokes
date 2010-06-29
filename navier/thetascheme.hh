@@ -45,8 +45,10 @@ namespace Dune {
 
 			typedef typename StokesModelTraits::DiscreteStokesFunctionWrapperType
 				DiscreteStokesFunctionWrapperType;
-			typedef typename StokesModelTraits::AnalyticalForceType
+			typedef typename StokesModelTraits::AnalyticalForceFunctionType
 				AnalyticalForceType;
+			typedef typename StokesModelTraits::AnalyticalForceAdapterType
+				StokesAnalyticalForceAdapterType;
 			typedef typename StokesModelTraits::AnalyticalDirichletDataType
 				AnalyticalDirichletDataType;
 
@@ -153,10 +155,13 @@ namespace Dune {
 				{
 					//initial flow field
 					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
+					DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
 
 					const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
 					const double alpha		= Parameters().getParam( "alpha", 0.0 );
-					typename Traits::AnalyticalForceType stokesForce( timeprovider_, currentFunctions_.discreteVelocity() );
+
+					typename Traits::AnalyticalForceType force ( 0.0 /*visc*/, vl.space() );
+					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_, currentFunctions_.discreteVelocity(),force );
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,functionSpaceWrapper_ );
@@ -174,13 +179,19 @@ namespace Dune {
 											gridPart_,
 											functionSpaceWrapper_ );
 					{//loca;dg test
-						DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
+
+						typedef NonlinearStep::ForceAdapterFunction<	typename Traits::TimeProviderType,
+																		typename Traits::AnalyticalForceType,
+																		DiscreteVelocityFunctionType,
+																		DiscretePressureFunctionType >
+								NonlinearForceAdapterFunctionType;
+						NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_, vl, currentFunctions_.discretePressure(), force );
 						typedef NonlinearStep::Traits<	typename Traits::GridPartType,
 														typename Traits::DiscreteStokesFunctionWrapperType,
-														typename Traits::AnalyticalForceType >
+														NonlinearForceAdapterFunctionType >
 							NonlinearTraits;
 						typename NonlinearTraits::InitialDataType problem_( vl );
-						typename NonlinearTraits::ModelType model_( problem_, currentFunctions_, stokesForce );//copy current function, mult u with alpha/RE
+						typename NonlinearTraits::ModelType model_( problem_, currentFunctions_, nonlinearForce );//copy current function, mult u with alpha/RE
 						// Initial flux for advection discretization (UpwindFlux)
 						typename NonlinearTraits::FluxType convectionFlux_( model_ );
 						typename NonlinearTraits::DgType dg_( gridPart_.grid(), convectionFlux_ );

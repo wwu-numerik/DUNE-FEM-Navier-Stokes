@@ -108,7 +108,11 @@ namespace Dune {
 						DiscreteSigmaFunctionType;
 
 					//! function type for the analytical force
-					typedef ForceAdapterFunction<TimeProviderType, AnalyticalForceImp<VelocityFunctionSpaceType>, DiscreteVelocityFunctionType >
+					typedef AnalyticalForceImp<VelocityFunctionSpaceType>
+						AnalyticalForceFunctionType;
+					typedef ForceAdapterFunction<TimeProviderType, AnalyticalForceFunctionType, DiscreteVelocityFunctionType >
+						AnalyticalForceAdapterType;
+					typedef AnalyticalForceAdapterType
 						AnalyticalForceType;
 
 					//! function type for the analytical dirichlet data

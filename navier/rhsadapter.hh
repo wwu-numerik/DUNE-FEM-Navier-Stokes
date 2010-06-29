@@ -18,16 +18,19 @@ namespace Dune {
 					typedef Function< typename AnalyticalForceType::FunctionSpaceType, ThisType >
 							BaseType;
 					const TimeProviderType& timeProvider_;
-					const AnalyticalForceType force_;
+					const AnalyticalForceType& force_;
 					const VelocityDiscreteFunctionType& velocity_;
 				public:
 					ForceAdapterFunction( const TimeProviderType& timeProvider,
-										  const VelocityDiscreteFunctionType& velocity )
+										  const VelocityDiscreteFunctionType& velocity,
+										  const AnalyticalForceType& force )
 						: BaseType( velocity.space() ),
 						timeProvider_( timeProvider ),
-						force_( 0.0 /*visc*/, velocity.space()),
+						force_( force ),
 						velocity_( velocity )
-					{}
+					{
+
+					}
 
 					inline void evaluate( const typename AnalyticalForceType::DomainType& arg,
 										  typename AnalyticalForceType::RangeType& ret ) const
@@ -102,6 +105,129 @@ namespace Dune {
 
 
 		} //namespace StokesStep
+		namespace NonlinearStep {
+			//! take previous step solution and analytical RHS to form function to be passed in either StokesStep
+			template <	class TimeProviderType,
+						class AnalyticalForceType,
+						class DiscreteVelocityFunctionType,
+						class DiscretePressureFunctionType >
+			class ForceAdapterFunction :
+					public DiscreteVelocityFunctionType
+			{
+				protected:
+					typedef ForceAdapterFunction<	TimeProviderType,
+													AnalyticalForceType,
+													DiscreteVelocityFunctionType,
+													DiscretePressureFunctionType >
+						ThisType;
+					typedef DiscreteVelocityFunctionType
+						BaseType;
+					const TimeProviderType& timeProvider_;
+//					const AnalyticalForceType force_;
+//					const DiscreteVelocityFunctionType& velocity_;
+				public:
+					ForceAdapterFunction( const TimeProviderType& timeProvider,
+										  const DiscreteVelocityFunctionType& velocity,
+										  const DiscretePressureFunctionType& pressure,
+										  const AnalyticalForceType& force,
+										  int polOrd = -1)
+						: BaseType( "rhsdapater" , velocity.space()),
+						timeProvider_( timeProvider )
+//						force_( 0.0 /*visc*/, velocity.space()),
+//						velocity_( velocity )
+					{
+						typedef typename DiscreteVelocityFunctionType::DiscreteFunctionSpaceType
+							DiscreteFunctionSpaceType;
+						typedef typename DiscreteVelocityFunctionType::LocalFunctionType
+							LocalFuncType;
+						typedef typename DiscreteFunctionSpaceType::Traits::GridPartType
+							GridPartType;
+						typedef typename DiscreteFunctionSpaceType::Traits::IteratorType
+							Iterator;
+						typedef typename DiscreteFunctionSpaceType::BaseFunctionSetType
+							BaseFunctionSetType ;
+						typedef typename GridPartType::GridType
+							GridType;
+						typedef typename DiscreteVelocityFunctionType::LocalFunctionType
+							LocalFType;
+
+						typename DiscreteFunctionSpaceType::RangeType ret (0.0);
+						typename DiscreteFunctionSpaceType::RangeType phi (0.0);
+						const DiscreteFunctionSpaceType& space =  velocity.space();
+
+						// type of quadrature
+						typedef CachingQuadrature<GridPartType,0> QuadratureType;
+						// type of local mass matrix
+						typedef LocalDGMassMatrix< DiscreteFunctionSpaceType, QuadratureType > LocalMassMatrixType;
+
+						const int quadOrd = (polOrd == -1) ? (2 * space.order()) : polOrd;
+
+						// create local mass matrix object
+						LocalMassMatrixType massMatrix( space, quadOrd );
+
+						// check whether geometry mappings are affine or not
+						const bool affineMapping = massMatrix.affine();
+
+						// clear destination
+						BaseType::clear();
+
+						const Iterator endit = space.end();
+						for(Iterator it = space.begin(); it != endit ; ++it)
+						{
+						  // get entity
+						  const typename GridType::template Codim<0>::Entity& entity = *it;
+						  // get geometry
+						  const typename GridType::template Codim<0>::Geometry& geo = entity.geometry();
+
+						  // get quadrature
+						  QuadratureType quad(entity, quadOrd);
+
+						  // get local function of destination
+						  LocalFuncType self_local = localFunction(entity);
+						  // get local function of argument
+						  const LocalFType velocity_local = velocity.localFunction(entity);
+
+						  // get base function set
+						  const BaseFunctionSetType & baseset = self_local.baseFunctionSet();
+
+						  const int quadNop = quad.nop();
+						  const int numDofs = self_local.numDofs();
+
+						  for(int qP = 0; qP < quadNop ; ++qP)
+						  {
+							const double intel = (affineMapping) ?
+								 quad.weight(qP) : // affine case
+								 quad.weight(qP) * geo.integrationElement( quad.point(qP) ); // general case
+
+							// evaluate function
+							typename DiscreteFunctionSpaceType::RangeType
+									dummy;
+							velocity_local.evaluate(quad.point(qP), dummy);
+							ret =dummy;
+
+							typename DiscreteFunctionSpaceType::DomainType
+								xWorld = geo.global( quad.point(qP) );
+							typename AnalyticalForceType::RangeType force_eval;
+							force.evaluate( xWorld, force_eval );
+
+							// do projection
+							for(int i=0; i<numDofs; ++i)
+							{
+							  baseset.evaluate(i, quad[qP], phi);
+							  self_local[i] += intel * (ret * phi) ;
+							}
+						  }
+
+						  // in case of non-linear mapping apply inverse
+						  if ( ! affineMapping )
+						  {
+							massMatrix.applyInverse( entity, self_local );
+						  }
+						}
+					}
+
+			};
+		}//end namespace NonlinearStep
 	}//end namespace NavierStokes
 } //end namespace Dune
 

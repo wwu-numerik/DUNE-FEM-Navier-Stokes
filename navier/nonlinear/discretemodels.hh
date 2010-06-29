@@ -404,7 +404,7 @@ namespace Dune {
 						  eval_velocity_jacobian;
 				  typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::JacobianRangeType
 						  eval_basefunc_grad_velo;
-				  velocity.space().baseFunctionSet( entity ).jacobian( x, eval_basefunc_grad_velo );
+//				  velocity.space().baseFunctionSet( entity ).jacobian( x, eval_basefunc_grad_velo );
 				  velocity.localFunction( entity ).jacobian( x, eval_velocity_jacobian );
 
 				  const double grad_v_j_times_jacobian_u = colonProduct( eval_velocity_jacobian, eval_basefunc_grad_velo );
