@@ -185,7 +185,8 @@ namespace Dune {
 																		DiscreteVelocityFunctionType,
 																		DiscretePressureFunctionType >
 								NonlinearForceAdapterFunctionType;
-						NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_, vl, currentFunctions_.discretePressure(), force );
+						const double alpha_re_qoutient = 1.0;
+						NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_, vl, currentFunctions_.discretePressure(), force, alpha_re_qoutient );
 						typedef NonlinearStep::Traits<	typename Traits::GridPartType,
 														typename Traits::DiscreteStokesFunctionWrapperType,
 														NonlinearForceAdapterFunctionType >

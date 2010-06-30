@@ -128,34 +128,35 @@ namespace Dune {
 										  const DiscreteVelocityFunctionType& velocity,
 										  const DiscretePressureFunctionType& pressure,
 										  const AnalyticalForceType& force,
+										  const double alpha_re_qoutient,
 										  int polOrd = -1)
 						: BaseType( "rhsdapater" , velocity.space()),
 						timeProvider_( timeProvider )
 					{
 						typedef typename DiscreteVelocityFunctionType::DiscreteFunctionSpaceType
-							DiscreteFunctionSpaceType;
+							DiscreteVelocityFunctionSpaceType;
 						typedef typename DiscreteVelocityFunctionType::LocalFunctionType
 							LocalFuncType;
-						typedef typename DiscreteFunctionSpaceType::Traits::GridPartType
+						typedef typename DiscreteVelocityFunctionSpaceType::Traits::GridPartType
 							GridPartType;
-						typedef typename DiscreteFunctionSpaceType::Traits::IteratorType
+						typedef typename DiscreteVelocityFunctionSpaceType::Traits::IteratorType
 							Iterator;
-						typedef typename DiscreteFunctionSpaceType::BaseFunctionSetType
+						typedef typename DiscreteVelocityFunctionSpaceType::BaseFunctionSetType
 							BaseFunctionSetType ;
 						typedef typename GridPartType::IntersectionIteratorType
 							IntersectionIteratorType;
 						typedef typename DiscreteVelocityFunctionType::LocalFunctionType
 							LocalFType;
 
-						typename DiscreteFunctionSpaceType::RangeType ret (0.0);
+						typename DiscreteVelocityFunctionSpaceType::RangeType ret (0.0);
 
-						const DiscreteFunctionSpaceType& space =  velocity.space();
+						const DiscreteVelocityFunctionSpaceType& space =  velocity.space();
 						const GridPartType& gridPart = space.gridPart();
 						// type of quadrature
 						typedef CachingQuadrature<GridPartType,0> VolumeQuadratureType;
 						typedef CachingQuadrature<GridPartType,1> FaceQuadratureType;
 						// type of local mass matrix
-						typedef LocalDGMassMatrix< DiscreteFunctionSpaceType, VolumeQuadratureType> LocalMassMatrixType;
+						typedef LocalDGMassMatrix< DiscreteVelocityFunctionSpaceType, VolumeQuadratureType> LocalMassMatrixType;
 
 						const int quadOrd = (polOrd == -1) ? (2 * space.order()) : polOrd;
 
@@ -195,21 +196,21 @@ namespace Dune {
 							//volume part
 							for(int qP = 0; qP < quadNop ; ++qP)
 							{
-								const typename DiscreteFunctionSpaceType::DomainType xLocal = quad.point(qP);
+								const typename DiscreteVelocityFunctionSpaceType::DomainType xLocal = quad.point(qP);
 
 								const double intel = (affineMapping) ?
 								quad.weight(qP): // affine case
 								quad.weight(qP)* geo.integrationElement( xLocal ); // general case
 
-								typename DiscreteFunctionSpaceType::DomainType
+								typename DiscreteVelocityFunctionSpaceType::DomainType
 								xWorld = geo.global( xLocal );
 
 								// evaluate function
-								typename DiscreteFunctionSpaceType::RangeType
+								typename DiscreteVelocityFunctionSpaceType::RangeType
 								velocity_eval;
 								velocity_local.evaluate( xLocal, velocity_eval );
 
-								typename DiscreteFunctionSpaceType::JacobianRangeType
+								typename DiscreteVelocityFunctionSpaceType::JacobianRangeType
 								velocity_jacobian_eval;
 								velocity_local.jacobian( xLocal, velocity_jacobian_eval );
 
@@ -222,11 +223,11 @@ namespace Dune {
 								// do projection
 								for(int i=0; i<numDofs; ++i)
 								{
-									typename DiscreteFunctionSpaceType::RangeType phi (0.0);
-									typename DiscreteFunctionSpaceType::JacobianRangeType phi_jacobian (0.0);
+									typename DiscreteVelocityFunctionSpaceType::RangeType phi (0.0);
+									typename DiscreteVelocityFunctionSpaceType::JacobianRangeType phi_jacobian (0.0);
 									baseset.evaluate(i, quad[qP], phi);
 									baseset.jacobian(i, quad[qP], phi_jacobian );
-									const double velocity_jacobian_eval_times_phi_jacobian = Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
+									const double velocity_jacobian_eval_times_phi_jacobian = alpha_re_qoutient * Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
 									const double force_eval_times_phi = force_eval * phi;
 									double pressure_jacobian_eval_times_phi = pressure_jacobian_eval[0] *  phi;
 									self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi + pressure_jacobian_eval_times_phi ) ;
@@ -246,22 +247,21 @@ namespace Dune {
 														 FaceQuadratureType::INSIDE );
 								for ( size_t qP = 0; qP < faceQuadrature.nop(); ++qP )
 								{
-									const typename DiscreteFunctionSpaceType::DomainType x = faceQuadrature.point(qP);
+									const typename DiscreteVelocityFunctionSpaceType::DomainType x = faceQuadrature.point(qP);
 
 									const typename FaceQuadratureType::LocalCoordinateType xLocal = faceQuadrature.localPoint( qP );
 									const double intel =
 									  faceQuadrature.weight(qP) * intIt->intersectionGlobal().integrationElement( xLocal ); // general case
-									const typename DiscreteFunctionSpaceType::RangeType outerNormal = intIt->unitOuterNormal( xLocal );
-									typename DiscreteFunctionSpaceType::JacobianRangeType extra_u_jacobian;
+									const typename DiscreteVelocityFunctionSpaceType::RangeType outerNormal = intIt->unitOuterNormal( xLocal );
+									typename DiscreteVelocityFunctionSpaceType::JacobianRangeType extra_u_jacobian;
 									velocity_local.jacobian( x, extra_u_jacobian );
-									typename DiscreteFunctionSpaceType::RangeType extra_u_jacobian_times_normal;
+									typename DiscreteVelocityFunctionSpaceType::RangeType extra_u_jacobian_times_normal;
 									extra_u_jacobian.mv( outerNormal, extra_u_jacobian_times_normal );
 									for(int i=0; i<baseset.numBaseFunctions(); ++i)
 									{
-										typename DiscreteFunctionSpaceType::RangeType phi (0.0);
-										//									  const typename FaceQuadratureType::QuadraturePointWrapperType* de = faceQuadrature[qP];
+										typename DiscreteVelocityFunctionSpaceType::RangeType phi (0.0);
 										baseset.evaluate(i, faceQuadrature[qP], phi);
-										const double extra_u_jacobian_times_normal_times_phi = extra_u_jacobian_times_normal * phi;
+										const double extra_u_jacobian_times_normal_times_phi = alpha_re_qoutient * ( extra_u_jacobian_times_normal * phi );
 										self_local[i] += intel * extra_u_jacobian_times_normal_times_phi ;
 									}
 								}
