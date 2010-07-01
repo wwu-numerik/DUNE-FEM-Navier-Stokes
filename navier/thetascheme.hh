@@ -153,74 +153,116 @@ namespace Dune {
 
 				void run()
 				{
-					//initial flow field
+					//initial flow field at t = 0
 					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
-					DiscreteVelocityFunctionType & vl = currentFunctions_.discreteVelocity();
 
-					const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
-					const double alpha		= Parameters().getParam( "alpha", 0.0 );
-
-					typename Traits::AnalyticalForceType force ( 0.0 /*visc*/, vl.space() );
-					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_, currentFunctions_.discreteVelocity(),force );
-					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
-							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-											::getInstance( timeprovider_,functionSpaceWrapper_ );
-					typename Traits::StokesModelType
-							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
-										stokesForce,
-										stokesDirichletData,
-										viscosity,
-										alpha,
-										&currentFunctions_.discreteVelocity(),
-										&currentFunctions_.discreteVelocity() );
-					typename Traits::StokesStartPassType stokesStartPass;
-					typename Traits::StokesPassType stokesPass( stokesStartPass,
-											stokesModel,
-											gridPart_,
-											functionSpaceWrapper_ );
-					{//loca;dg test
-
-						typedef NonlinearStep::ForceAdapterFunction<	typename Traits::TimeProviderType,
-																		typename Traits::AnalyticalForceType,
-																		DiscreteVelocityFunctionType,
-																		DiscretePressureFunctionType >
-								NonlinearForceAdapterFunctionType;
-						const double alpha_re_qoutient = 1.0;
-						NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_, vl, currentFunctions_.discretePressure(), force, alpha_re_qoutient );
-						typedef NonlinearStep::Traits<	typename Traits::GridPartType,
-														typename Traits::DiscreteStokesFunctionWrapperType,
-														NonlinearForceAdapterFunctionType >
-							NonlinearTraits;
-						typename NonlinearTraits::InitialDataType problem_( vl );
-						typename NonlinearTraits::ModelType model_( problem_, currentFunctions_, nonlinearForce );//copy current function, mult u with alpha/RE
-						// Initial flux for advection discretization (UpwindFlux)
-						typename NonlinearTraits::FluxType convectionFlux_( model_ );
-						typename NonlinearTraits::DgType dg_( gridPart_.grid(), convectionFlux_ );
-						unsigned int eocId =90;
-						const int verbose_ = 1;
-						typename NonlinearTraits::ODEType * odeptr = new typename NonlinearTraits::ODEType( dg_, timeprovider_, 1, verbose_ );
-
-						typename NonlinearTraits:: DgType :: SpaceType  sp(gridPart_);
-						typedef typename NonlinearTraits:: DgType :: DestinationType
-							NonLinearVelocityType;
-						NonLinearVelocityType nonlinear_velocity("de",sp);
-
-						//set starttime to current, endtime to next
-						odeptr->initialize( nonlinear_velocity );
-						odeptr->solve( nonlinear_velocity );
-						double cfl_ = 0.1;
-						Dune::BetterL2Projection::project( nonlinear_velocity, currentFunctions_.discreteVelocity() );
-
-					}
+					//constants
+					const double viscosity				= Parameters().getParam( "viscosity", 1.0 );
+					const double reynolds				= 1 / viscosity;//not really, but meh
+					const double quasi_stokes_alpha		= operator_weight_alpha_ / reynolds;
+					const int verbose					= 1;
+					const typename Traits::AnalyticalForceType force ( 0.0 /*visc*/,
+																 currentFunctions_.discreteVelocity().space() );
 
 					for( timeprovider_.init( timeprovider_.deltaT() ); timeprovider_.time() < timeprovider_.endTime(); )
 					{
-						for ( unsigned int i =0 ; i< 3 ; ++i, timeprovider_.nextFractional() )
-							std::cout << "current time (substep " << i << "): " << timeprovider_.subTime() << std::endl;
-//						exactSolution_.project();
-//						dataWriter_.write();
+						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
+						{//stokes step A
+							typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
+																						   currentFunctions_.discreteVelocity(),
+																						   force );
+							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+													::getInstance( timeprovider_,
+																   functionSpaceWrapper_ );
+							typename Traits::StokesModelType
+									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+												stokesForce,
+												stokesDirichletData,
+												viscosity,
+												quasi_stokes_alpha,
+												&currentFunctions_.discreteVelocity(),
+												&currentFunctions_.discreteVelocity() );
+							typename Traits::StokesStartPassType stokesStartPass;
+							typename Traits::StokesPassType stokesPass( stokesStartPass,
+													stokesModel,
+													gridPart_,
+													functionSpaceWrapper_ );
+							stokesPass.apply(currentFunctions_,nextFunctions_);
+						}//end stokes step A
+						timeprovider_.nextFractional();
+						std::cout << "current time (substep " << 1 << "): " << timeprovider_.subTime() << std::endl;
+						{ //Nonlinear step
+
+							typedef NonlinearStep::ForceAdapterFunction<	typename Traits::TimeProviderType,
+																			typename Traits::AnalyticalForceType,
+																			DiscreteVelocityFunctionType,
+																			DiscretePressureFunctionType >
+									NonlinearForceAdapterFunctionType;
+
+							NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
+																			  currentFunctions_.discreteVelocity(),
+																			  currentFunctions_.discretePressure(),
+																			  force,
+																			  operator_weight_alpha_ / reynolds );
+							typedef NonlinearStep::Traits<	typename Traits::GridPartType,
+															typename Traits::DiscreteStokesFunctionWrapperType,
+															NonlinearForceAdapterFunctionType >
+								NonlinearTraits;
+							typename NonlinearTraits::InitialDataType problem_( currentFunctions_.discreteVelocity() );
+							typename NonlinearTraits::ModelType model_( problem_,
+																		currentFunctions_,
+																		nonlinearForce );
+							// Initial flux for advection discretization (UpwindFlux)
+							typename NonlinearTraits::FluxType convectionFlux_( model_ );
+							typename NonlinearTraits::DgType dg_( gridPart_.grid(),
+																  convectionFlux_ );
+							typename NonlinearTraits::ODEType ode( dg_,
+																   timeprovider_,
+																   1,
+																   verbose );
+
+							typename NonlinearTraits:: DgType :: SpaceType  sp(gridPart_);
+							//this is a non-compatible df type, we'll have to project the solution back ito our space afterwards
+							typedef typename NonlinearTraits:: DgType :: DestinationType
+								NonLinearVelocityType;
+							NonLinearVelocityType nonlinear_velocity( "de", sp );
+
+							//set starttime to current, endtime to next
+							ode.initialize( nonlinear_velocity );
+							ode.solve( nonlinear_velocity );
+							//recast
+							Dune::BetterL2Projection::project( nonlinear_velocity, currentFunctions_.discreteVelocity() );
+
+						}
+						timeprovider_.nextFractional();
+						std::cout << "current time (substep " << 2 << "): " << timeprovider_.subTime() << std::endl;
+						{//stokes step B
+							typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
+																						   currentFunctions_.discreteVelocity(),
+																						   force );
+							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+													::getInstance( timeprovider_,
+																   functionSpaceWrapper_ );
+							typename Traits::StokesModelType
+									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+												stokesForce,
+												stokesDirichletData,
+												viscosity,
+												quasi_stokes_alpha,
+												&currentFunctions_.discreteVelocity(),
+												&currentFunctions_.discreteVelocity() );
+							typename Traits::StokesStartPassType stokesStartPass;
+							typename Traits::StokesPassType stokesPass( stokesStartPass,
+													stokesModel,
+													gridPart_,
+													functionSpaceWrapper_ );
+							stokesPass.apply(currentFunctions_,nextFunctions_);
+						}//end stokes step B
+						dataWriter_.write();
 					}
-					stokesPass.apply(currentFunctions_,nextFunctions_);
+
 				}
 		};
 	}//end namespace NavierStokes
