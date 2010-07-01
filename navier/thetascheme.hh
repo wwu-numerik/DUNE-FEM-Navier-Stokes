@@ -151,6 +151,15 @@ namespace Dune {
 								)
 				{}
 
+				void nextStep( const int step )
+				{
+					dataWriter_.write();
+					currentFunctions_.assign( nextFunctions_ );
+					nextFunctions_ .clear();
+					timeprovider_.nextFractional();
+					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
+				}
+
 				void run()
 				{
 					//initial flow field at t = 0
@@ -190,8 +199,7 @@ namespace Dune {
 													functionSpaceWrapper_ );
 							stokesPass.apply(currentFunctions_,nextFunctions_);
 						}//end stokes step A
-						timeprovider_.nextFractional();
-						std::cout << "current time (substep " << 1 << "): " << timeprovider_.subTime() << std::endl;
+						nextStep( 1 );
 						{ //Nonlinear step
 
 							typedef NonlinearStep::ForceAdapterFunction<	typename Traits::TimeProviderType,
@@ -235,8 +243,7 @@ namespace Dune {
 							Dune::BetterL2Projection::project( nonlinear_velocity, currentFunctions_.discreteVelocity() );
 
 						}
-						timeprovider_.nextFractional();
-						std::cout << "current time (substep " << 2 << "): " << timeprovider_.subTime() << std::endl;
+						nextStep( 2 );
 						{//stokes step B
 							typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
 																						   currentFunctions_.discreteVelocity(),
@@ -260,7 +267,8 @@ namespace Dune {
 													functionSpaceWrapper_ );
 							stokesPass.apply(currentFunctions_,nextFunctions_);
 						}//end stokes step B
-						dataWriter_.write();
+						nextStep( 3 );
+
 					}
 
 				}
