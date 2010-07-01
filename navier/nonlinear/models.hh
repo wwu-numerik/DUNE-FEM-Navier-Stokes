@@ -161,8 +161,11 @@ namespace Dune {
 						// evaluate velocity
 						problem_.velocity(en.geometry().global(x),f[0]);
 						// multiply with u
-						//				f *= u;
-						f[0] = u;
+//						RangeType ii = f[0];
+////						FluxRangeType kk = u ;
+//										ii *= u;
+//						f[0] = ii;
+						f = Stuff::dyadicProduct<FluxRangeType>( f[0], u );
 						NEEDS_IMPLEMENTATION
 					}
 
@@ -212,9 +215,7 @@ namespace Dune {
 										  const GradientType& v,
 										  FluxRangeType& A) const
 					{
-						//				A = v;
-						//v ist FieldVector<9>, A Fieldmatrix <3,3>
-						  NEEDS_IMPLEMENTATION
+						A = v;
 						A *= std::sqrt(epsilon);
 						// QUESTION: Beieinflusst diese Größe das deltaT? Und wenn ja, wie?
 						return tstep_eps;
