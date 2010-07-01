@@ -215,7 +215,18 @@ namespace Dune {
 										  const GradientType& v,
 										  FluxRangeType& A) const
 					{
-						A = v;
+						//A[0] = v;
+						//v ist FieldVector<9>, A Fieldmatrix <3,3>
+						for (int i=0;i<dimDomain;i++)
+						{
+							RangeType v_dummy;
+							for (int j=0;j<dimDomain;j++)
+							{
+								v_dummy[j] = v[j+i*dimDomain];
+							}
+
+							A[i] = v_dummy;
+						}
 						A *= std::sqrt(epsilon);
 						// QUESTION: Beieinflusst diese Größe das deltaT? Und wenn ja, wie?
 						return tstep_eps;
