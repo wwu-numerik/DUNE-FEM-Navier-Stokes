@@ -18,7 +18,7 @@ fem.io.datafileprefix: solu_
 fem.io.savestep: 1
 fem.io.savecount: 1
 fem.timeprovider.starttime: 0
-fem.timeprovider.endtime: 1
+fem.timeprovider.endtime: 0.1
 fem.timeprovider.dt: 0.01
 
 #nonlinear - models.hh
@@ -103,7 +103,7 @@ clear_p: 0
 max_adaptions: 5
 
 # > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
-solverVerbosity: 1
+solverVerbosity: 2
 
 disableSolver: 0
 diff-tolerance: 0.01

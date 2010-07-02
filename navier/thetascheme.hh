@@ -160,47 +160,58 @@ namespace Dune {
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
 				}
 
+				void stokesStep( const typename Traits::AnalyticalForceType& force,
+								 const double stokes_viscosity,
+								 const double quasi_stokes_alpha )
+				{
+
+					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
+																				   currentFunctions_.discreteVelocity(),
+																				   force );
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+											::getInstance( timeprovider_,
+														   functionSpaceWrapper_ );
+					typename Traits::StokesModelType
+							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+										stokesForce,
+										stokesDirichletData,
+										stokes_viscosity,
+										quasi_stokes_alpha,
+										&currentFunctions_.discreteVelocity(),
+										&currentFunctions_.discreteVelocity() );
+					typename Traits::StokesStartPassType stokesStartPass;
+					typename Traits::StokesPassType stokesPass( stokesStartPass,
+											stokesModel,
+											gridPart_,
+											functionSpaceWrapper_ );
+					stokesPass.apply(currentFunctions_,nextFunctions_);
+				}
+
 				void run()
 				{
 					//initial flow field at t = 0
 					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
 
 					//constants
-					const double viscosity				= Parameters().getParam( "viscosity", 1.0 );
+					const double viscosity				= 1;
+					const double quasi_stokes_alpha		= theta_ * timeprovider_.deltaT();
 					const double reynolds				= 1 / viscosity;//not really, but meh
-					const double quasi_stokes_alpha		= operator_weight_alpha_ / reynolds;
+					const double stokes_viscosity		= operator_weight_alpha_ / reynolds;
 					const int verbose					= 1;
-					const typename Traits::AnalyticalForceType force ( 0.0 /*visc*/,
+					const typename Traits::AnalyticalForceType force ( 1.0 /*visc*/,
 																 currentFunctions_.discreteVelocity().space() );
 
 					for( timeprovider_.init( timeprovider_.deltaT() ); timeprovider_.time() < timeprovider_.endTime(); )
 					{
 						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
-						{//stokes step A
-							typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
-																						   currentFunctions_.discreteVelocity(),
-																						   force );
-							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
-									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-													::getInstance( timeprovider_,
-																   functionSpaceWrapper_ );
-							typename Traits::StokesModelType
-									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
-												stokesForce,
-												stokesDirichletData,
-												viscosity,
-												quasi_stokes_alpha,
-												&currentFunctions_.discreteVelocity(),
-												&currentFunctions_.discreteVelocity() );
-							typename Traits::StokesStartPassType stokesStartPass;
-							typename Traits::StokesPassType stokesPass( stokesStartPass,
-													stokesModel,
-													gridPart_,
-													functionSpaceWrapper_ );
-							stokesPass.apply(currentFunctions_,nextFunctions_);
-						}//end stokes step A
+						//stokes step A
+						stokesStep( force, stokes_viscosity, quasi_stokes_alpha );
+
 						nextStep( 1 );
-						{ //Nonlinear step
+//						return;
+						//Nonlinear step
+						{
 
 							typedef NonlinearStep::ForceAdapterFunction<	typename Traits::TimeProviderType,
 																			typename Traits::AnalyticalForceType,
@@ -244,29 +255,9 @@ namespace Dune {
 
 						}
 						nextStep( 2 );
-						{//stokes step B
-							typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
-																						   currentFunctions_.discreteVelocity(),
-																						   force );
-							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
-									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-													::getInstance( timeprovider_,
-																   functionSpaceWrapper_ );
-							typename Traits::StokesModelType
-									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
-												stokesForce,
-												stokesDirichletData,
-												viscosity,
-												quasi_stokes_alpha,
-												&currentFunctions_.discreteVelocity(),
-												&currentFunctions_.discreteVelocity() );
-							typename Traits::StokesStartPassType stokesStartPass;
-							typename Traits::StokesPassType stokesPass( stokesStartPass,
-													stokesModel,
-													gridPart_,
-													functionSpaceWrapper_ );
-							stokesPass.apply(currentFunctions_,nextFunctions_);
-						}//end stokes step B
+						//stokes step B
+						stokesStep( force, stokes_viscosity, quasi_stokes_alpha );
+
 						nextStep( 3 );
 
 					}

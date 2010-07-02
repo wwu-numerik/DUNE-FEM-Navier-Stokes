@@ -37,17 +37,17 @@ namespace Dune {
 					{
 						const double time = timeProvider_.time();
 						force_.evaluate( time, arg, ret );
-						typename VelocityDiscreteFunctionType::JacobianRangeType
-								velocity_jacobian;
-//						velocity_.jacobian( arg, velocity_jacobian );
-						typename VelocityDiscreteFunctionType::RangeType
-								velocity_eval;
-						velocity_.evaluate( arg, velocity_eval );
-
-						FieldVector<deriType,2> a;
-						typename VelocityDiscreteFunctionType::RangeType d;
-//						velocity_.evaluate( a, arg, d );
-						ret = d;
+//						typename VelocityDiscreteFunctionType::JacobianRangeType
+//								velocity_jacobian;
+////						velocity_.jacobian( arg, velocity_jacobian );
+//						typename VelocityDiscreteFunctionType::RangeType
+//								velocity_eval;
+//						velocity_.evaluate( arg, velocity_eval );
+//
+//						FieldVector<deriType,2> a;
+//						typename VelocityDiscreteFunctionType::RangeType d;
+////						velocity_.evaluate( a, arg, d );
+//						ret = d;
 					}
 			};
 
