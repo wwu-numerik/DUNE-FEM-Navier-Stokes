@@ -238,7 +238,7 @@ namespace Dune {
 									const double velocity_jacobian_eval_times_phi_jacobian = alpha_re_qoutient * Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
 									const double force_eval_times_phi = force_eval * phi;
 									double pressure_jacobian_eval_times_phi = pressure_jacobian_eval[0] *  phi;
-									self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi + pressure_jacobian_eval_times_phi ) ;
+									self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi - pressure_jacobian_eval_times_phi ) ;
 								}
 							}
 
