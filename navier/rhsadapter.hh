@@ -6,7 +6,11 @@
 namespace Dune {
 	namespace NavierStokes {
 		namespace StokesStep {
-			//! take previous step solution and analytical RHS to form function to be passed in either StokesStep
+			/** \brief take previous step solution and analytical RHS to form function to be passed to either StokesStep
+			  * given analytical force \f$f_{ana}\f$ and discrete function \f$u\f$ representing previous time step's velocity solution,
+			  *	this calculates new right hand side \f$f := f_{ana} + \frac{\beta}{Re} \Delta u - \left( u \cdot \nabla \right) u \f$
+			  *
+			  */
 			template < class TimeProviderType, class AnalyticalForceType, class VelocityDiscreteFunctionType >
 			class ForceAdapterFunction :
 					public Function< typename AnalyticalForceType::FunctionSpaceType,
@@ -106,7 +110,11 @@ namespace Dune {
 
 		} //namespace StokesStep
 		namespace NonlinearStep {
-			//! take previous step solution and analytical RHS to form function to be passed in either StokesStep
+			/** \brief take previous step solution and analytical RHS to form function to be passed to localdg code
+			  * given analytical force \f$f_{ana}\f$ and discrete functions \f$u,p\f$ representing previous time step's velocity and pressure solution,
+			  *	this calculates new right hand side \f$f := f_{ana} + \frac{\alpha}{Re} \Delta u - \nabla p\f$
+			  *
+			  */
 			template <	class TimeProviderType,
 						class AnalyticalForceType,
 						class DiscreteVelocityFunctionType,
