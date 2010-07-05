@@ -168,7 +168,8 @@ namespace Dune {
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
 																				   currentFunctions_.discreteVelocity(),
 																				   force,
-																				   beta_qout_re );
+																				   beta_qout_re,
+																				   quasi_stokes_alpha );
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
@@ -250,7 +251,7 @@ namespace Dune {
 							ode.initialize( nonlinear_velocity );
 							ode.solve( nonlinear_velocity );
 							//recast
-							Dune::BetterL2Projection::project( nonlinear_velocity, currentFunctions_.discreteVelocity() );
+//							Dune::BetterL2Projection::project( nonlinear_velocity, nextFunctions_.discreteVelocity() );
 
 						}
 						nextStep( 2 );
