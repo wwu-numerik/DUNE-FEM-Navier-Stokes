@@ -8,7 +8,7 @@ namespace Dune {
 		namespace StokesStep {
 			/** \brief take previous step solution and analytical RHS to form function to be passed to either StokesStep
 			  * given analytical force \f$f_{ana}\f$ and discrete function \f$u\f$ representing previous time step's velocity solution,
-			  *	this calculates new right hand side \f$f := f_{ana} + \frac{\beta}{Re} \Delta u - \left( u \cdot \nabla \right) u \f$
+			  *	this calculates new right hand side \f$f := f_{ana} + frac{1}{\theta \tau}u + \frac{\beta}{Re} \Delta u - \left( u \cdot \nabla \right) u \f$
 			  *
 			  */
 			template < class TimeProviderType, class AnalyticalForceType, class DiscreteVelocityFunctionType >
@@ -21,13 +21,13 @@ namespace Dune {
 					typedef DiscreteVelocityFunctionType
 						BaseType;
 					const TimeProviderType& timeProvider_;
-//					const AnalyticalForceType& force_;
-//					const DiscreteVelocityFunctionType& velocity_;
+
 				public:
 					ForceAdapterFunction( const TimeProviderType& timeProvider,
 										  const DiscreteVelocityFunctionType& velocity,
 										  const AnalyticalForceType& force,
 										  const double beta_re_qoutient,
+										  const double quasi_stokes_alpha,
 										  int polOrd = -1 )
 						: BaseType( "nonlinear-rhsdapater" , velocity.space()),
 						timeProvider_( timeProvider )
@@ -129,8 +129,9 @@ namespace Dune {
 									for ( int d = 0; d < nonlin.dim(); ++d ) {
 										nonlin[d] = velocity_eval * velocity_jacobian_eval[d];
 									}
+									const double velocity_times_phi = quasi_stokes_alpha * ( velocity_eval * phi );
 									const double nonlin_times_v_j = nonlin * phi;
-									self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi - nonlin_times_v_j ) ;
+									self_local[i] += intel * ( velocity_times_phi + velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi - nonlin_times_v_j ) ;
 								}
 							}
 

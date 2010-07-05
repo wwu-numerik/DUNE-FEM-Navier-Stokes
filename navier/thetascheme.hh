@@ -194,7 +194,7 @@ namespace Dune {
 
 					//constants
 					const double viscosity				= 1;
-					const double quasi_stokes_alpha		= theta_ * timeprovider_.deltaT();
+					const double quasi_stokes_alpha		= 1 / ( theta_ * timeprovider_.deltaT() );
 					const double reynolds				= 1 / viscosity;//not really, but meh
 					const double stokes_viscosity		= operator_weight_alpha_ / reynolds;
 					const double beta_qout_re			= operator_weight_beta_ / reynolds;
