@@ -156,6 +156,25 @@ namespace Dune {
 					dataWriter_.write();
 					currentFunctions_.assign( nextFunctions_ );
 					nextFunctions_ .clear();
+					//error calc
+					{
+						exactSolution_.project();
+						DiscretePressureFunctionType errorFunc_pressure_("",currentFunctions_.discretePressure().space());
+						DiscreteVelocityFunctionType errorFunc_velocity_("",currentFunctions_.discreteVelocity().space());
+						errorFunc_pressure_.assign( exactSolution_.discretePressure() );
+						errorFunc_pressure_ -= currentFunctions_.discretePressure();
+						errorFunc_velocity_.assign( exactSolution_.discreteVelocity() );
+						errorFunc_velocity_ -= currentFunctions_.discreteVelocity();
+
+						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+
+						const double l2_error_pressure_ = l2_Error.norm( errorFunc_pressure_ );
+						const double l2_error_velocity_ = l2_Error.norm( errorFunc_velocity_ );
+
+						Logger().Info().Resume();
+						Logger().Info() << "L2-Error Pressure: " << std::setw(8) << l2_error_pressure_ << "\n"
+										<< "L2-Error Velocity: " << std::setw(8) << l2_error_velocity_ << std::endl;
+					}
 					timeprovider_.nextFractional();
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
 				}
@@ -251,7 +270,7 @@ namespace Dune {
 							ode.initialize( nonlinear_velocity );
 							ode.solve( nonlinear_velocity );
 							//recast
-//							Dune::BetterL2Projection::project( nonlinear_velocity, nextFunctions_.discreteVelocity() );
+							Dune::BetterL2Projection::project( nonlinear_velocity, nextFunctions_.discreteVelocity() );
 
 						}
 						nextStep( 2 );
@@ -259,26 +278,6 @@ namespace Dune {
 						stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
 
 						nextStep( 3 );
-
-						//error calc
-						{
-							exactSolution_.project();
-							DiscretePressureFunctionType errorFunc_pressure_("",currentFunctions_.discretePressure().space());
-							DiscreteVelocityFunctionType errorFunc_velocity_("",currentFunctions_.discreteVelocity().space());
-							errorFunc_pressure_.assign( exactSolution_.discretePressure() );
-							errorFunc_pressure_ -= currentFunctions_.discretePressure();
-							errorFunc_velocity_.assign( exactSolution_.discreteVelocity() );
-							errorFunc_velocity_ -= currentFunctions_.discreteVelocity();
-
-							Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
-
-							const double l2_error_pressure_ = l2_Error.norm( errorFunc_pressure_ );
-							const double l2_error_velocity_ = l2_Error.norm( errorFunc_velocity_ );
-
-							Logger().Info().Resume();
-							Logger().Info() << "L2-Error Pressure: " << std::setw(8) << l2_error_pressure_ << "\n"
-											<< "L2-Error Velocity: " << std::setw(8) << l2_error_velocity_ << std::endl;
-						}
 					}
 				}
 
