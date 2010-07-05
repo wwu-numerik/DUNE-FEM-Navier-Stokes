@@ -260,9 +260,28 @@ namespace Dune {
 
 						nextStep( 3 );
 
-					}
+						//error calc
+						{
+							exactSolution_.project();
+							DiscretePressureFunctionType errorFunc_pressure_("",currentFunctions_.discretePressure().space());
+							DiscreteVelocityFunctionType errorFunc_velocity_("",currentFunctions_.discreteVelocity().space());
+							errorFunc_pressure_.assign( exactSolution_.discretePressure() );
+							errorFunc_pressure_ -= currentFunctions_.discretePressure();
+							errorFunc_velocity_.assign( exactSolution_.discreteVelocity() );
+							errorFunc_velocity_ -= currentFunctions_.discreteVelocity();
 
+							Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+
+							const double l2_error_pressure_ = l2_Error.norm( errorFunc_pressure_ );
+							const double l2_error_velocity_ = l2_Error.norm( errorFunc_velocity_ );
+
+							Logger().Info().Resume();
+							Logger().Info() << "L2-Error Pressure: " << std::setw(8) << l2_error_pressure_ << "\n"
+											<< "L2-Error Velocity: " << std::setw(8) << l2_error_velocity_ << std::endl;
+						}
+					}
 				}
+
 		};
 	}//end namespace NavierStokes
 }//end namespace Dune
