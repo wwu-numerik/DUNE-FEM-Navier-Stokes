@@ -162,12 +162,13 @@ namespace Dune {
 
 				void stokesStep( const typename Traits::AnalyticalForceType& force,
 								 const double stokes_viscosity,
-								 const double quasi_stokes_alpha )
+								 const double quasi_stokes_alpha,
+								 const double beta_qout_re )
 				{
-
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
 																				   currentFunctions_.discreteVelocity(),
-																				   force );
+																				   force,
+																				   beta_qout_re );
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
@@ -177,15 +178,13 @@ namespace Dune {
 										stokesForce,
 										stokesDirichletData,
 										stokes_viscosity,
-										quasi_stokes_alpha,
-										&currentFunctions_.discreteVelocity(),
-										&currentFunctions_.discreteVelocity() );
+										quasi_stokes_alpha );
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::StokesPassType stokesPass( stokesStartPass,
 											stokesModel,
 											gridPart_,
 											functionSpaceWrapper_ );
-					stokesPass.apply(currentFunctions_,nextFunctions_);
+					stokesPass.apply( currentFunctions_, nextFunctions_ );
 				}
 
 				void run()
@@ -198,6 +197,7 @@ namespace Dune {
 					const double quasi_stokes_alpha		= theta_ * timeprovider_.deltaT();
 					const double reynolds				= 1 / viscosity;//not really, but meh
 					const double stokes_viscosity		= operator_weight_alpha_ / reynolds;
+					const double beta_qout_re			= operator_weight_beta_ / reynolds;
 					const int verbose					= 1;
 					const typename Traits::AnalyticalForceType force ( 1.0 /*visc*/,
 																 currentFunctions_.discreteVelocity().space() );
@@ -206,10 +206,9 @@ namespace Dune {
 					{
 						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
 						//stokes step A
-						stokesStep( force, stokes_viscosity, quasi_stokes_alpha );
+						stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re );
 
 						nextStep( 1 );
-//						return;
 						//Nonlinear step
 						{
 
@@ -256,7 +255,7 @@ namespace Dune {
 						}
 						nextStep( 2 );
 						//stokes step B
-						stokesStep( force, stokes_viscosity, quasi_stokes_alpha );
+						stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
 
 						nextStep( 3 );
 
