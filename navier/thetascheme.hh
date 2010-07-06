@@ -168,12 +168,14 @@ namespace Dune {
 
 						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
-						const double l2_error_pressure_ = l2_Error.norm( errorFunc_pressure_ );
-						const double l2_error_velocity_ = l2_Error.norm( errorFunc_velocity_ );
+						const double l2_error_pressure_				= l2_Error.norm( errorFunc_pressure_ );
+						const double l2_error_velocity_				= l2_Error.norm( errorFunc_velocity_ );
+						const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
+						const double relative_l2_error_velocity_	= l2_error_velocity_ / l2_Error.norm( exactSolution_.discreteVelocity() );
 
 						Logger().Info().Resume();
-						Logger().Info() << "L2-Error Pressure: " << std::setw(8) << l2_error_pressure_ << "\n"
-										<< "L2-Error Velocity: " << std::setw(8) << l2_error_velocity_ << std::endl;
+						Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
+										<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << std::endl;
 					}
 					timeprovider_.nextFractional();
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
