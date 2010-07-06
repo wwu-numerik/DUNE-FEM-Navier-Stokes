@@ -213,13 +213,14 @@ namespace Dune {
 					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
 
 					//constants
-					const double viscosity				= 1;
-					const double quasi_stokes_alpha		= 1 / ( theta_ * timeprovider_.deltaT() );
+					const double viscosity				= 1.0;
+					const double d_t					= timeprovider_.deltaT();
+					const double quasi_stokes_alpha		= 1 / ( theta_ * d_t );
 					const double reynolds				= 1 / viscosity;//not really, but meh
 					const double stokes_viscosity		= operator_weight_alpha_ / reynolds;
 					const double beta_qout_re			= operator_weight_beta_ / reynolds;
 					const int verbose					= 1;
-					const typename Traits::AnalyticalForceType force ( 1.0 /*visc*/,
+					const typename Traits::AnalyticalForceType force ( viscosity,
 																 currentFunctions_.discreteVelocity().space() );
 
 					for( timeprovider_.init( timeprovider_.deltaT() ); timeprovider_.time() < timeprovider_.endTime(); )
