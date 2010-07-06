@@ -256,7 +256,7 @@ namespace Dune {
 							typename NonlinearTraits::DgType dg_( gridPart_.grid(),
 																  convectionFlux_ );
 							typename NonlinearTraits::ODEType ode( dg_,
-																   timeprovider_,
+																   timeprovider_.subStepTimeprovider(),
 																   1,
 																   verbose );
 

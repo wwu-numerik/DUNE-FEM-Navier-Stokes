@@ -16,15 +16,17 @@ namespace Dune {
 		template< class CommProvider = DefaultCollectiveCommunicationType >
 		class FractionalTimeProvider : public TimeProvider < CommProvider > {
 					typedef FractionalTimeProvider< CommProvider >
-							ThisType;
+						ThisType;
 					typedef TimeProvider< CommProvider >
-							BaseType;
+						BaseType;
 
 				public:
 					using BaseType ::  CollectiveCommunicationType;
 					using BaseType :: time;
 					using BaseType :: timeStep;
 					using BaseType :: deltaT;
+					typedef BaseType
+						SubStepTimeproviderType;
 
 				protected:
 					using BaseType :: comm_;
@@ -40,6 +42,7 @@ namespace Dune {
 					const double theta_alpha_;
 					const double theta_beta_;
 					StepType currentStepType_;
+					SubStepTimeproviderType* subProvider_;
 
 				public:
 					FractionalTimeProvider (
@@ -55,7 +58,8 @@ namespace Dune {
 						theta_( theta ),
 						theta_alpha_( theta_alpha ),
 						theta_beta_( theta_beta ),
-						currentStepType_( StokesStepA )
+						currentStepType_( StokesStepA ),
+						subProvider_( 0 )
 					{
 						dt_ = Parameter :: getValidValue( "fem.timeprovider.dt",
 														 (double)0.1,
@@ -67,10 +71,15 @@ namespace Dune {
 					{
 						switch ( currentStepType_ ) {
 							case StokesStepA:
-							default: return time();
-							case NonlinearStepID: return time()+ deltaT() * theta_ ;
-							case StokesStepB: return time()+ deltaT() * (1 - theta_);
+							default: return BaseType::time();
+							case NonlinearStepID: return BaseType::time()+ deltaT() * theta_ ;
+							case StokesStepB: return BaseType::time()+ deltaT() * (1 - theta_);
 						}
+					}
+
+					const double time () const
+					{
+						return subTime();
 					}
 
 					void nextFractional()
@@ -86,6 +95,15 @@ namespace Dune {
 					const double beta ()		const { return theta_beta_; }
 					const double startTime()	const { return startTime_;	}
 					const double endTime()		const { return endTime_;	}
+
+					SubStepTimeproviderType& subStepTimeprovider( const double =0.0 )
+					{
+						delete subProvider_;
+						subProvider_ = new SubStepTimeproviderType(subTime(),BaseType::comm_);
+						const double stepsize = ( 1 - 2 * theta_ ) * deltaT();
+						subProvider_->init( stepsize );
+						return *subProvider_;
+					}
 
 				protected:
 					void next ( const double timeStep )
