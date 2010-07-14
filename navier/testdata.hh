@@ -190,7 +190,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -268,7 +268,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;

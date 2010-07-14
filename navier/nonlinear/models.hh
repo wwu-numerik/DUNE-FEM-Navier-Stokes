@@ -124,12 +124,14 @@ namespace Dune {
 				   */
 					AdvectionDiffusionModel(const ProblemType& problem,
 											const DiscreteStokesFunctionWrapperType& extraSource,
-											const AnalyticalForceType& force)
+											const AnalyticalForceType& force,
+											const double diffusion_weight)
 						: problem_(problem),
 						extraSource_(extraSource),
 						force_(force),
 						velocity_(0),
-						epsilon(problem.epsilon)
+						epsilon(problem.epsilon),
+						diffusion_weight_( diffusion_weight )
 					{
 						// if diffusionTimeStep is set to non-zero in the parameterfile, the
 						// deltaT in the timeprovider is updated according to the diffusion
@@ -198,7 +200,7 @@ namespace Dune {
 					{
 						a = 0;
 						RangeType d = u;
-						d *= std::sqrt(epsilon);
+						d *= diffusion_weight_ * std::sqrt(epsilon);
 						for (int i=0;i<dimDomain;i++)
 						//				  a[i][i]=d;
 							a[i]=d;
@@ -310,6 +312,7 @@ namespace Dune {
 					protected:
 					double epsilon;
 					double tstep_eps;
+					double diffusion_weight_;
 			};
 
 			/************************************************/  /*@LST0@*/

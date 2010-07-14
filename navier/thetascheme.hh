@@ -253,14 +253,15 @@ namespace Dune {
 							typename NonlinearTraits::InitialDataType problem_( currentFunctions_.discreteVelocity() );
 							typename NonlinearTraits::ModelType model_( problem_,
 																		currentFunctions_,
-																		nonlinearForce );
+																		nonlinearForce,
+																		beta_qout_re );
 							// Initial flux for advection discretization (UpwindFlux)
 							typename NonlinearTraits::FluxType convectionFlux_( model_ );
 							typename NonlinearTraits::DgType dg_( gridPart_.grid(),
 																  convectionFlux_ );
 							typename NonlinearTraits::ODEType ode( dg_,
 																   timeprovider_.subStepTimeprovider(),
-																   1,
+																   3,
 																   verbose );
 
 							typename NonlinearTraits:: DgType :: SpaceType  sp(gridPart_);
