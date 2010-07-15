@@ -252,7 +252,6 @@ namespace Dune {
 								NonlinearTraits;
 							typename NonlinearTraits::InitialDataType problem_( currentFunctions_.discreteVelocity() );
 							typename NonlinearTraits::ModelType model_( problem_,
-																		currentFunctions_,
 																		nonlinearForce,
 																		beta_qout_re );
 							// Initial flux for advection discretization (UpwindFlux)

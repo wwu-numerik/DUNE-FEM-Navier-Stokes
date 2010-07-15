@@ -123,11 +123,9 @@ namespace Dune {
 				   * @param problem Class describing the initial(t=0) and exact solution
 				   */
 					AdvectionDiffusionModel(const ProblemType& problem,
-											const DiscreteStokesFunctionWrapperType& extraSource,
 											const AnalyticalForceType& force,
 											const double diffusion_weight)
 						: problem_(problem),
-						extraSource_(extraSource),
 						force_(force),
 						velocity_(0),
 						epsilon(problem.epsilon),
@@ -293,11 +291,6 @@ namespace Dune {
 						return 2.*tstep_eps;
 					}
 
-					const DiscreteStokesFunctionWrapperType& extraSource() const
-					{
-					  return extraSource_;
-					}
-
 					const AnalyticalForceType& force() const
 					{
 					  return force_;
@@ -305,7 +298,6 @@ namespace Dune {
 
 				protected:
 					const ProblemType& problem_;
-					const DiscreteStokesFunctionWrapperType& extraSource_;
 					const AnalyticalForceType& force_;
 					public:
 					mutable DomainType velocity_;

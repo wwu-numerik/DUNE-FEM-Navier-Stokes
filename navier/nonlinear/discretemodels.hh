@@ -390,32 +390,12 @@ namespace Dune {
 						  const JacobianTuple& jac,
 						  RangeType& s)
 			  {
-				  const typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType& velocity =
-					model_.extraSource().discreteVelocity();
-				  const typename Model::DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType& pressure =
-					model_.extraSource().discretePressure();
 				  const typename Model::AnalyticalForceType& force = model_.force();
 
 				  typename Model::AnalyticalForceType::DomainType xWorld = entity.geometry().global( x );
 				  typename Model::AnalyticalForceType::RangeType eval_force;
-				  force.evaluate( xWorld, eval_force );
+				  force.evaluate( xWorld, s );
 
-				  typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::JacobianRangeType
-						  eval_velocity_jacobian;
-				  typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::JacobianRangeType
-						  eval_basefunc_grad_velo;
-//				  velocity.space().baseFunctionSet( entity ).jacobian( x, eval_basefunc_grad_velo );
-				  velocity.localFunction( entity ).jacobian( x, eval_velocity_jacobian );
-
-				  const double grad_v_j_times_jacobian_u = colonProduct( eval_velocity_jacobian, eval_basefunc_grad_velo );
-
-				  FieldVector<deriType,2> a;
-				  typename Model::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType d;
-
-
-					typename Model::AnalyticalForceType::RangeType r;
-					velocity.evaluate( x, d );
-				  NEEDS_IMPLEMENTATION
 				  return 0;
 			  }											/*@LST0@*/
 			  /**
