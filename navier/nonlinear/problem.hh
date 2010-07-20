@@ -29,6 +29,7 @@ namespace NavierStokes {
 		   */
 			ProblemAdapter( const DiscreteVelocityFunctionType initialVelocity )
 				: initialVelocity_( initialVelocity ),
+				startTime_(Parameter::getValue<double>("fem.timeprovider.starttime",0.0)),
 				epsilon(Parameter::getValue<double>("femhowto.epsilon",0.1))
 			{
 
