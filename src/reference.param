@@ -18,12 +18,14 @@ fem.io.datafileprefix: solu_
 fem.io.savestep: 1
 fem.io.savecount: 1
 fem.timeprovider.starttime: 0
-fem.timeprovider.endtime: 0.1
-fem.timeprovider.dt: 0.01
+fem.timeprovider.endtime: 0.02
+fem.timeprovider.dt: 0.0001
 
 #nonlinear - models.hh
 femhowto.diffusionTimeStep: 0
 femhowto.verbose: 1
+femhowto.epsilon: 0.003
+femhowto.startTime: 0.0
 
 # write solution vtk every N iterations ( < 1 to disable )
 save_interval: -1
