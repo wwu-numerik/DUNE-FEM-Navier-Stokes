@@ -126,7 +126,7 @@ namespace Dune {
 									const double velocity_jacobian_eval_times_phi_jacobian = beta_re_qoutient * Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
 									const double force_eval_times_phi = force_eval * phi;
 									typename DiscreteVelocityFunctionSpaceType::RangeType nonlin;
-									for ( int d = 0; d < nonlin.dim(); ++d ) {
+									for ( unsigned int d = 0; d < nonlin.dim(); ++d ) {
 										nonlin[d] = velocity_eval * velocity_jacobian_eval[d];
 									}
 									const double velocity_times_phi = quasi_stokes_alpha * ( velocity_eval * phi );
