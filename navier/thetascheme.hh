@@ -7,6 +7,7 @@
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
 #include <dune/navier/nonlinear/models.hh>
+#include <dune/navier/oseen/oseenpass.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/customprojection.hh>
@@ -250,30 +251,10 @@ namespace Dune {
 															typename Traits::DiscreteStokesFunctionWrapperType,
 															NonlinearForceAdapterFunctionType >
 								NonlinearTraits;
-							typename NonlinearTraits::InitialDataType problem_( currentFunctions_.discreteVelocity() );
-							typename NonlinearTraits::ModelType model_( problem_,
-																		nonlinearForce,
-																		beta_qout_re );
-							// Initial flux for advection discretization (UpwindFlux)
-							typename NonlinearTraits::FluxType convectionFlux_( model_ );
-							typename NonlinearTraits::DgType dg_( gridPart_.grid(),
-																  convectionFlux_ );
-							typename NonlinearTraits::ODEType ode( dg_,
-																   timeprovider_.subStepTimeprovider(),
-																   3,
-																   verbose );
 
-							typename NonlinearTraits:: DgType :: SpaceType  sp(gridPart_);
-							//this is a non-compatible df type, we'll have to project the solution back ito our space afterwards
-							typedef typename NonlinearTraits:: DgType :: DestinationType
-								NonLinearVelocityType;
-							NonLinearVelocityType nonlinear_velocity( "de", sp );
-
-							//set starttime to current, endtime to next
-							ode.initialize( nonlinear_velocity );
-							ode.solve( nonlinear_velocity );
-							//recast
-							Dune::BetterL2Projection::project( nonlinear_velocity, nextFunctions_.discreteVelocity() );
+							typedef NonlinearStep::OseenPass<typename Traits::StokesModelType,typename Traits::StokesStartPassType >
+									OseenpassType;
+							typename Traits::StokesStartPassType stokesStartPass;
 
 						}
 						nextStep( 2 );

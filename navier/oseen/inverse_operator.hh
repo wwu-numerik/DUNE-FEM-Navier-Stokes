@@ -1,5 +1,5 @@
-#ifndef DUNE_SPINVERSE_OPERATORS_HH
-#define DUNE_SPINVERSE_OPERATORS_HH
+#ifndef NAVIER_DUNE_SPINVERSE_OPERATORS_HH
+#define NAVIER_DUNE_SPINVERSE_OPERATORS_HH
 
 /** \file
     \brief SPinverseoperator_original.hh

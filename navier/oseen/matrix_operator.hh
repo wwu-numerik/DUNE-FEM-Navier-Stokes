@@ -3,8 +3,8 @@
  *  \brief  contains some stuff
  **/
 
-#ifndef INNERCG_HH_INCLUDED
-#define INNERCG_HH_INCLUDED
+#ifndef NAVIER_INNERCG_HH_INCLUDED
+#define NAVIER_INNERCG_HH_INCLUDED
 
 #include <dune/stuff/printing.hh>
 #include <dune/stuff/misc.hh>
