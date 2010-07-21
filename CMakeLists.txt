@@ -132,13 +132,14 @@ SET(dune-navier-stokesSrc
 
 FILE( GLOB header "src/*.hh" )
 FILE( GLOB_RECURSE navier "navier/*.hh" )
+FILE( GLOB_RECURSE oseen "oseen/*.hh" )
 FILE( GLOB stokes "../dune-stokes/stokes/*.hh" )
 FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 FILE( GLOB stuff "../dune-stuff/stuff/*.hh" )
 
-set_source_files_properties( ${stuff} ${navier} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
+set_source_files_properties( ${stuff} ${navier} ${oseen} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
 
 ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} ${navier} )
 TARGET_LINK_LIBRARIES(navier "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
