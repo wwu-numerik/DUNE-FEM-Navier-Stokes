@@ -256,6 +256,28 @@ namespace Dune {
 									OseenpassType;
 							typename Traits::StokesStartPassType stokesStartPass;
 
+							typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
+																						   currentFunctions_.discreteVelocity(),
+																						   force,
+																						   beta_qout_re,
+																						   quasi_stokes_alpha );
+							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+													::getInstance( timeprovider_,
+																   functionSpaceWrapper_ );
+							typename Traits::StokesModelType
+									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+												stokesForce,
+												stokesDirichletData,
+												stokes_viscosity,
+												quasi_stokes_alpha );
+							OseenpassType oseenPass( stokesStartPass,
+													stokesModel,
+													gridPart_,
+													functionSpaceWrapper_,
+													currentFunctions_.discreteVelocity() );
+							oseenPass.apply( currentFunctions_, nextFunctions_ );
+
 						}
 						nextStep( 2 );
 						//stokes step B
