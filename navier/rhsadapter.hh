@@ -261,6 +261,7 @@ namespace Dune {
 										  const DiscretePressureFunctionType& pressure,
 										  const AnalyticalForceType& force,
 										  const double alpha_re_qoutient,
+										  const double u_factor,
 										  int polOrd = -1)
 						: BaseType( "nonlinear-rhsdapater" , velocity.space()),
 						timeProvider_( timeProvider )
@@ -359,10 +360,16 @@ namespace Dune {
 									typename DiscreteVelocityFunctionSpaceType::JacobianRangeType phi_jacobian (0.0);
 									baseset.evaluate(i, quad[qP], phi);
 									baseset.jacobian(i, quad[qP], phi_jacobian );
-									const double velocity_jacobian_eval_times_phi_jacobian = alpha_re_qoutient * Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
+									const double velocity_jacobian_eval_times_phi_jacobian =
+											alpha_re_qoutient * Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
 									const double force_eval_times_phi = force_eval * phi;
+									const double scaled_velocity_times_phi = ( velocity_eval * phi ) * u_factor;
 									double pressure_jacobian_eval_times_phi = pressure_jacobian_eval[0] *  phi;
-									self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi - pressure_jacobian_eval_times_phi ) ;
+									self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian
+															   + force_eval_times_phi
+															   - pressure_jacobian_eval_times_phi
+															   + scaled_velocity_times_phi
+															) ;
 								}
 							}
 

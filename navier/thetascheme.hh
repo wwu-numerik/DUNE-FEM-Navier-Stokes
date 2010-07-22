@@ -252,12 +252,14 @@ namespace Dune {
 						//Nonlinear step
 						{
 							const double oseen_alpha = 1 / ( 1 - 2 * d_t );
+							const double oseen_viscosity = operator_weight_beta_ / reynolds;
 
 							typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																			  currentFunctions_.discreteVelocity(),
 																			  currentFunctions_.discretePressure(),
 																			  force,
-																			  operator_weight_alpha_ / reynolds );
+																			  operator_weight_alpha_ / reynolds,
+																			  oseen_alpha );
 							typedef NonlinearStep::Traits<	typename Traits::GridPartType,
 															typename Traits::DiscreteStokesFunctionWrapperType,
 															typename Traits::NonlinearForceAdapterFunctionType >
@@ -277,7 +279,7 @@ namespace Dune {
 									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
 												nonlinearForce,
 												stokesDirichletData,
-												stokes_viscosity,
+												oseen_viscosity,
 												oseen_alpha );
 							OseenpassType oseenPass( stokesStartPass,
 													stokesModel,
