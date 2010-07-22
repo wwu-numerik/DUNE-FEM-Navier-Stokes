@@ -41,6 +41,11 @@
 
 
 namespace Dune {
+
+	namespace NavierStokes {
+		namespace NonlinearStep {
+
+
 //! utility struct used to expose runtime statistics
 struct SaddlepointInverseOperatorInfo {
 	double iterations_inner_avg;
@@ -611,7 +616,11 @@ class SaddlepointInverseOperator
 
   };//end class SaddlepointInverseOperator
 
-} // end namespace Dune
+
+}//end namespace NonlinearStep
+}//end namespace NavierStokes
+}//end namespace Dune
+
 
 #endif
 

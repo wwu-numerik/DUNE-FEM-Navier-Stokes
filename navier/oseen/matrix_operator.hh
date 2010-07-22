@@ -13,6 +13,8 @@
 
 
 namespace Dune {
+	namespace NavierStokes {
+		namespace NonlinearStep {
 
 
 /** \brief Operator to wrap Matrix-vector multiplication in inner CG algorithms
@@ -311,6 +313,9 @@ class InnerCGSolverWrapper {
         CG_SolverType cg_solver;
 };
 
-}
+}//end namespace NonlinearStep
+}//end namespace NavierStokes
+}//end namespace Dune
+
 
 #endif // INNERCG_HH_INCLUDED
