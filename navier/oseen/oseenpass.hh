@@ -407,7 +407,7 @@ namespace Dune
 						const bool H3debug = Parameters().getParam( "H3debug", false );
 						int fivePercentOfEntities = 0;
 						int fivePercents = 0;
-						infoStream << "this is StokesPass::apply()" << std::endl;
+						infoStream << "this is OseenPass::apply()" << std::endl;
 
 						// do an empty grid walk to get informations
 						double maxGridWidth( 0.0 );
