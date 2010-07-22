@@ -776,23 +776,33 @@ namespace Dune
 										//calc u_h * \nabla * (v \tensor \beta )
 										VelocityRangeType beta_eval;
 										beta_.evaluate( xWorld, beta_eval );
+
 //										VelocityRangeType derep = divergence_of_dyadic_product(  );
-										VelocityJacobianRangeType beta_jacobian,v_i_jacobian;
-										beta_.jacobian( xWorld, beta_jacobian );
-										velocityBaseFunctionSetElement.jacobian( i, x, v_i_jacobian );
-										VelocityRangeType divergence_of_beta_v_i_tensor_beta;
+										VelocityJacobianRangeType beta_jacobian,v_j_jacobian;
+//										beta_.jacobian( xWorld, beta_jacobian );
+										velocityBaseFunctionSetElement.jacobian( i, x, beta_jacobian );
+										const typename DiscreteVelocityFunctionType::LocalFunctionType& beta_lf =
+												beta_.localFunction( entity );
+										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
+											for ( size_t m = 0; m < beta_eval.dim(); ++m ) {
+												beta_jacobian[l][m] *= beta_lf[l];
+											}
+										}
+
+										velocityBaseFunctionSetElement.jacobian( j, x, v_j_jacobian );
+										VelocityRangeType divergence_of_beta_v_j_tensor_beta;
 										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
 											double row_result = 0;
-											for ( size_t m = 0; l < beta_eval.dim(); ++m ) {
-												row_result += beta_jacobian[m][l] * v_i[l] + v_i_jacobian[m][l] * beta_eval[l];
+											for ( size_t m = 0; m < beta_eval.dim(); ++m ) {
+												row_result += beta_jacobian[m][l] * v_j[l] + v_j_jacobian[m][l] * beta_eval[l];
 											}
-											divergence_of_beta_v_i_tensor_beta[l] = row_result;
+											divergence_of_beta_v_j_tensor_beta[l] = row_result;
 										}
-										const double u_h_times_divergence_of_beta_v_i_tensor_beta =
-												v_j * divergence_of_beta_v_i_tensor_beta;
+										const double u_h_times_divergence_of_beta_v_j_tensor_beta =
+												v_j * divergence_of_beta_v_j_tensor_beta;
 										Y_i_j += elementVolume
 											* integrationWeight
-											* u_h_times_divergence_of_beta_v_i_tensor_beta;
+											* u_h_times_divergence_of_beta_v_j_tensor_beta;
 
 			#ifndef NLOG
 										debugStream << "    - quadPoint " << quad;
@@ -1389,7 +1399,10 @@ namespace Dune
 												for ( size_t quad = 0; quad < faceQuadratureElement.nop(); ++quad ) {
 													// get x codim<0> and codim<1> coordinates
 													const ElementCoordinateType x = faceQuadratureElement.point( quad );
+													const ElementCoordinateType xInside = faceQuadratureElement.point( quad );
+													const ElementCoordinateType xOutside = faceQuadratureNeighbour.point( quad );
 													const LocalIntersectionCoordinateType xLocal = faceQuadratureElement.localPoint( quad );
+													const VelocityRangeType xWorld = geometry.global( x );
 													// get the integration factor
 													const double elementVolume = intersectionGeoemtry.integrationElement( xLocal );
 													// get the quadrature weight
@@ -1406,6 +1419,26 @@ namespace Dune
 														* integrationWeight
 														* mu
 														* v_i_times_v_j;
+													//calc (\beta * n) *  ( \hat{u}^c_h * v )
+													VelocityRangeType beta_eval;
+													beta_.evaluate( xWorld, beta_eval );
+													const double beta_times_normal = beta_eval * outerNormal;
+													VelocityRangeType flux_value;
+													if ( beta_times_normal < 0 ) {
+														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+//														flux_value = v_j;
+													}
+													else {
+														velocityBaseFunctionSetElement.evaluate( i, xOutside, flux_value );
+//														flux_value = v_i;
+													}
+													const double flux_times_v_i = flux_value * v_i;
+													Y_i_j += C_11
+														* elementVolume
+														* integrationWeight
+														* beta_times_normal
+														* flux_times_v_i;
+
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
 													Stuff::printFieldVector( x, "x", debugStream, "        " );
@@ -1448,6 +1481,7 @@ namespace Dune
 													// get x codim<0> and codim<1> coordinates
 													const ElementCoordinateType xInside = faceQuadratureElement.point( quad );
 													const ElementCoordinateType xOutside = faceQuadratureNeighbour.point( quad );
+													const VelocityRangeType xWorld = geometry.global( xInside );
 													const LocalIntersectionCoordinateType xLocal = faceQuadratureNeighbour.localPoint( quad );
 													// get the integration factor
 													const double elementVolume = intersectionGeoemtry.integrationElement( xLocal );
@@ -1466,6 +1500,21 @@ namespace Dune
 														* integrationWeight
 														* mu
 														* v_i_times_v_j;
+													//calc (\beta * n) *  ( \hat{u}^c_h * v )
+													VelocityRangeType beta_eval;
+													beta_.evaluate( xWorld, beta_eval );
+													const double beta_times_normal = beta_eval * outerNormal;
+													VelocityRangeType flux_value;
+													if ( beta_times_normal < 0 )
+														flux_value = v_j;
+													else
+														flux_value = v_i;
+													const double flux_times_v_i = flux_value * v_i;
+													Y_i_j += C_11
+														* elementVolume
+														* integrationWeight
+														* beta_times_normal
+														* flux_times_v_i;
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
 													Stuff::printFieldVector( xInside, "xInside", debugStream, "        " );
@@ -2076,6 +2125,9 @@ namespace Dune
 												for ( size_t quad = 0; quad < faceQuadratureElement.nop(); ++quad ) {
 													// get x codim<0> and codim<1> coordinates
 													const ElementCoordinateType x = faceQuadratureElement.point( quad );
+													const ElementCoordinateType xInside = faceQuadratureElement.point( quad );
+													const VelocityRangeType xWorld = geometry.global( x );
+//													const ElementCoordinateType xOutside = faceQuadratureNeighbour.point( quad );
 													const LocalIntersectionCoordinateType xLocal = faceQuadratureElement.localPoint( quad );
 													// get the integration factor
 													const double elementVolume = intersectionGeoemtry.integrationElement( xLocal );
@@ -2093,6 +2145,25 @@ namespace Dune
 														* integrationWeight
 														* mu
 														* v_i_times_v_j;
+													//calc (\beta * n) *  ( \hat{u}^c_h * v )
+													VelocityRangeType beta_eval;
+													beta_.evaluate( xWorld, beta_eval );
+													const double beta_times_normal = beta_eval * outerNormal;
+													VelocityRangeType flux_value;
+													if ( beta_times_normal < 0 ) {
+														VelocityRangeType gD( 0.0 );
+														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
+														flux_value = gD;
+													}
+													else {
+														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+													}
+													const double flux_times_v_i = flux_value * v_i;
+													Y_i_j += C_11
+														* elementVolume
+														* integrationWeight
+														* beta_times_normal
+														* flux_times_v_i;
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
 													Stuff::printFieldVector( x, "x", debugStream, "        " );
