@@ -251,6 +251,7 @@ namespace Dune {
 						nextStep( 1 );
 						//Nonlinear step
 						{
+							const double oseen_alpha = 1 / ( 1 - 2 * d_t );
 
 							typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																			  currentFunctions_.discreteVelocity(),
@@ -268,15 +269,6 @@ namespace Dune {
 									OseenpassType;
 							typename Traits::StokesStartPassType stokesStartPass;
 
-							typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
-																						   currentFunctions_.discreteVelocity(),
-																						   force,
-																						   beta_qout_re,
-																						   quasi_stokes_alpha );
-
-
-
-
 							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 													::getInstance( timeprovider_,
@@ -286,7 +278,7 @@ namespace Dune {
 												nonlinearForce,
 												stokesDirichletData,
 												stokes_viscosity,
-												quasi_stokes_alpha );
+												oseen_alpha );
 							OseenpassType oseenPass( stokesStartPass,
 													stokesModel,
 													gridPart_,
