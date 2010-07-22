@@ -210,14 +210,16 @@ namespace Dune
 					OseenPass( PreviousPassType& prevPass,
 								DiscreteModelType& discreteModel,
 								GridPartType& gridPart,
-								DiscreteStokesFunctionSpaceWrapperType& spaceWrapper )
+								DiscreteStokesFunctionSpaceWrapperType& spaceWrapper,
+								const DiscreteVelocityFunctionType& beta )
 						: BaseType( prevPass ),
 						discreteModel_( discreteModel ),
 						gridPart_( gridPart ),
 						spaceWrapper_( spaceWrapper ),
 						velocitySpace_( spaceWrapper.discreteVelocitySpace() ),
 						pressureSpace_( spaceWrapper.discretePressureSpace() ),
-						sigmaSpace_( gridPart )
+						sigmaSpace_( gridPart ),
+						beta_( beta )
 					{}
 
 					/**
@@ -755,6 +757,7 @@ namespace Dune
 									for ( size_t quad = 0; quad < volumeQuadratureElement.nop(); ++quad ) {
 										// get x
 										const ElementCoordinateType x = volumeQuadratureElement.point( quad );
+										const VelocityRangeType xWorld = geometry.global( x );
 										// get the integration factor
 										const double elementVolume = geometry.integrationElement( x );
 										// get the quadrature weight
@@ -769,6 +772,28 @@ namespace Dune
 											* integrationWeight
 											* alpha
 											* v_i_times_v_j;
+
+										//calc u_h * \nabla * (v \tensor \beta )
+										VelocityRangeType beta_eval;
+										beta_.evaluate( xWorld, beta_eval );
+//										VelocityRangeType derep = divergence_of_dyadic_product(  );
+										VelocityJacobianRangeType beta_jacobian,v_i_jacobian;
+										beta_.jacobian( xWorld, beta_jacobian );
+										velocityBaseFunctionSetElement.jacobian( i, x, v_i_jacobian );
+										VelocityRangeType divergence_of_beta_v_i_tensor_beta;
+										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
+											double row_result = 0;
+											for ( size_t m = 0; l < beta_eval.dim(); ++m ) {
+												row_result += beta_jacobian[m][l] * v_i[l] + v_i_jacobian[m][l] * beta_eval[l];
+											}
+											divergence_of_beta_v_i_tensor_beta[l] = row_result;
+										}
+										const double u_h_times_divergence_of_beta_v_i_tensor_beta =
+												v_j * divergence_of_beta_v_i_tensor_beta;
+										Y_i_j += elementVolume
+											* integrationWeight
+											* u_h_times_divergence_of_beta_v_i_tensor_beta;
+
 			#ifndef NLOG
 										debugStream << "    - quadPoint " << quad;
 										Stuff::printFieldVector( x, "x", debugStream, "      " );
@@ -2401,6 +2426,7 @@ namespace Dune
 					DiscreteVelocityFunctionSpaceType& velocitySpace_;
 					DiscretePressureFunctionSpaceType& pressureSpace_;
 					DiscreteSigmaFunctionSpaceType sigmaSpace_;
+					const DiscreteVelocityFunctionType& beta_;
 					mutable SaddlepointInverseOperatorInfo info_;
 
 					/**
@@ -2438,6 +2464,9 @@ namespace Dune
 						return ret;
 					}
 
+//					template <class
+//					static divergence_of_dyadic_product
+//
 					// VelocityRangeType is expected to be a FieldVector,
 					// SigmaJacobianRangeType to be a Matrixmapping and
 					// SigmaJacobianRangeType[i] to be a FieldVector
