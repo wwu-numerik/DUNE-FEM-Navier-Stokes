@@ -67,6 +67,22 @@ namespace Dune {
 			typedef ExactVelocityImp< typename StokesModelTraits::VelocityFunctionSpaceType,
 									  TimeProviderType >
 				ExactVelocityType;
+
+			typedef NonlinearStep::ForceAdapterFunction<	TimeProviderType,
+															AnalyticalForceType,
+															typename DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
+															typename DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType >
+				NonlinearForceAdapterFunctionType;
+			typedef NonlinearStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
+						NonlinearForceAdapterFunctionType,
+						AnalyticalDirichletDataImp,
+						gridDim,
+						sigmaOrder,
+						velocityOrder,
+						pressureOrder >
+				OseenModelTraits;
 		};
 
 		template < class T1, class T2 >
@@ -236,23 +252,19 @@ namespace Dune {
 						//Nonlinear step
 						{
 
-							typedef NonlinearStep::ForceAdapterFunction<	typename Traits::TimeProviderType,
-																			typename Traits::AnalyticalForceType,
-																			DiscreteVelocityFunctionType,
-																			DiscretePressureFunctionType >
-									NonlinearForceAdapterFunctionType;
-
-							NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
+							typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																			  currentFunctions_.discreteVelocity(),
 																			  currentFunctions_.discretePressure(),
 																			  force,
 																			  operator_weight_alpha_ / reynolds );
 							typedef NonlinearStep::Traits<	typename Traits::GridPartType,
 															typename Traits::DiscreteStokesFunctionWrapperType,
-															NonlinearForceAdapterFunctionType >
+															typename Traits::NonlinearForceAdapterFunctionType >
 								NonlinearTraits;
 
-							typedef NonlinearStep::OseenPass<typename Traits::StokesModelType,typename Traits::StokesStartPassType >
+							typedef Dune::DiscreteStokesModelDefault< typename Traits::OseenModelTraits >
+								OseenModelType;
+							typedef NonlinearStep::OseenPass< OseenModelType,typename Traits::StokesStartPassType >
 									OseenpassType;
 							typename Traits::StokesStartPassType stokesStartPass;
 
@@ -261,13 +273,17 @@ namespace Dune {
 																						   force,
 																						   beta_qout_re,
 																						   quasi_stokes_alpha );
+
+
+
+
 							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 													::getInstance( timeprovider_,
 																   functionSpaceWrapper_ );
-							typename Traits::StokesModelType
+							OseenModelType
 									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
-												stokesForce,
+												nonlinearForce,
 												stokesDirichletData,
 												stokes_viscosity,
 												quasi_stokes_alpha );
