@@ -1433,8 +1433,7 @@ namespace Dune
 //														flux_value = v_i;
 													}
 													const double flux_times_v_i = flux_value * v_i;
-													Y_i_j += C_11
-														* elementVolume
+													Y_i_j += elementVolume
 														* integrationWeight
 														* beta_times_normal
 														* flux_times_v_i;
@@ -1510,8 +1509,7 @@ namespace Dune
 													else
 														flux_value = v_i;
 													const double flux_times_v_i = flux_value * v_i;
-													Y_i_j += C_11
-														* elementVolume
+													Y_i_j += elementVolume
 														* integrationWeight
 														* beta_times_normal
 														* flux_times_v_i;
@@ -2159,8 +2157,7 @@ namespace Dune
 														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
 													}
 													const double flux_times_v_i = flux_value * v_i;
-													Y_i_j += C_11
-														* elementVolume
+													Y_i_j += elementVolume
 														* integrationWeight
 														* beta_times_normal
 														* flux_times_v_i;
@@ -2467,31 +2464,6 @@ namespace Dune
 						else
 			#endif
 						info_ = op.solve( arg, dest, Xmatrix, MInversMatrix, Ymatrix, Ematrix, Rmatrix, Zmatrix, Wmatrix, H1rhs, H2rhs, H3rhs );
-
-//
-//						typedef InnerCGSolverWrapper< WmatrixType,
-//												MmatrixType,
-//												XmatrixType,
-//												YmatrixType,
-//												DiscreteSigmaFunctionType,
-//												DiscreteVelocityFunctionType >
-//							InnerCGSolverWrapperType;
-//				#ifdef USE_BFG_CG_SCHEME
-//						typedef typename InnerCGSolverWrapperType::ReturnValueType
-//							ReturnValueType;
-//						ReturnValueType a_solver_info;
-//
-//						//the bfg scheme uses the outer acc. as a base
-//						double current_inner_accuracy = do_bfg ? tau * outer_absLimit : inner_absLimit;
-//						double max_inner_accuracy = current_inner_accuracy;
-//				#else
-//						double current_inner_accuracy = inner_absLimit;
-//				#endif
-//						InnerCGSolverWrapperType innerCGSolverWrapper( Wmatrix, MInversMatrix, Xmatrix, Ymatrix,
-//																	   H1rhs.space(), relLimit,
-//																	   current_inner_accuracy, solverVerbosity > 3 );
-//						SaddlepointInverseOperatorInfo a_solver_info;
-//						innerCGSolverWrapper.apply( tmp1, xi, a_solver_info );
 
 						// do profiling
 						profiler().StopTiming("Pass -- SOLVER");
