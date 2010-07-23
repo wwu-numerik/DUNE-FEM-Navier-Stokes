@@ -788,6 +788,7 @@ namespace Dune
 												beta_jacobian[l][m] *= beta_lf[l];
 											}
 										}
+										Stuff::printFieldMatrix( beta_jacobian, "jaco", std::cerr, "JACOB ");
 
 										velocityBaseFunctionSetElement.jacobian( j, x, v_j_jacobian );
 										VelocityRangeType divergence_of_beta_v_j_tensor_beta;
@@ -798,6 +799,10 @@ namespace Dune
 											}
 											divergence_of_beta_v_j_tensor_beta[l] = row_result;
 										}
+										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
+											assert( !isnan(divergence_of_beta_v_j_tensor_beta[l]) );
+										}
+										Stuff::printFieldVector( divergence_of_beta_v_j_tensor_beta, "jaco", std::cerr, "DIV ");
 										const double u_h_times_divergence_of_beta_v_j_tensor_beta =
 												v_j * divergence_of_beta_v_j_tensor_beta;
 										Y_i_j += elementVolume
