@@ -163,16 +163,15 @@ namespace Dune {
 					dataWriter_( timeprovider_,
 								 gridPart_.grid(),
 								 TupleSerializerType::getTuple(
-										 nextFunctions_,
+										 currentFunctions_,
 										 exactSolution_ )
 								)
 				{}
 
 				void nextStep( const int step )
 				{
-					dataWriter_.write();
 					currentFunctions_.assign( nextFunctions_ );
-					nextFunctions_ .clear();
+					nextFunctions_.clear();
 					//error calc
 					{
 						exactSolution_.project();
@@ -193,9 +192,13 @@ namespace Dune {
 						Logger().Info().Resume();
 						Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
 										<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << std::endl;
+						const double max_l2_error = 1e4;
+						if ( l2_error_velocity_ > max_l2_error )
+							DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
 					}
 					timeprovider_.nextFractional();
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
+					dataWriter_.write();
 				}
 
 				void stokesStep( const typename Traits::AnalyticalForceType& force,
