@@ -794,7 +794,7 @@ namespace Dune
 										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
 											double row_result = 0;
 											for ( size_t m = 0; m < beta_eval.dim(); ++m ) {
-												row_result += beta_jacobian[m][l] * v_j[l] + v_j_jacobian[m][l] * beta_eval[l];
+												row_result += beta_jacobian[l][m] * v_j[l] + v_j_jacobian[l][m] * beta_eval[l];
 											}
 											divergence_of_beta_v_j_tensor_beta[l] = row_result;
 										}
