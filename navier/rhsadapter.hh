@@ -236,7 +236,7 @@ namespace Dune {
 		namespace NonlinearStep {
 			/** \brief take previous step solution and analytical RHS to form function to be passed to localdg code
 			  * given analytical force \f$f_{ana}\f$ and discrete functions \f$u,p\f$ representing previous time step's velocity and pressure solution,
-			  *	this calculates new right hand side \f$f := f_{ana} + \frac{\alpha}{Re} \Delta u - \nabla p\f$
+			  *	this calculates new right hand side \f$f := f_{ana} + \frac{\alpha}{Re} \Delta u - \nabla p + \frac{1}{(1-2\theta)dt} u\f$
 			  *
 			  */
 			template <	class TimeProviderType,

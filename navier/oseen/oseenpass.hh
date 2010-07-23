@@ -788,7 +788,7 @@ namespace Dune
 												beta_jacobian[l][m] *= beta_lf[l];
 											}
 										}
-										Stuff::printFieldMatrix( beta_jacobian, "jaco", std::cerr, "JACOB ");
+//										Stuff::printFieldMatrix( beta_jacobian, "jaco", std::cerr, "JACOB ");
 
 										velocityBaseFunctionSetElement.jacobian( j, x, v_j_jacobian );
 										VelocityRangeType divergence_of_beta_v_j_tensor_beta;
@@ -802,12 +802,12 @@ namespace Dune
 										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
 											assert( !isnan(divergence_of_beta_v_j_tensor_beta[l]) );
 										}
-										Stuff::printFieldVector( divergence_of_beta_v_j_tensor_beta, "jaco", std::cerr, "DIV ");
+//										Stuff::printFieldVector( divergence_of_beta_v_j_tensor_beta, "jaco", std::cerr, "DIV ");
 										const double u_h_times_divergence_of_beta_v_j_tensor_beta =
 												v_j * divergence_of_beta_v_j_tensor_beta;
 										Y_i_j += elementVolume
 											* integrationWeight
-											* u_h_times_divergence_of_beta_v_j_tensor_beta;
+											* (-1) * u_h_times_divergence_of_beta_v_j_tensor_beta;
 
 			#ifndef NLOG
 										debugStream << "    - quadPoint " << quad;
@@ -1431,12 +1431,13 @@ namespace Dune
 													VelocityRangeType flux_value;
 													if ( beta_times_normal < 0 ) {
 														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
-//														flux_value = v_j;
+														flux_value = 0;
 													}
 													else {
-														velocityBaseFunctionSetElement.evaluate( i, xOutside, flux_value );
+														velocityBaseFunctionSetElement.evaluate( j, xOutside, flux_value );
 //														flux_value = v_i;
 													}
+													//inner edge (self)
 													const double flux_times_v_i = flux_value * v_i;
 													Y_i_j += elementVolume
 														* integrationWeight
@@ -1505,6 +1506,7 @@ namespace Dune
 														* mu
 														* v_i_times_v_j;
 													//calc (\beta * n) *  ( \hat{u}^c_h * v )
+													//inner edge (neigh)
 													VelocityRangeType beta_eval;
 													beta_.evaluate( xWorld, beta_eval );
 													const double beta_times_normal = beta_eval * outerNormal;
@@ -1512,8 +1514,9 @@ namespace Dune
 													if ( beta_times_normal < 0 )
 														flux_value = v_j;
 													else
-														flux_value = v_i;
-													const double flux_times_v_i = flux_value * v_i;
+														flux_value = 0;
+
+													const double flux_times_v_i = flux_value * v_j;
 													Y_i_j += elementVolume
 														* integrationWeight
 														* beta_times_normal
@@ -2149,6 +2152,7 @@ namespace Dune
 														* mu
 														* v_i_times_v_j;
 													//calc (\beta * n) *  ( \hat{u}^c_h * v )
+													//boundary edge
 													VelocityRangeType beta_eval;
 													beta_.evaluate( xWorld, beta_eval );
 													const double beta_times_normal = beta_eval * outerNormal;
@@ -2160,6 +2164,9 @@ namespace Dune
 													}
 													else {
 														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+														VelocityRangeType gD( 0.0 );
+														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
+														flux_value = gD;
 													}
 													const double flux_times_v_i = flux_value * v_i;
 													Y_i_j += elementVolume

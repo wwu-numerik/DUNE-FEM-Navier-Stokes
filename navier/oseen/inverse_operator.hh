@@ -788,9 +788,10 @@ class ReducedInverseOperator
 		// u^0 = A^{-1} ( F - B * p^0 )
 		b_mat.apply( pressure, tmp1 );
 		F-=tmp1; // F ^= rhs2 - B * p
+		logInfo << "OSEEN: first apply\n" ;
 		innerCGSolverWrapper.apply(F,velocity);
 
-		return SaddlepointInverseOperatorInfo();
+		logInfo << "OSEEN: first apply - done\n" ;
 
 		// r^0 = G - B_t * u^0 + C * p^0
 		b_t_mat.apply( velocity, tmp2 );

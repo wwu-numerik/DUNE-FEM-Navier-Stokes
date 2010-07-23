@@ -19,7 +19,7 @@ fem.io.savestep: 1
 fem.io.savecount: 1
 fem.timeprovider.starttime: 0
 fem.timeprovider.endtime: 0.02
-fem.timeprovider.dt: 0.0001
+fem.timeprovider.dt: 0.01
 
 #nonlinear - models.hh
 femhowto.diffusionTimeStep: 0
@@ -90,10 +90,10 @@ alpha: 0.0
 
 #****************** solver ******************************************************************
 #pretty much ineffective
-relLimit: 1e-10
+relLimit: 1e-08
 
-absLimit: 1e-10
-inner_absLimit: 1e-10
+absLimit: 1e-08
+inner_absLimit: 1e-08
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
