@@ -144,6 +144,7 @@ namespace Dune {
 			template <	class TimeProviderType,
 						class GridPartImp,
 						class ForceFuntionType,
+						class ExtraDataFunctionImp,
 						template < class > class AnalyticalDirichletDataImp,
 						int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 			class DiscreteStokesModelTraits
@@ -254,8 +255,8 @@ namespace Dune {
 					typedef typename AnalyticalDirichletDataTraitsImplementation::AnalyticalDirichletDataType
 						AnalyticalDirichletDataType;
 
-					typedef DiscreteVelocityFunctionType
-						ExtraDataDiscreteFunctionType;
+					typedef ExtraDataFunctionImp
+						ExtraDataFunctionType;
 					/**
 					 *  \name   types needed for the pass
 					 *  \{

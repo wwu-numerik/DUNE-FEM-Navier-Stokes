@@ -24,6 +24,14 @@ namespace Dune {
 					template < class,class > class ExactVelocityImp,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		struct ThetaSchemeTraits {
+			typedef ThetaSchemeTraits<CommunicatorImp,
+										GridPartImp,
+										AnalyticalForceImp,
+										AnalyticalDirichletDataImp,
+										ExactPressureImp,
+										ExactVelocityImp,
+										gridDim, sigmaOrder, velocityOrder , pressureOrder >
+				ThisType;
 			typedef GridPartImp
 				GridPartType;
 			typedef FractionalTimeProvider<CommunicatorImp>
@@ -68,6 +76,9 @@ namespace Dune {
 									  TimeProviderType >
 				ExactVelocityType;
 
+			typedef ExactSolution<ThisType>
+				ExactSolutionType;
+
 			typedef NonlinearStep::ForceAdapterFunction<	TimeProviderType,
 															AnalyticalForceType,
 															typename DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
@@ -77,6 +88,7 @@ namespace Dune {
 						TimeProviderType,
 						GridPartType,
 						NonlinearForceAdapterFunctionType,
+						typename ExactSolutionType::DiscreteVelocityFunctionType,
 						AnalyticalDirichletDataImp,
 						gridDim,
 						sigmaOrder,
@@ -111,7 +123,7 @@ namespace Dune {
 					Traits;
 				typedef typename Traits::CommunicatorType
 					CommunicatorType;
-				typedef ExactSolution<Traits>
+				typedef typename Traits::ExactSolutionType
 					ExactSolutionType;
 				typedef TupleSerializer< typename Traits::DiscreteStokesFunctionWrapperType,
 										 ExactSolutionType >

@@ -110,6 +110,9 @@ namespace Dune
 					typedef typename DiscretePressureFunctionType::DiscreteFunctionSpaceType
 						DiscretePressureFunctionSpaceType;
 
+					typedef typename DiscreteModelType::Traits::ExtraDataFunctionType
+						ExtraDataFunctionType;
+
 					//! Coordinate type on the element
 					typedef typename DiscreteVelocityFunctionSpaceType::DomainType
 						ElementCoordinateType;
@@ -211,7 +214,7 @@ namespace Dune
 								DiscreteModelType& discreteModel,
 								GridPartType& gridPart,
 								DiscreteStokesFunctionSpaceWrapperType& spaceWrapper,
-								const DiscreteVelocityFunctionType& beta )
+								const ExtraDataFunctionType& beta )
 						: BaseType( prevPass ),
 						discreteModel_( discreteModel ),
 						gridPart_( gridPart ),
@@ -799,9 +802,9 @@ namespace Dune
 											}
 											divergence_of_beta_v_j_tensor_beta[l] = row_result;
 										}
-										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
-											assert( !isnan(divergence_of_beta_v_j_tensor_beta[l]) );
-										}
+//										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
+//											assert( !isnan(divergence_of_beta_v_j_tensor_beta[l]) );
+//										}
 //										Stuff::printFieldVector( divergence_of_beta_v_j_tensor_beta, "jaco", std::cerr, "DIV ");
 										const double u_h_times_divergence_of_beta_v_j_tensor_beta =
 												v_j * divergence_of_beta_v_j_tensor_beta;
@@ -2506,7 +2509,7 @@ namespace Dune
 					DiscreteVelocityFunctionSpaceType& velocitySpace_;
 					DiscretePressureFunctionSpaceType& pressureSpace_;
 					DiscreteSigmaFunctionSpaceType sigmaSpace_;
-					const DiscreteVelocityFunctionType& beta_;
+					const ExtraDataFunctionType& beta_;
 					mutable SaddlepointInverseOperatorInfo info_;
 
 					/**
