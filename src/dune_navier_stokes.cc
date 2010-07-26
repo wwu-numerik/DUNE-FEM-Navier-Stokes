@@ -43,6 +43,7 @@
 	#define TESTCASE TestCase3D
 #endif
 
+#define TESTCASE_NAME "TESTCASE"
 
 #if ( ( defined(SGRID) || defined(ALUGRID_SIMPLEX) ||  defined(ALUGRID_CUBE) ) && ( GRIDDIM == 3 ) ) || defined(UGGRID) || defined(YASPGRID)
 	//this is no mistake, ALU is indeed only incompatible in 3d

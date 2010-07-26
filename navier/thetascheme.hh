@@ -168,40 +168,74 @@ namespace Dune {
 								)
 				{}
 
-				void nextStep( const int step )
+				void nextStep( const int step, RunInfo info = RunInfo() )
 				{
 					currentFunctions_.assign( nextFunctions_ );
 					nextFunctions_.clear();
+
 					//error calc
-					{
-						exactSolution_.project();
-						DiscretePressureFunctionType errorFunc_pressure_("",currentFunctions_.discretePressure().space());
-						DiscreteVelocityFunctionType errorFunc_velocity_("",currentFunctions_.discreteVelocity().space());
-						errorFunc_pressure_.assign( exactSolution_.discretePressure() );
-						errorFunc_pressure_ -= currentFunctions_.discretePressure();
-						errorFunc_velocity_.assign( exactSolution_.discreteVelocity() );
-						errorFunc_velocity_ -= currentFunctions_.discreteVelocity();
+					exactSolution_.project();
+					DiscretePressureFunctionType errorFunc_pressure_("",currentFunctions_.discretePressure().space());
+					DiscreteVelocityFunctionType errorFunc_velocity_("",currentFunctions_.discreteVelocity().space());
+					errorFunc_pressure_.assign( exactSolution_.discretePressure() );
+					errorFunc_pressure_ -= currentFunctions_.discretePressure();
+					errorFunc_velocity_.assign( exactSolution_.discreteVelocity() );
+					errorFunc_velocity_ -= currentFunctions_.discreteVelocity();
 
-						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
-						const double l2_error_pressure_				= l2_Error.norm( errorFunc_pressure_ );
-						const double l2_error_velocity_				= l2_Error.norm( errorFunc_velocity_ );
-						const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
-						const double relative_l2_error_velocity_	= l2_error_velocity_ / l2_Error.norm( exactSolution_.discreteVelocity() );
+					const double l2_error_pressure_				= l2_Error.norm( errorFunc_pressure_ );
+					const double l2_error_velocity_				= l2_Error.norm( errorFunc_velocity_ );
+					const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
+					const double relative_l2_error_velocity_	= l2_error_velocity_ / l2_Error.norm( exactSolution_.discreteVelocity() );
+					std::vector<double> error_vector;
+					error_vector.push_back( l2_error_velocity_ );
+					error_vector.push_back( l2_error_pressure_ );
 
-						Logger().Info().Resume();
-						Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
-										<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << std::endl;
-						const double max_l2_error = 1e4;
-						if ( l2_error_velocity_ > max_l2_error )
-							DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
+
+					Logger().Info().Resume();
+					Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
+									<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << std::endl;
+					const double max_l2_error = 1e4;
+					if ( l2_error_velocity_ > max_l2_error )
+						DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
+					//end error calc
+
+					if (step == 3) {
+						info.codim0 = gridPart_.grid().size( 0 );
+						const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
+
+						info.grid_width = grid_width;
+						info.run_time = profiler().GetTiming( "Timestep" );
+						info.L2Errors = error_vector;
+						typedef Dune::StabilizationCoefficients::ValueType
+							Pair;
+						Dune::StabilizationCoefficients stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+						info.c11 = Pair( stabil_coeff.Power( "C11" ), stabil_coeff.Factor( "C11" ) );
+						info.c12 = Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
+						info.d11 = Pair( stabil_coeff.Power( "D11" ), stabil_coeff.Factor( "D11" ) );
+						info.d12 = Pair( stabil_coeff.Power( "D12" ), stabil_coeff.Factor( "D12" ) );
+						info.bfg = Parameters().getParam( "do-bfg", true );
+						info.gridname = gridPart_.grid().name();
+						info.refine_level = Parameters().getParam( "minref", 0 );
+
+						info.polorder_pressure = Traits::StokesModelTraits::pressureSpaceOrder;
+						info.polorder_sigma = Traits::StokesModelTraits::sigmaSpaceOrder;
+						info.polorder_velocity = Traits::StokesModelTraits::velocitySpaceOrder;
+
+						info.solver_accuracy = Parameters().getParam( "absLimit", 1e-4 );
+						info.inner_solver_accuracy = Parameters().getParam( "inner_absLimit", 1e-4 );
+						info.bfg_tau = Parameters().getParam( "bfg-tau", 0.1 );
+
+						info.problemIdentifier = TESTCASE_NAME;
 					}
+
 					timeprovider_.nextFractional();
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
 					dataWriter_.write();
 				}
 
-				void stokesStep( const typename Traits::AnalyticalForceType& force,
+				RunInfo stokesStep( const typename Traits::AnalyticalForceType& force,
 								 const double stokes_viscosity,
 								 const double quasi_stokes_alpha,
 								 const double beta_qout_re )
@@ -227,6 +261,9 @@ namespace Dune {
 											gridPart_,
 											functionSpaceWrapper_ );
 					stokesPass.apply( currentFunctions_, nextFunctions_ );
+					RunInfo info;
+					stokesPass.getRuninfo( info );
+					return info;
 				}
 
 				void run()
@@ -247,6 +284,7 @@ namespace Dune {
 
 					for( timeprovider_.init( timeprovider_.deltaT() ); timeprovider_.time() < timeprovider_.endTime(); )
 					{
+						profiler().StartTiming( "Timestep" );
 						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
 						//stokes step A
 						stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re );
@@ -290,9 +328,9 @@ namespace Dune {
 						}
 						nextStep( 2 );
 						//stokes step B
-						stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
-
-						nextStep( 3 );
+						RunInfo info = stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
+						profiler().StopTiming( "Timestep" );
+						nextStep( 3, info );
 					}
 				}
 
