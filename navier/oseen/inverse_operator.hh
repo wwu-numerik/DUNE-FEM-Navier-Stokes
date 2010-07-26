@@ -600,7 +600,6 @@ class SaddlepointInverseOperator
 
         logInfo << "End SaddlePointInverseOperator " << std::endl;
 
-        SaddlepointInverseOperatorInfo info; //left blank in case of no bfg
 #ifdef USE_BFG_CG_SCHEME
         const double avg_inner_iterations = total_inner_iterations / (double)iteration;
         if( solverVerbosity > 0 )
