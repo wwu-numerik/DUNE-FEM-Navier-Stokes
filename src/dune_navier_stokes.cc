@@ -192,6 +192,7 @@ int main( int argc, char** argv )
 			  ++ref )
 		{
 			rf[ref] = singleRun( mpicomm, ref );
+			rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
 			profiler().NextRun();
 		}
 
