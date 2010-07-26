@@ -329,14 +329,14 @@ namespace Dune {
 			};
 
 			template < class DomainType, class RangeType >
-			void VelocityEvaluate( const double parameter_a, const double parameter_d, const double time, const DomainType& arg, RangeType& ret)
+			void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
 			{
 				const double x				= arg[0];
 				const double y				= arg[1];
 				const double e_minus_2_t	= std::exp( -2 * time );
 
 				ret[0] = -1 *	std::cos( x ) * std::sin( y ) * e_minus_2_t;
-				ret[0] =		std::sin( x ) * std::cos( y ) * e_minus_2_t;
+				ret[1] =		std::sin( x ) * std::cos( y ) * e_minus_2_t;
 			}
 
 			/**
