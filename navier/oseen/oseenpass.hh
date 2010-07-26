@@ -1439,6 +1439,7 @@ namespace Dune
 													else {
 														velocityBaseFunctionSetElement.evaluate( j, xOutside, flux_value );
 //														flux_value = v_i;
+														flux_value *= 0.5;
 													}
 													//inner edge (self)
 													const double flux_times_v_i = flux_value * v_i;
@@ -1514,10 +1515,14 @@ namespace Dune
 													beta_.evaluate( xWorld, beta_eval );
 													const double beta_times_normal = beta_eval * outerNormal;
 													VelocityRangeType flux_value;
-													if ( beta_times_normal < 0 )
-														flux_value = v_j;
-													else
+													if ( beta_times_normal < 0 ) {
+														velocityBaseFunctionSetElement.evaluate( j, xInside, flux_value );
+														flux_value *= 0.5;
+													}
+													else {
+														velocityBaseFunctionSetElement.evaluate( i, xOutside, flux_value );
 														flux_value = 0;
+													}
 
 													const double flux_times_v_i = flux_value * v_j;
 													Y_i_j += elementVolume
@@ -2164,6 +2169,7 @@ namespace Dune
 														VelocityRangeType gD( 0.0 );
 														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
 														flux_value = gD;
+//														flux_value *= -1;
 													}
 													else {
 														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
