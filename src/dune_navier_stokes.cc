@@ -183,15 +183,18 @@ int main( int argc, char** argv )
 
 		int err = 0;
 
-		profiler().Reset( 2 );
-
+		const unsigned int minref = Parameters().getParam( "minref", 0 );
+		const unsigned int maxref = Parameters().getParam( "maxref", 0 );
+		profiler().Reset( maxref - minref + 1 );
 		RunInfoVectorMap rf;
-		unsigned int ref = Parameters().getParam( "minref", 0 );
-		rf[ref] = singleRun( mpicomm, ref );
-		profiler().NextRun();
-		ref++;
-		rf[ref] = singleRun( mpicomm, ref );
-		profiler().NextRun();
+		for ( unsigned int ref = minref;
+			  ref <= maxref;
+			  ++ref )
+		{
+			rf[ref] = singleRun( mpicomm, ref );
+			profiler().NextRun();
+		}
+
 //		profiler().Output( mpicomm, rf );
 
 		Stuff::TimeSeriesOutput out( rf );
@@ -234,17 +237,13 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	 * ********************************************************************** */
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
-	static Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
+	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
 	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
-	static bool firstRun = true;
-	if ( firstRun && refine_level_factor > 0 ) { //since we have a couple of local statics, only do this once, further refinement done in estimator
-		refine_level = ( refine_level_factor ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
-		gridPtr->globalRefine( refine_level );
-	}
+	gridPtr->globalRefine( refine_level );
 
 	typedef Dune::AdaptiveLeafGridPart< GridType >
 		GridPartType;
-	static GridPartType gridPart( *gridPtr );
+	GridPartType gridPart( *gridPtr );
 
 	/* ********************************************************************** *
 	 * initialize problem                                                     *
