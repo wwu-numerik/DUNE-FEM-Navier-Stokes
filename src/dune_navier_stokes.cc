@@ -39,6 +39,11 @@
 	#define DIRICHLET_DATA DirichletData
 #endif
 
+#if ! defined(TESTCASE)
+	#define TESTCASE TestCase3D
+#endif
+
+
 #if ( ( defined(SGRID) || defined(ALUGRID_SIMPLEX) ||  defined(ALUGRID_CUBE) ) && ( GRIDDIM == 3 ) ) || defined(UGGRID) || defined(YASPGRID)
 	//this is no mistake, ALU is indeed only incompatible in 3d
 	#define OLD_DUNE_GRID_VERSION
@@ -249,10 +254,10 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
 					GridPartType,
-					Dune::NavierStokes::TestCase2D::Force,
-					Dune::NavierStokes::TestCase2D::DirichletData,
-					Dune::NavierStokes::TestCase2D::Pressure,
-					Dune::NavierStokes::TestCase2D::Velocity,
+					Dune::NavierStokes::TESTCASE::Force,
+					Dune::NavierStokes::TESTCASE::DirichletData,
+					Dune::NavierStokes::TESTCASE::Pressure,
+					Dune::NavierStokes::TESTCASE::Velocity,
 					gridDim,
 					polOrder,
 					VELOCITY_POLORDER,
