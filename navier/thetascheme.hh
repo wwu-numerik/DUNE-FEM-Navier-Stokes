@@ -168,7 +168,7 @@ namespace Dune {
 								)
 				{}
 
-				void nextStep( const int step, RunInfo info = RunInfo() )
+				void nextStep( const int step, RunInfo& info )
 				{
 					currentFunctions_.assign( nextFunctions_ );
 					nextFunctions_.clear();
@@ -202,30 +202,32 @@ namespace Dune {
 					//end error calc
 
 					if (step == 3) {
-						info.codim0 = gridPart_.grid().size( 0 );
-						const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
-
-						info.grid_width = grid_width;
-						info.run_time = profiler().GetTiming( "Timestep" );
-						info.L2Errors = error_vector;
 						typedef Dune::StabilizationCoefficients::ValueType
 							Pair;
 						Dune::StabilizationCoefficients stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-						info.c11 = Pair( stabil_coeff.Power( "C11" ), stabil_coeff.Factor( "C11" ) );
-						info.c12 = Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
-						info.d11 = Pair( stabil_coeff.Power( "D11" ), stabil_coeff.Factor( "D11" ) );
-						info.d12 = Pair( stabil_coeff.Power( "D12" ), stabil_coeff.Factor( "D12" ) );
-						info.bfg = Parameters().getParam( "do-bfg", true );
-						info.gridname = gridPart_.grid().name();
-						info.refine_level = Parameters().getParam( "minref", 0 );
 
-						info.polorder_pressure = Traits::StokesModelTraits::pressureSpaceOrder;
-						info.polorder_sigma = Traits::StokesModelTraits::sigmaSpaceOrder;
-						info.polorder_velocity = Traits::StokesModelTraits::velocitySpaceOrder;
+						info.codim0			= gridPart_.grid().size( 0 );
+						info.grid_width		= Dune::GridWidth::calcGridWidth( gridPart_ );;
+						info.run_time		= profiler().GetTiming( "Timestep" );
+						info.delta_t		= timeprovider_.deltaT();
+						info.current_time	= timeprovider_.time();
+						info.L2Errors		= error_vector;
 
-						info.solver_accuracy = Parameters().getParam( "absLimit", 1e-4 );
-						info.inner_solver_accuracy = Parameters().getParam( "inner_absLimit", 1e-4 );
-						info.bfg_tau = Parameters().getParam( "bfg-tau", 0.1 );
+						info.c11			= Pair( stabil_coeff.Power( "C11" ), stabil_coeff.Factor( "C11" ) );
+						info.c12			= Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
+						info.d11			= Pair( stabil_coeff.Power( "D11" ), stabil_coeff.Factor( "D11" ) );
+						info.d12			= Pair( stabil_coeff.Power( "D12" ), stabil_coeff.Factor( "D12" ) );
+						info.bfg			= Parameters().getParam( "do-bfg", true );
+						info.gridname		= gridPart_.grid().name();
+						info.refine_level	= Parameters().getParam( "minref", 0 );
+
+						info.polorder_pressure	= Traits::StokesModelTraits::pressureSpaceOrder;
+						info.polorder_sigma		= Traits::StokesModelTraits::sigmaSpaceOrder;
+						info.polorder_velocity	= Traits::StokesModelTraits::velocitySpaceOrder;
+
+						info.solver_accuracy		= Parameters().getParam( "absLimit", 1e-4 );
+						info.inner_solver_accuracy	= Parameters().getParam( "inner_absLimit", 1e-4 );
+						info.bfg_tau				= Parameters().getParam( "bfg-tau", 0.1 );
 
 						info.problemIdentifier = TESTCASE_NAME;
 					}
@@ -266,8 +268,10 @@ namespace Dune {
 					return info;
 				}
 
-				void run()
+				RunInfoVector run()
 				{
+					RunInfoVector runInfoVector;
+
 					//initial flow field at t = 0
 					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
 
@@ -284,12 +288,13 @@ namespace Dune {
 
 					for( timeprovider_.init( timeprovider_.deltaT() ); timeprovider_.time() < timeprovider_.endTime(); )
 					{
+						RunInfo info_dummy;
 						profiler().StartTiming( "Timestep" );
 						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
 						//stokes step A
 						stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re );
 
-						nextStep( 1 );
+						nextStep( 1, info_dummy );
 						//Nonlinear step
 						{
 							const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t );
@@ -326,12 +331,14 @@ namespace Dune {
 							oseenPass.apply( currentFunctions_, nextFunctions_ );
 
 						}
-						nextStep( 2 );
+						nextStep( 2, info_dummy );
 						//stokes step B
 						RunInfo info = stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
 						profiler().StopTiming( "Timestep" );
 						nextStep( 3, info );
+						runInfoVector.push_back( info );
 					}
+					return runInfoVector;
 				}
 
 		};

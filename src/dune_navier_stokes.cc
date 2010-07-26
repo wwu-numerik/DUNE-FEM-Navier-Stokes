@@ -84,6 +84,7 @@
 #include <dune/stuff/parametercontainer.hh>
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
+#include <dune/stuff/timeseries.hh>
 
 #include <dune/navier/thetascheme.hh>
 #include <dune/navier/testdata.hh>
@@ -105,14 +106,6 @@ static const std::string commit_string (COMMIT);
 		typedef Dune::CollectiveCommunication< double > CollectiveCommunication;
 #endif
 
-//! return type of getXXX_Permutations()
-typedef std::vector<Dune::StabilizationCoefficients>
-	CoeffVector;
-
-//! used in all runs to store L2 errors across runs, but i forgot why...
-typedef std::vector< RunInfo >
-	RunInfoVector;
-
 //! the strings used for column headers in tex output
 typedef std::vector<std::string>
 	ColumnHeaders;
@@ -129,7 +122,7 @@ typedef std::vector<std::string>
 			the set of coefficients to be used in the run. Default is used in all run types but StabRun().
 
 **/
-RunInfo singleRun(  CollectiveCommunication& mpicomm,
+RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor  );
 
 //! display last computed pressure/velo with grape
@@ -190,10 +183,20 @@ int main( int argc, char** argv )
 
 		int err = 0;
 
-		profiler().Reset( 1 );
-		RunInfoVector rf;
-		rf.push_back(singleRun( mpicomm, Parameters().getParam( "minref", 0 ) ) );
+		profiler().Reset( 2 );
+
+		RunInfoVectorMap rf;
+		unsigned int ref = Parameters().getParam( "minref", 0 );
+		rf[ref] = singleRun( mpicomm, ref );
+		profiler().NextRun();
+		ref++;
+		rf[ref] = singleRun( mpicomm, ref );
+		profiler().NextRun();
 //		profiler().Output( mpicomm, rf );
+
+		Stuff::TimeSeriesOutput out( rf );
+		out.writeTex( "dummy" );
+
 		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
 		return err;
 	}
@@ -217,13 +220,13 @@ int main( int argc, char** argv )
 #endif
 }
 
-RunInfo singleRun(  CollectiveCommunication& mpicomm,
+RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
 	Logging::LogStream& infoStream = Logger().Info();
 	Logging::LogStream& debugStream = Logger().Dbg();
-	RunInfo info;
+	RunInfoVector runInfoVector;
 
 
 	/* ********************************************************************** *
@@ -265,10 +268,8 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 					PRESSURE_POLORDER >
 		ThetaSchemeTraitsType;
 
-	info.codim0 = gridPtr->size( 0 );
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
-	info.grid_width = grid_width;
 
 	/* ********************************************************************** *
 	 * initialize passes                                                      *
@@ -276,63 +277,11 @@ RunInfo singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "\n- starting pass" << std::endl;
 
 
-/*	profiler().StartTiming( "Pass -- APPLY" );
-	stokesPass.apply( computedSolutions, computedSolutions );
-	profiler().StopTiming( "Pass -- APPLY" )*/;
-
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
 			thetaScheme( gridPart );
-	thetaScheme.run();
-	info.run_time = profiler().GetTiming( "Pass -- APPLY" );
-//	stokesPass.getRuninfo( info );
+	runInfoVector = thetaScheme.run();
 
-	/* ********************************************************************** *
-	 * Problem postprocessing
-	 * ********************************************************************** */
-	infoStream << "\n- postprocesing" << std::endl;
-
-
-	profiler().StartTiming( "Problem/Postprocessing" );
-
-#if 0
-	typedef Problem< gridDim, ThetaSchemeTraitsType::DiscreteStokesFunctionWrapperType, true, ThetaSchemeTraitsType::AnalyticalDirichletDataType >
-		ProblemType;
-	ProblemType problem( viscosity , computedSolutions, analyticalDirichletData );
-
-	typedef PostProcessor< StokesPassType, ProblemType >
-		PostProcessorType;
-
-	PostProcessorType postProcessor( discreteStokesFunctionSpaceWrapper, problem );
-
-	postProcessor.save( *gridPtr, computedSolutions, refine_level );
-	info.L2Errors = postProcessor.getError();
-	typedef Dune::StabilizationCoefficients::ValueType
-		Pair;
-	Dune::StabilizationCoefficients  stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ;
-	info.c11 = Pair( stabil_coeff.Power( "C11" ), stabil_coeff.Factor( "C11" ) );
-	info.c12 = Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
-	info.d11 = Pair( stabil_coeff.Power( "D11" ), stabil_coeff.Factor( "D11" ) );
-	info.d12 = Pair( stabil_coeff.Power( "D12" ), stabil_coeff.Factor( "D12" ) );
-	info.bfg = Parameters().getParam( "do-bfg", true );
-	info.gridname = gridPart.grid().name();
-	info.refine_level = refine_level;
-
-	info.polorder_pressure = StokesModelTraitsImp::pressureSpaceOrder;
-	info.polorder_sigma = StokesModelTraitsImp::sigmaSpaceOrder;
-	info.polorder_velocity = StokesModelTraitsImp::velocitySpaceOrder;
-
-	info.solver_accuracy = Parameters().getParam( "absLimit", 1e-4 );
-	info.inner_solver_accuracy = Parameters().getParam( "inner_absLimit", 1e-4 );
-	info.bfg_tau = Parameters().getParam( "bfg-tau", 0.1 );
-
-	info.problemIdentifier = StokesProblem::ProblemIdentifier;
-
-	profiler().StopTiming( "Problem/Postprocessing" );
-	profiler().StopTiming( "SingleRun" );
-	firstRun = false;
-	return info;
-#endif
-	return RunInfo();
+	return runInfoVector;
 }
 
 void eocCheck( const RunInfoVector& runInfos )
