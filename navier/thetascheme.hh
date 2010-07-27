@@ -301,7 +301,7 @@ namespace Dune {
 					const typename Traits::AnalyticalForceType force ( viscosity,
 																 currentFunctions_.discreteVelocity().space() );
 
-					for( timeprovider_.init( timeprovider_.deltaT() ); timeprovider_.time() < timeprovider_.endTime(); )
+					for( timeprovider_.init( d_t ); timeprovider_.time() < timeprovider_.endTime(); )
 					{
 						RunInfo info_dummy;
 						profiler().StartTiming( "Timestep" );
