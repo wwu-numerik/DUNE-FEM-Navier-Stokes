@@ -131,7 +131,11 @@ namespace Dune {
 									}
 									const double velocity_times_phi = quasi_stokes_alpha * ( velocity_eval * phi );
 									const double nonlin_times_v_j = nonlin * phi;
-									self_local[i] += intel * ( velocity_times_phi + velocity_jacobian_eval_times_phi_jacobian  + force_eval_times_phi - nonlin_times_v_j ) ;
+									self_local[i] += intel *
+													 ( velocity_times_phi
+													   + velocity_jacobian_eval_times_phi_jacobian
+													   + force_eval_times_phi
+													   - nonlin_times_v_j ) ;
 								}
 							}
 
