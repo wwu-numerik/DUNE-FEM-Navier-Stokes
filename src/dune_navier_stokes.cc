@@ -35,10 +35,6 @@
 	#define VELOCITY_POLORDER POLORDER
 #endif
 
-#if ! defined(DIRICHLET_DATA)
-	#define DIRICHLET_DATA DirichletData
-#endif
-
 #if ! defined(TESTCASE)
 	#define TESTCASE TestCase3D
 #endif
@@ -124,10 +120,6 @@ typedef std::vector<std::string>
 **/
 RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor  );
-
-//! display last computed pressure/velo with grape
-int display( int argc, char** argv );
-
 
 //! output alert for neg. EOC
 void eocCheck( const RunInfoVector& runInfos );
@@ -270,12 +262,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
-
-	/* ********************************************************************** *
-	 * initialize passes                                                      *
-	 * ********************************************************************** */
-	infoStream << "\n- starting pass" << std::endl;
-
 
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
 			thetaScheme( gridPart );
