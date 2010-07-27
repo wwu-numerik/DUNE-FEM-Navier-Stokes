@@ -105,6 +105,11 @@ namespace Dune {
 						return *subProvider_;
 					}
 
+					int timeStep () const
+					{
+						return timeStep_ * 3 + currentStepType_;
+					}
+
 				protected:
 					void next ( const double timeStep )
 					{
