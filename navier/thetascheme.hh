@@ -97,21 +97,26 @@ namespace Dune {
 				OseenModelTraits;
 		};
 
-		template < class T1, class T2 >
+		template < class T1, class T2, class T3 >
 		struct TupleSerializer {
 			typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
 									const typename T1::DiscretePressureFunctionType*,
 									const typename T2::DiscreteVelocityFunctionType*,
-									const typename T2::DiscretePressureFunctionType* >
+									const typename T2::DiscretePressureFunctionType*,
+									const typename T3::DiscreteVelocityFunctionType*,
+									const typename T3::DiscretePressureFunctionType* >
 				TupleType;
 
 			static TupleType& getTuple( T1& t1,
-										T2& t2 )
+										T2& t2,
+										T3& t3 )
 			{
 				static TupleType t( &(t1.discreteVelocity()),
 									&(t1.discretePressure()),
 									&(t2.discreteVelocity()),
-									&(t2.discretePressure()) );
+									&(t2.discretePressure()),
+									&(t3.discreteVelocity()),
+									&(t3.discretePressure()));
 				return t;
 			}
 		};
@@ -125,8 +130,9 @@ namespace Dune {
 					CommunicatorType;
 				typedef typename Traits::ExactSolutionType
 					ExactSolutionType;
-				typedef TupleSerializer< typename Traits::DiscreteStokesFunctionWrapperType,
-										 ExactSolutionType >
+				typedef TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
+											typename Traits::DiscreteStokesFunctionWrapperType,
+											ExactSolutionType >
 					TupleSerializerType;
 				typedef typename TupleSerializerType::TupleType
 					OutputTupleType;
@@ -148,6 +154,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
 				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
+				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType dataWriter_;
 
@@ -169,6 +176,9 @@ namespace Dune {
 					nextFunctions_(  "next_",
 									functionSpaceWrapper_,
 									gridPart_ ),
+					errorFunctions_(  "error_",
+									functionSpaceWrapper_,
+									gridPart_ ),
 					exactSolution_( timeprovider_,
 									gridPart_,
 									functionSpaceWrapper_ ),
@@ -176,6 +186,7 @@ namespace Dune {
 								 gridPart_.grid(),
 								 TupleSerializerType::getTuple(
 										 currentFunctions_,
+										 errorFunctions_,
 										 exactSolution_ )
 								)
 				{}
@@ -187,17 +198,15 @@ namespace Dune {
 
 					//error calc
 					exactSolution_.project();
-					DiscretePressureFunctionType errorFunc_pressure_("",currentFunctions_.discretePressure().space());
-					DiscreteVelocityFunctionType errorFunc_velocity_("",currentFunctions_.discreteVelocity().space());
-					errorFunc_pressure_.assign( exactSolution_.discretePressure() );
-					errorFunc_pressure_ -= currentFunctions_.discretePressure();
-					errorFunc_velocity_.assign( exactSolution_.discreteVelocity() );
-					errorFunc_velocity_ -= currentFunctions_.discreteVelocity();
+					errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
+					errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
+					errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+					errorFunctions_.discreteVelocity() -= currentFunctions_.discreteVelocity();
 
 					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
-					const double l2_error_pressure_				= l2_Error.norm( errorFunc_pressure_ );
-					const double l2_error_velocity_				= l2_Error.norm( errorFunc_velocity_ );
+					const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
+					const double l2_error_velocity_				= l2_Error.norm( errorFunctions_.discreteVelocity() );
 					const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
 					const double relative_l2_error_velocity_	= l2_error_velocity_ / l2_Error.norm( exactSolution_.discreteVelocity() );
 					std::vector<double> error_vector;
@@ -290,6 +299,8 @@ namespace Dune {
 					//initial flow field at t = 0
 					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
 
+					const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
+					double dt_new = grid_width * grid_width * 2;
 					//constants
 					const double viscosity				= 1.0;
 					const double d_t					= timeprovider_.deltaT();
