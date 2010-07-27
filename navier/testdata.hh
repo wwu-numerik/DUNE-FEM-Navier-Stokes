@@ -320,7 +320,7 @@ namespace Dune {
 					  {
 						  ret = RangeType(0);
 					  }
-					  inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
 
 				  private:
 					  const double viscosity_;
