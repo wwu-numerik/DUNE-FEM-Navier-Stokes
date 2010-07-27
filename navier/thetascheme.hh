@@ -254,6 +254,7 @@ namespace Dune {
 								 const double quasi_stokes_alpha,
 								 const double beta_qout_re )
 				{
+					Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
 																				   currentFunctions_.discreteVelocity(),
 																				   force,
@@ -277,6 +278,7 @@ namespace Dune {
 					stokesPass.apply( currentFunctions_, nextFunctions_ );
 					RunInfo info;
 					stokesPass.getRuninfo( info );
+					Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
 					return info;
 				}
 
