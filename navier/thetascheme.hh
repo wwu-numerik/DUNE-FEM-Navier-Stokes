@@ -219,7 +219,7 @@ namespace Dune {
 						Dune::StabilizationCoefficients stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
 						info.codim0			= gridPart_.grid().size( 0 );
-						info.grid_width		= Dune::GridWidth::calcGridWidth( gridPart_ );;
+						info.grid_width		= Dune::GridWidth::calcGridWidth( gridPart_ );
 						info.run_time		= profiler().GetTiming( "Timestep" );
 						info.delta_t		= timeprovider_.deltaT();
 						info.current_time	= timeprovider_.time();
@@ -244,9 +244,10 @@ namespace Dune {
 						info.problemIdentifier = TESTCASE_NAME;
 					}
 
-					timeprovider_.nextFractional();
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
+
 					dataWriter_.write();
+					timeprovider_.nextFractional();
 				}
 
 				RunInfo stokesStep( const typename Traits::AnalyticalForceType& force,
