@@ -222,7 +222,7 @@ int main( int argc, char** argv )
   }
 #endif
 }
-
+#include "testing.hh"
 RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
@@ -257,10 +257,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
 					GridPartType,
-					Dune::NavierStokes::TESTCASE::Force,
-					Dune::NavierStokes::TESTCASE::DirichletData,
-					Dune::NavierStokes::TESTCASE::Pressure,
-					Dune::NavierStokes::TESTCASE::Velocity,
+					Testing::AdapterFunctions::Force,
+					Testing::AdapterFunctions::DirichletData,
+					Testing::AdapterFunctions::Pressure,
+					Testing::AdapterFunctions::Velocity,
 					gridDim,
 					polOrder,
 					VELOCITY_POLORDER,
@@ -297,6 +297,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 
 	//initial flow field at t = 0
+	exactSolution_.project();
 	currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
 
 	//constants
@@ -315,6 +316,20 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 																   force,
 																   beta_qout_re,
 																   quasi_stokes_alpha );
+
+	Traits::StokesModelTraits::PressureFunctionSpaceType
+			continousPressureSpace_;
+	Traits::StokesModelTraits::VelocityFunctionSpaceType
+			continousVelocitySpace_;
+	Testing::AdapterFunctions::PressureGradient<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+													Traits::TimeProviderType >
+		pressure_gradient( timeprovider_, continousVelocitySpace_ );
+	Testing::AdapterFunctions::VelocityLaplace<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+													Traits::TimeProviderType >
+		velocity_laplace( timeprovider_, continousVelocitySpace_ );
+	Testing::AdapterFunctions::VelocityConvection<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+													Traits::TimeProviderType >
+		velocity_convection( timeprovider_, continousVelocitySpace_ );
 	Dune::L2Norm< Traits::GridPartType > l2_Error( gridPart_ );
 
 
