@@ -97,12 +97,6 @@
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 
-
-#include "analyticaldata.hh"
-#include "velocity.hh"
-#include "pressure.hh"
-#include "problem.hh"
-
 #ifndef COMMIT
 	#define COMMIT "undefined"
 #endif
