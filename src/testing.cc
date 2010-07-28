@@ -330,6 +330,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Testing::AdapterFunctions::VelocityConvection<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
 													Traits::TimeProviderType >
 		velocity_convection( timeprovider_, continousVelocitySpace_ );
+
 	Dune::L2Norm< Traits::GridPartType > l2_Error( gridPart_ );
 
 

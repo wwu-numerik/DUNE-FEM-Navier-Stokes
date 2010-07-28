@@ -168,7 +168,11 @@ namespace AdapterFunctions {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+				const double x				= arg[0];
+				const double y				= arg[1];
+
+				ret[0] = x*x + y;
+				ret[1] = y*y + x;
 			}
 
 		   /**
@@ -335,7 +339,11 @@ namespace AdapterFunctions {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				const double x				= arg[0];
+				const double y				= arg[1];
 
+				ret[0] = 2;
+				ret[1] = 2;
 			}
 
 		   /**
@@ -391,7 +399,12 @@ namespace AdapterFunctions {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-
+				const double x				= arg[0];
+				const double y				= arg[1];
+				const double u_1 = x*x + y;
+				const double u_2 = y*y + x;
+				ret[0] = u_1 * 2 * x	+ u_2;
+				ret[1] = u_1			+ u_2 * 2 * y;
 			}
 
 		   /**
