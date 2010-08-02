@@ -333,13 +333,13 @@ namespace Dune {
 									const double force_eval_times_phi = force_eval * phi;
 									const double velocity_times_phi = quasi_stokes_alpha * ( velocity_eval * phi );
 									const double nonlin_times_phi = nonlin * phi;
-									const double velocity_real_laplacian_times_phi = velocity_real_laplacian * phi;
+									const double velocity_real_laplacian_times_phi = beta_re_qoutient * ( velocity_real_laplacian * phi );
 
 									self_local[i] += intel *
 													(
 														velocity_times_phi
 														+ velocity_real_laplacian_times_phi
-//														+ force_eval_times_phi
+														+ force_eval_times_phi
 														- nonlin_times_phi
 													);
 								}
@@ -554,7 +554,10 @@ namespace Dune {
 								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType velocity_jacobian_function_eval;
 								velocity_jacobian_function_local.jacobian( quad[qP], velocity_jacobian_function_eval );
 
-
+								GradientJacobianToLaplacian<	DiscreteVelocityFunctionSpaceType::RangeType::size,
+																typename DiscreteVelocityFunctionSpaceType::RangeType,
+																typename DiscreteSigmaFunctionSpaceType::JacobianRangeType >
+									velocity_real_laplacian ( velocity_jacobian_function_eval );
 
 								// do projection
 								for(int i=0; i<numDofs; ++i)
@@ -566,9 +569,11 @@ namespace Dune {
 
 									const double force_eval_times_phi = force_eval * phi;
 									const double scaled_velocity_times_phi = ( velocity_eval * phi ) * u_factor;
-									double pressure_jacobian_eval_times_phi = pressure_jacobian_eval[0] *  phi;
-									self_local[i] += intel * (
+									const double pressure_jacobian_eval_times_phi = pressure_jacobian_eval[0] *  phi;
+									const double velocity_real_laplacian_times_phi = alpha_re_qoutient * ( velocity_real_laplacian * phi );
 
+									self_local[i] += intel * (
+																velocity_real_laplacian_times_phi
 															   + force_eval_times_phi
 															   - pressure_jacobian_eval_times_phi
 															   + scaled_velocity_times_phi

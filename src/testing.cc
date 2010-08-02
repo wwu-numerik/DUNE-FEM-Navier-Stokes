@@ -365,8 +365,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 													  currentFunctions_.discreteVelocity(),
 													  currentFunctions_.discretePressure(),
 													  force,
-													  operator_weight_alpha_ / reynolds,
-													  oseen_alpha );
+													  1,
+													  1 );
 	DiscreteVelocityFunctionType rhs2("rhs", exactSolution_.discreteVelocity().space());
 	DiscreteVelocityFunctionType diffs2("diffs_nonlinear", exactSolution_.discreteVelocity().space());
 	rhs2.clear();
