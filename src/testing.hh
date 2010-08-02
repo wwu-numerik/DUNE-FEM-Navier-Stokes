@@ -1,9 +1,13 @@
 #ifndef NAVIER_TESTING_HH
 #define NAVIER_TESTING_HH
 
+#include <dune/stuff/misc.hh>
 #include <dune/stuff/timefunction.hh>
 
 namespace Testing {
+
+
+
 namespace AdapterFunctions {
 
 	template < class FunctionSpaceImp >
@@ -365,7 +369,7 @@ namespace AdapterFunctions {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 1 ) > VelocityConvection_Unsuitable_WorldDim;
+				Dune::CompileTimeChecker< ( dim_ == 2 ) > VelocityConvection_Unsuitable_WorldDim;
 				const double x				= arg[0];
 				const double y				= arg[1];
 				const double u_1 = x*x + y;
@@ -911,8 +915,12 @@ namespace AdapterFunctionsVectorial {
 				const double x				= arg[0];
 				const double y				= arg[1];
 
-				ret[0] = std::sin( x );
-				ret[1] = std::cos( y );
+				ret[0] = std::sin(x);// * std::cos( x );
+				ret[1] = std::sin(y);// * std::cos( x );;
+
+
+//				ret[0] = 0;
+//				ret[1] = y*y;
 			}
 
 		private:
@@ -1065,11 +1073,14 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 1 ) > DirichletData_Unsuitable_WorldDim;
+				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 				const double x				= arg[0];
 				const double y				= arg[1];
+//				ret[0] =  0;
+//				ret[1] =  2 * y ;
 				ret[0] =  - std::sin( x );
-				ret[0] =  - std::cos( x );
+				ret[1] =  - std::sin( y );
+
 			}
 
 		private:
