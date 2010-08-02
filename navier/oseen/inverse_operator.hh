@@ -494,7 +494,7 @@ class SaddlepointInverseOperator
 
         // u^0 = A^{-1} ( F - B * p^0 )
         b_mat.apply( pressure, tmp1 );
-        F-=tmp1; // F ^= rhs2 - B * p
+		F-=tmp1; // F ^= rhs2 - B * p
 		SaddlepointInverseOperatorInfo info;
 		innerCGSolverWrapper.apply(F,velocity,info);
 #if ! defined(DO_FULL_COUPLED_SYSTEM)
