@@ -82,7 +82,8 @@ namespace Dune {
 			typedef NonlinearStep::ForceAdapterFunction<	TimeProviderType,
 															AnalyticalForceType,
 															typename DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
-															typename DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType >
+															typename DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType,
+															typename StokesModelTraits::DiscreteSigmaFunctionType>
 				NonlinearForceAdapterFunctionType;
 			typedef NonlinearStep::DiscreteStokesModelTraits<
 						TimeProviderType,

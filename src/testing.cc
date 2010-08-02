@@ -248,7 +248,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	// model traits
 
-#define TESTING_NS AdapterFunctions
+#define TESTING_NS AdapterFunctionsVectorial
 
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,

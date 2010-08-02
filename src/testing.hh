@@ -911,16 +911,18 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 				const double x				= arg[0];
 				const double y				= arg[1];
+				const double z				= arg[2];
 
-				ret[0] = std::sin(x);// * std::cos( x );
-				ret[1] = std::sin(y);// * std::cos( x );;
+//				ret[0] = std::sin(x);// * std::cos( x );
+//				ret[1] = std::sin(y);// * std::cos( x );;
 
 
-//				ret[0] = 0;
-//				ret[1] = y*y;
+				ret[0] = x*x ;
+				ret[1] = 2*y*y;
+				ret[2] = 4*z*z;
 			}
 
 		private:
@@ -969,7 +971,7 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+//				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 				const double x			= arg[0];
 				const double y			= arg[1];
 
@@ -1073,13 +1075,14 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 				const double x				= arg[0];
 				const double y				= arg[1];
-//				ret[0] =  0;
-//				ret[1] =  2 * y ;
-				ret[0] =  - std::sin( x );
-				ret[1] =  - std::sin( y );
+				ret[0] =  2;
+				ret[1] =  4;
+				ret[2] =  8;
+//				ret[0] =  - std::sin( x );
+//				ret[1] =  - std::sin( y );
 
 			}
 
@@ -1126,13 +1129,16 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 				const double x				= arg[0];
 				const double y				= arg[1];
-				const double u_1 = x*x + y;
-				const double u_2 = y*y + x;
-				ret[0] = u_1 * 2 * x	+ u_2;
-				ret[1] = u_1			+ u_2 * 2 * y;
+				const double z				= arg[2];
+				const double u_1 = x*x;
+				const double u_2 = 2*y*y;
+				const double u_3 = 4*z*z;
+				ret[0] = u_1 * 2 * x	;
+				ret[1] = u_2 * 4 * y	;
+				ret[2] = u_3 * 8 * z	;
 			}
 
 		private:
@@ -1140,7 +1146,7 @@ namespace AdapterFunctionsVectorial {
 			const double parameter_a_;
 			const double parameter_d_;
 	};
-}//end namespace TestCase2D
+}//end namespace AdapterFunctionsVectorial
 
 }//end namespace AdapterFunctions
 

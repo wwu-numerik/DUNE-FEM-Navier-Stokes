@@ -5,6 +5,37 @@
 #include <dune/stuff/printing.hh>
 
 namespace Dune {
+
+	template < int dim, class RangeType, class JacobianRangeType >
+	struct GradientJacobianToLaplacian : public RangeType
+	{
+		GradientJacobianToLaplacian( const JacobianRangeType& jacobian )
+		{
+			Dune::CompileTimeChecker< ( dim == 1 || dim > 3 ) > NotImplemented;
+		}
+	};
+
+	template < class RangeType, class JacobianRangeType >
+	struct GradientJacobianToLaplacian< 2, RangeType, JacobianRangeType>  : public RangeType
+	{
+		GradientJacobianToLaplacian( const JacobianRangeType& jacobian )
+		{
+			(*this)[0] = jacobian[0][0];
+			(*this)[1] = jacobian[3][1];
+		}
+	};
+
+	template < class RangeType, class JacobianRangeType >
+	struct GradientJacobianToLaplacian< 3, RangeType, JacobianRangeType>  : public RangeType
+	{
+		GradientJacobianToLaplacian( const JacobianRangeType& jacobian )
+		{
+			(*this)[0] = jacobian[0][0];
+			(*this)[1] = jacobian[4][1];
+			(*this)[2] = jacobian[8][2];
+		}
+	};
+
 	template <	class TimeProviderType,
 				class DiscreteVelocityFunctionType,
 				class SigmaFunctionType >
@@ -57,7 +88,7 @@ namespace Dune {
 				// type of local mass matrix
 				typedef Dune::LocalDGMassMatrix< DiscreteFunctionSpaceType, VolumeQuadratureType> LocalMassMatrixType;
 
-				const int quadOrd = (polOrd == -1) ? (4 * space.order()) : polOrd;
+				const int quadOrd = (polOrd == -1) ? (2 * space.order()) : polOrd;
 
 				// create local mass matrix object
 				LocalMassMatrixType massMatrix( space, quadOrd );
@@ -214,7 +245,7 @@ namespace Dune {
 													VolumeQuadratureType>
 							LocalMassMatrixType;
 
-						const int quadOrd = (polOrd == -1) ? (4 * space.order()) : polOrd;
+						const int quadOrd = (polOrd == -1) ? (2 * space.order()) : polOrd;
 
 						// create local mass matrix object
 						LocalMassMatrixType massMatrix( space, quadOrd );
@@ -275,9 +306,7 @@ namespace Dune {
 
 								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType velocity_jacobian_function_eval;
 								velocity_jacobian_function_local.jacobian( quad[qP], velocity_jacobian_function_eval );
-
-								typename DiscreteSigmaFunctionSpaceType::RangeType grad_velo_eval;
-								velocity_jacobian_function_local.evaluate( quad[qP], grad_velo_eval );
+//								Stuff::printFieldMatrix( velocity_jacobian_function_eval, "sjwo", std::cout, "GRA");
 
 								typename AnalyticalForceType::RangeType force_eval;
 								force.evaluate( timeProvider_.subTime(), xWorld, force_eval );
@@ -287,9 +316,11 @@ namespace Dune {
 									nonlin[d] = velocity_eval * velocity_jacobian_eval[d];
 								}
 
-								typename DiscreteVelocityFunctionSpaceType::RangeType velocity_real_laplacian;
-								velocity_real_laplacian[0] = velocity_jacobian_function_eval[0][0];
-								velocity_real_laplacian[1] = velocity_jacobian_function_eval[3][1];
+								GradientJacobianToLaplacian<	DiscreteVelocityFunctionSpaceType::RangeType::size,
+																typename DiscreteVelocityFunctionSpaceType::RangeType,
+																typename DiscreteSigmaFunctionSpaceType::JacobianRangeType >
+									velocity_real_laplacian ( velocity_jacobian_function_eval );
+
 
 								// do projection
 								for(int i=0; i<numDofs; ++i)
@@ -308,7 +339,7 @@ namespace Dune {
 													(
 														velocity_times_phi
 														+ velocity_real_laplacian_times_phi
-														+ force_eval_times_phi
+//														+ force_eval_times_phi
 														- nonlin_times_phi
 													);
 								}
@@ -387,7 +418,8 @@ namespace Dune {
 			template <	class TimeProviderType,
 						class AnalyticalForceType,
 						class DiscreteVelocityFunctionType,
-						class DiscretePressureFunctionType >
+						class DiscretePressureFunctionType,
+						class DiscreteVelocityJacobianFunctionType >
 			class ForceAdapterFunction :
 					public DiscreteVelocityFunctionType
 			{
@@ -395,7 +427,8 @@ namespace Dune {
 					typedef ForceAdapterFunction<	TimeProviderType,
 													AnalyticalForceType,
 													DiscreteVelocityFunctionType,
-													DiscretePressureFunctionType >
+													DiscretePressureFunctionType,
+													DiscreteVelocityJacobianFunctionType >
 						ThisType;
 					typedef DiscreteVelocityFunctionType
 						BaseType;
@@ -411,6 +444,23 @@ namespace Dune {
 						: BaseType( "nonlinear-rhsdapater" , velocity.space()),
 						timeProvider_( timeProvider )
 					{
+						typedef DiscreteVelocityJacobianFunctionType
+							DiscreteSigmaFunctionType;
+
+						typedef typename DiscreteSigmaFunctionType::DiscreteFunctionSpaceType
+							DiscreteSigmaFunctionSpaceType;
+
+						typedef GradientAdapterFunction<	TimeProviderType,
+															DiscreteVelocityFunctionType,
+															DiscreteSigmaFunctionType >
+							GradientType;
+						DiscreteSigmaFunctionSpaceType discrete_sigma_space( velocity.space().gridPart() );
+						DiscreteSigmaFunctionType dummy("d", discrete_sigma_space );
+
+						GradientType velocity_jacobian_function ( timeProvider_,
+												 velocity,
+												 dummy );
+
 						typedef typename DiscreteVelocityFunctionType::DiscreteFunctionSpaceType
 							DiscreteVelocityFunctionSpaceType;
 						typedef typename DiscreteVelocityFunctionType::LocalFunctionType
@@ -471,6 +521,9 @@ namespace Dune {
 							const int quadNop = quad.nop();
 							const int numDofs = self_local.numDofs();
 
+							const typename GradientType::LocalFunctionType& velocity_jacobian_function_local
+									= velocity_jacobian_function.localFunction( entity );
+
 							//volume part
 							for(int qP = 0; qP < quadNop ; ++qP)
 							{
@@ -498,6 +551,11 @@ namespace Dune {
 								typename DiscretePressureFunctionType::JacobianRangeType pressure_jacobian_eval;
 								pressure.localFunction( entity ).jacobian( xLocal, pressure_jacobian_eval );
 
+								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType velocity_jacobian_function_eval;
+								velocity_jacobian_function_local.jacobian( quad[qP], velocity_jacobian_function_eval );
+
+
+
 								// do projection
 								for(int i=0; i<numDofs; ++i)
 								{
@@ -505,49 +563,16 @@ namespace Dune {
 									typename DiscreteVelocityFunctionSpaceType::JacobianRangeType phi_jacobian (0.0);
 									baseset.evaluate(i, quad[qP], phi);
 									baseset.jacobian(i, quad[qP], phi_jacobian );
-									const double velocity_jacobian_eval_times_phi_jacobian =
-											alpha_re_qoutient * Stuff::colonProduct( velocity_jacobian_eval, phi_jacobian  );
+
 									const double force_eval_times_phi = force_eval * phi;
 									const double scaled_velocity_times_phi = ( velocity_eval * phi ) * u_factor;
 									double pressure_jacobian_eval_times_phi = pressure_jacobian_eval[0] *  phi;
-									self_local[i] += intel * ( velocity_jacobian_eval_times_phi_jacobian
+									self_local[i] += intel * (
+
 															   + force_eval_times_phi
 															   - pressure_jacobian_eval_times_phi
 															   + scaled_velocity_times_phi
 															) ;
-								}
-							}
-
-							//surface part
-							IntersectionIteratorType intItEnd = gridPart.iend( *it );
-							for (   IntersectionIteratorType intIt = gridPart.ibegin( *it );
-									intIt != intItEnd;
-									++intIt )
-							{
-
-								FaceQuadratureType faceQuadrature( gridPart,
-														 *intIt,
-														 ( 4 * space.order() ) + 1,
-														 FaceQuadratureType::INSIDE );
-								for ( size_t qP = 0; qP < faceQuadrature.nop(); ++qP )
-								{
-									const typename DiscreteVelocityFunctionSpaceType::DomainType x = faceQuadrature.point(qP);
-
-									const typename FaceQuadratureType::LocalCoordinateType xLocal = faceQuadrature.localPoint( qP );
-									const double intel =
-									  faceQuadrature.weight(qP) * intIt->intersectionGlobal().integrationElement( xLocal ); // general case
-									const typename DiscreteVelocityFunctionSpaceType::RangeType outerNormal = intIt->unitOuterNormal( xLocal );
-									typename DiscreteVelocityFunctionSpaceType::JacobianRangeType extra_u_jacobian;
-									velocity_local.jacobian( x, extra_u_jacobian );
-									typename DiscreteVelocityFunctionSpaceType::RangeType extra_u_jacobian_times_normal;
-									extra_u_jacobian.mv( outerNormal, extra_u_jacobian_times_normal );
-									for(int i=0; i<baseset.numBaseFunctions(); ++i)
-									{
-										typename DiscreteVelocityFunctionSpaceType::RangeType phi (0.0);
-										baseset.evaluate(i, faceQuadrature[qP], phi);
-										const double extra_u_jacobian_times_normal_times_phi = alpha_re_qoutient * ( extra_u_jacobian_times_normal * phi );
-										self_local[i] += intel * extra_u_jacobian_times_normal_times_phi ;
-									}
 								}
 							}
 
