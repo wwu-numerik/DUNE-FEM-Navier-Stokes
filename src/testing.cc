@@ -248,7 +248,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	// model traits
 
-#define TESTING_NS AdapterFunctionsVectorial
+#define TESTING_NS AdapterFunctions
 
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
@@ -262,10 +262,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					VELOCITY_POLORDER,
 					PRESSURE_POLORDER >
 		Traits;
-//	typedef Dune::TimeAwareDataWriter<	Traits::TimeProviderType,
-//										Traits::GridPartType::GridType,
-//										OutputTupleType >
-//		DataWriterType;
+
+	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
+
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
@@ -354,8 +353,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	DiscreteVelocityFunctionType rhs("rhs", exactSolution_.discreteVelocity().space());
 	rhs.clear();
 //	velocity_laplace_discrete *= 1 / std::sqrt( 2 ) ;
-//	rhs += exactSolution_.discreteVelocity();
-//	rhs -= velocity_convection_discrete;
+	rhs += exactSolution_.discreteVelocity();
+	rhs -= velocity_convection_discrete;
 	rhs += velocity_laplace_discrete;
 	diffs.assign( rhs );
 	diffs -= stokesForce;
@@ -394,6 +393,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							const DiscreteVelocityFunctionType*,
 							const DiscreteVelocityFunctionType*,
 							const DiscreteVelocityFunctionType*,
+							const DiscreteVelocityFunctionType*,
 							const Traits::StokesAnalyticalForceAdapterType*,
 							const Traits::NonlinearForceAdapterFunctionType*
 							>
@@ -408,6 +408,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &pressure_gradient_discrete,
 						 &rhs,
 						 &velocity_laplace_discrete,
+						 &velocity_convection_discrete,
 						 &stokesForce,
 						 &nonlinearForce );
 	DataWriterType dt( timeprovider_,

@@ -255,6 +255,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					PRESSURE_POLORDER >
 		ThetaSchemeTraitsType;
 
+	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
+
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 

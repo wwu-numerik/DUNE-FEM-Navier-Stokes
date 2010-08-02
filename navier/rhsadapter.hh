@@ -17,6 +17,9 @@ namespace Dune {
 			const TimeProviderType& timeProvider_;
 
 		public:
+//			typedef typename BaseType::LocalFunctionType
+//				LocalFunctionType;
+
 			GradientAdapterFunction ( const TimeProviderType& timeProvider,
 								  const DiscreteVelocityFunctionType& velocity,
 								  SigmaFunctionType& dummy,
@@ -110,6 +113,9 @@ namespace Dune {
 							velocity_jacobian_eval;
 						velocity_local.jacobian( quad[qP], velocity_jacobian_eval );
 
+//						typename DiscreteFunctionSpaceType::JacobianRangeType  jac_inv
+//								= geo.jacobianInverseTransposed( xLocal );
+//						velocity_jacobian_eval.leftmultiply( jac_inv );
 						// do projection
 						for(int i=0; i<numDofs; ++i)
 						{
@@ -235,6 +241,9 @@ namespace Dune {
 							const int quadNop = quad.nop();
 							const int numDofs = self_local.numDofs();
 
+							const typename GradientType::LocalFunctionType& grad_velo_local
+									= grad_velo.localFunction( entity );
+
 							//volume part
 							for(int qP = 0; qP < quadNop ; ++qP)
 							{
@@ -250,17 +259,31 @@ namespace Dune {
 								// evaluate function
 								typename DiscreteVelocityFunctionSpaceType::RangeType
 									velocity_eval;
-								velocity.evaluate( xWorld, velocity_eval );
+								velocity_local.evaluate( quad[qP], velocity_eval );
 
 								typename DiscreteVelocityFunctionSpaceType::JacobianRangeType velocity_jacobian_eval;
 								velocity_local.jacobian( quad[qP], velocity_jacobian_eval );
 
+								typename DiscreteVelocityFunctionSpaceType::JacobianRangeType  jac_inv = geo.jacobianInverseTransposed( xLocal );
+//								velocity_jacobian_eval.leftmultiply( jac_inv );
 
 								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType grad_velo_jacobian_eval;
-								grad_velo.localFunction( entity ).jacobian( quad[qP], grad_velo_jacobian_eval );
+								grad_velo_local.jacobian( quad[qP], grad_velo_jacobian_eval );
+
+								typename DiscreteSigmaFunctionSpaceType::RangeType grad_velo_eval;
+								grad_velo_local.evaluate( quad[qP], grad_velo_eval );
 
 								typename AnalyticalForceType::RangeType force_eval;
 								force.evaluate( timeProvider_.subTime(), xWorld, force_eval );
+
+								typename DiscreteVelocityFunctionSpaceType::RangeType nonlin;
+								for ( unsigned int d = 0; d < nonlin.dim(); ++d ) {
+									nonlin[d] = velocity_eval * velocity_jacobian_eval[d];
+								}
+
+								typename DiscreteVelocityFunctionSpaceType::RangeType real_laplacian;
+								real_laplacian[0] = grad_velo_jacobian_eval[0][0];
+								real_laplacian[1] = grad_velo_jacobian_eval[3][1];
 
 								// do projection
 								for(int i=0; i<numDofs; ++i)
@@ -270,32 +293,17 @@ namespace Dune {
 									baseset.evaluate(i, quad[qP], phi);
 									baseset.jacobian( i, quad[qP], phi_jacobian );
 
-									typename DiscreteVelocityFunctionSpaceType::JacobianRangeType  jac_inv = geo.jacobianInverseTransposed( xLocal );
-
 									const double force_eval_times_phi = force_eval * phi;
-									typename DiscreteVelocityFunctionSpaceType::RangeType nonlin;
-									for ( unsigned int d = 0; d < nonlin.dim(); ++d ) {
-										nonlin[d] = velocity_eval * velocity_jacobian_eval[d];
-									}
 									const double velocity_times_phi = quasi_stokes_alpha * ( velocity_eval * phi );
-									const double nonlin_times_v_j = nonlin * phi;
-
-									typename DiscreteVelocityFunctionSpaceType::RangeType real_laplacian;
-									real_laplacian[0] = grad_velo_jacobian_eval[0][0];
-									real_laplacian[1] = grad_velo_jacobian_eval[3][1];
+									const double nonlin_times_phi = nonlin * phi;
 									const double real_laplacian_times_phi = real_laplacian * phi;
-
-//Stuff::printFieldVector( real_laplacian, "DEFE", std::cout, "GRAD ");
-//Stuff::printFieldMatrix( velocity_jacobian_eval, "JAC", std::cout, "GRAD");
-//Stuff::printFieldMatrix( grad_velo_jacobian_eval, "VELO ", std::cout, "GRAD");
-//Stuff::printFieldVector( xWorld, "xWorld", std::cout, "GRAD ");
 
 									self_local[i] += intel *
 													 (
-//													   velocity_times_phi
+													   velocity_times_phi
 														+ real_laplacian_times_phi
-//													   + force_eval_times_phi
-//													   - nonlin_times_v_j
+													   + force_eval_times_phi
+													   - nonlin_times_phi
 														) ;
 								}
 							}
