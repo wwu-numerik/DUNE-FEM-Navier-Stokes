@@ -18,8 +18,8 @@ fem.io.datafileprefix: solu_
 fem.io.savestep: 1
 fem.io.savecount: 1
 fem.timeprovider.starttime: 0
-fem.timeprovider.endtime: 0.02
-fem.timeprovider.dt: 0.01
+fem.timeprovider.endtime: 0.06
+fem.timeprovider.dt: 0.010
 
 #nonlinear - models.hh
 femhowto.diffusionTimeStep: 0
@@ -62,8 +62,8 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 0
-maxref: 10
+minref: 1
+maxref: 1
 
 #in runtype 1 vary
 minpow: -1
@@ -92,8 +92,8 @@ alpha: 0.0
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-08
-inner_absLimit: 1e-08
+absLimit: 1e-10
+inner_absLimit: 1e-10
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
