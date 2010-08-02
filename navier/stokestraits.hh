@@ -3,6 +3,7 @@
 
 #include <dune/stokes/discretestokesmodelinterface.hh>
 #include <dune/navier/rhsadapter.hh>
+#include <dune/fem/space/fvspace/fvspace.hh>
 //#include <dune/navier/s.hh>
 
 namespace Dune {
@@ -15,6 +16,12 @@ namespace Dune {
 						int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 			class DiscreteStokesModelTraits
 			{
+				typedef DiscreteStokesModelTraits<	TimeProviderType,
+													GridPartImp,
+													AnalyticalForceImp,
+													AnalyticalDirichletDataImp,
+													gridDim, sigmaOrder, velocityOrder , pressureOrder >
+					ThisType;
 				public:
 
 					//! for CRTP trick
@@ -85,7 +92,6 @@ namespace Dune {
 								DiscretePressureFunctionType > >
 						DiscreteStokesFunctionWrapperType;
 
-				private:
 
 					//! function space type for sigma
 					typedef Dune::MatrixFunctionSpace<  double,
@@ -110,7 +116,7 @@ namespace Dune {
 					//! function type for the analytical force
 					typedef AnalyticalForceImp<VelocityFunctionSpaceType>
 						AnalyticalForceFunctionType;
-					typedef ForceAdapterFunction<TimeProviderType, AnalyticalForceFunctionType, DiscreteVelocityFunctionType >
+					typedef ForceAdapterFunction<TimeProviderType, AnalyticalForceFunctionType, DiscreteVelocityFunctionType, ThisType>
 						AnalyticalForceAdapterType;
 					typedef AnalyticalForceAdapterType
 						AnalyticalForceType;
