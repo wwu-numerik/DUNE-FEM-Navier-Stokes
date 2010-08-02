@@ -17,9 +17,6 @@ namespace Dune {
 			const TimeProviderType& timeProvider_;
 
 		public:
-//			typedef typename BaseType::LocalFunctionType
-//				LocalFunctionType;
-
 			GradientAdapterFunction ( const TimeProviderType& timeProvider,
 								  const DiscreteVelocityFunctionType& velocity,
 								  SigmaFunctionType& dummy,
@@ -113,9 +110,6 @@ namespace Dune {
 							velocity_jacobian_eval;
 						velocity_local.jacobian( quad[qP], velocity_jacobian_eval );
 
-//						typename DiscreteFunctionSpaceType::JacobianRangeType  jac_inv
-//								= geo.jacobianInverseTransposed( xLocal );
-//						velocity_jacobian_eval.leftmultiply( jac_inv );
 						// do projection
 						for(int i=0; i<numDofs; ++i)
 						{
@@ -263,9 +257,6 @@ namespace Dune {
 
 								typename DiscreteVelocityFunctionSpaceType::JacobianRangeType velocity_jacobian_eval;
 								velocity_local.jacobian( quad[qP], velocity_jacobian_eval );
-
-								typename DiscreteVelocityFunctionSpaceType::JacobianRangeType  jac_inv = geo.jacobianInverseTransposed( xLocal );
-//								velocity_jacobian_eval.leftmultiply( jac_inv );
 
 								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType grad_velo_jacobian_eval;
 								grad_velo_local.jacobian( quad[qP], grad_velo_jacobian_eval );
