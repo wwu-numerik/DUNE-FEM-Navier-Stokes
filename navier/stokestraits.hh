@@ -116,7 +116,7 @@ namespace Dune {
 					//! function type for the analytical force
 					typedef AnalyticalForceImp<VelocityFunctionSpaceType>
 						AnalyticalForceFunctionType;
-					typedef ForceAdapterFunction<TimeProviderType, AnalyticalForceFunctionType, DiscreteVelocityFunctionType, ThisType>
+					typedef ForceAdapterFunction<TimeProviderType, AnalyticalForceFunctionType, DiscreteVelocityFunctionType, DiscreteSigmaFunctionType>
 						AnalyticalForceAdapterType;
 					typedef AnalyticalForceAdapterType
 						AnalyticalForceType;

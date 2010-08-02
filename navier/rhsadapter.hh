@@ -5,12 +5,16 @@
 #include <dune/stuff/printing.hh>
 
 namespace Dune {
-	template < class TimeProviderType, class DiscreteVelocityFunctionType, class SigmaFunctionType >
+	template <	class TimeProviderType,
+				class DiscreteVelocityFunctionType,
+				class SigmaFunctionType >
 	class GradientAdapterFunction :
 			public SigmaFunctionType
 	{
 		protected:
-			typedef GradientAdapterFunction <TimeProviderType,DiscreteVelocityFunctionType, SigmaFunctionType >
+			typedef GradientAdapterFunction <	TimeProviderType,
+												DiscreteVelocityFunctionType,
+												SigmaFunctionType >
 				ThisType;
 			typedef SigmaFunctionType
 				BaseType;
@@ -136,12 +140,18 @@ namespace Dune {
 			  *	this calculates new right hand side \f$f := f_{ana} + frac{1}{\theta \tau}u + \frac{\beta}{Re} \Delta u - \left( u \cdot \nabla \right) u \f$
 			  *
 			  */
-			template < class TimeProviderType, class AnalyticalForceType, class DiscreteVelocityFunctionType, class CheatTraits >
+			template <	class TimeProviderType,
+						class AnalyticalForceType,
+						class DiscreteVelocityFunctionType,
+						class DiscreteVelocityJacobianFunctionType >
 			class ForceAdapterFunction :
 					public DiscreteVelocityFunctionType
 			{
 				protected:
-					typedef ForceAdapterFunction<TimeProviderType,AnalyticalForceType, DiscreteVelocityFunctionType, CheatTraits>
+					typedef ForceAdapterFunction<	TimeProviderType,
+													AnalyticalForceType,
+													DiscreteVelocityFunctionType,
+													DiscreteVelocityJacobianFunctionType >
 						ThisType;
 					typedef DiscreteVelocityFunctionType
 						BaseType;
@@ -157,11 +167,12 @@ namespace Dune {
 						: BaseType( "stokes-rhsdapater" , velocity.space()),
 						timeProvider_( timeProvider )
 					{
-
-						typedef typename CheatTraits::DiscreteSigmaFunctionSpaceType
-							DiscreteSigmaFunctionSpaceType;
-						typedef typename CheatTraits::DiscreteSigmaFunctionType
+						typedef DiscreteVelocityJacobianFunctionType
 							DiscreteSigmaFunctionType;
+
+						typedef typename DiscreteSigmaFunctionType::DiscreteFunctionSpaceType
+							DiscreteSigmaFunctionSpaceType;
+
 						typedef GradientAdapterFunction<	TimeProviderType,
 															DiscreteVelocityFunctionType,
 															DiscreteSigmaFunctionType >
@@ -169,7 +180,7 @@ namespace Dune {
 						DiscreteSigmaFunctionSpaceType discrete_sigma_space( velocity.space().gridPart() );
 						DiscreteSigmaFunctionType dummy("d", discrete_sigma_space );
 
-						GradientType grad_velo ( timeProvider_,
+						GradientType velocity_jacobian_function ( timeProvider_,
 												 velocity,
 												 dummy );
 
@@ -194,10 +205,14 @@ namespace Dune {
 						const DiscreteVelocityFunctionSpaceType& space =  velocity.space();
 						const GridPartType& gridPart = space.gridPart();
 						// type of quadrature
-						typedef CachingQuadrature<GridPartType,0> VolumeQuadratureType;
-						typedef CachingQuadrature<GridPartType,1> FaceQuadratureType;
+						typedef CachingQuadrature<GridPartType,0>
+							VolumeQuadratureType;
+						typedef CachingQuadrature<GridPartType,1>
+							FaceQuadratureType;
 						// type of local mass matrix
-						typedef LocalDGMassMatrix< DiscreteVelocityFunctionSpaceType, VolumeQuadratureType> LocalMassMatrixType;
+						typedef LocalDGMassMatrix<	DiscreteVelocityFunctionSpaceType,
+													VolumeQuadratureType>
+							LocalMassMatrixType;
 
 						const int quadOrd = (polOrd == -1) ? (4 * space.order()) : polOrd;
 
@@ -235,8 +250,8 @@ namespace Dune {
 							const int quadNop = quad.nop();
 							const int numDofs = self_local.numDofs();
 
-							const typename GradientType::LocalFunctionType& grad_velo_local
-									= grad_velo.localFunction( entity );
+							const typename GradientType::LocalFunctionType& velocity_jacobian_function_local
+									= velocity_jacobian_function.localFunction( entity );
 
 							//volume part
 							for(int qP = 0; qP < quadNop ; ++qP)
@@ -258,11 +273,11 @@ namespace Dune {
 								typename DiscreteVelocityFunctionSpaceType::JacobianRangeType velocity_jacobian_eval;
 								velocity_local.jacobian( quad[qP], velocity_jacobian_eval );
 
-								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType grad_velo_jacobian_eval;
-								grad_velo_local.jacobian( quad[qP], grad_velo_jacobian_eval );
+								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType velocity_jacobian_function_eval;
+								velocity_jacobian_function_local.jacobian( quad[qP], velocity_jacobian_function_eval );
 
 								typename DiscreteSigmaFunctionSpaceType::RangeType grad_velo_eval;
-								grad_velo_local.evaluate( quad[qP], grad_velo_eval );
+								velocity_jacobian_function_local.evaluate( quad[qP], grad_velo_eval );
 
 								typename AnalyticalForceType::RangeType force_eval;
 								force.evaluate( timeProvider_.subTime(), xWorld, force_eval );
@@ -272,9 +287,9 @@ namespace Dune {
 									nonlin[d] = velocity_eval * velocity_jacobian_eval[d];
 								}
 
-								typename DiscreteVelocityFunctionSpaceType::RangeType real_laplacian;
-								real_laplacian[0] = grad_velo_jacobian_eval[0][0];
-								real_laplacian[1] = grad_velo_jacobian_eval[3][1];
+								typename DiscreteVelocityFunctionSpaceType::RangeType velocity_real_laplacian;
+								velocity_real_laplacian[0] = velocity_jacobian_function_eval[0][0];
+								velocity_real_laplacian[1] = velocity_jacobian_function_eval[3][1];
 
 								// do projection
 								for(int i=0; i<numDofs; ++i)
@@ -287,15 +302,15 @@ namespace Dune {
 									const double force_eval_times_phi = force_eval * phi;
 									const double velocity_times_phi = quasi_stokes_alpha * ( velocity_eval * phi );
 									const double nonlin_times_phi = nonlin * phi;
-									const double real_laplacian_times_phi = real_laplacian * phi;
+									const double velocity_real_laplacian_times_phi = velocity_real_laplacian * phi;
 
 									self_local[i] += intel *
-													 (
-													   velocity_times_phi
-														+ real_laplacian_times_phi
-													   + force_eval_times_phi
-													   - nonlin_times_phi
-														) ;
+													(
+														velocity_times_phi
+														+ velocity_real_laplacian_times_phi
+														+ force_eval_times_phi
+														- nonlin_times_phi
+													);
 								}
 							}
 
