@@ -112,7 +112,7 @@ diff-tolerance: 0.01
 do-bfg: 1
 bfg-tau: 0.1
 
-use_nested_cg_solver: 1
+use_nested_cg_solver: 0
 
 #if using alternative solver break after max maxIter outer iterations
 maxIter: 5000
