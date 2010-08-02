@@ -781,7 +781,7 @@ namespace Dune
 										beta_.evaluate( xWorld, beta_eval );
 
 //										VelocityRangeType derep = divergence_of_dyadic_product(  );
-										VelocityJacobianRangeType beta_jacobian,v_j_jacobian;
+										VelocityJacobianRangeType beta_jacobian,v_i_jacobian;
 //										beta_.jacobian( xWorld, beta_jacobian );
 										velocityBaseFunctionSetElement.jacobian( i, x, beta_jacobian );
 										const typename DiscreteVelocityFunctionType::LocalFunctionType& beta_lf =
@@ -793,12 +793,12 @@ namespace Dune
 										}
 //										Stuff::printFieldMatrix( beta_jacobian, "jaco", std::cerr, "JACOB ");
 
-										velocityBaseFunctionSetElement.jacobian( j, x, v_j_jacobian );
+										velocityBaseFunctionSetElement.jacobian( i, x, v_i_jacobian );
 										VelocityRangeType divergence_of_beta_v_j_tensor_beta;
 										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
 											double row_result = 0;
 											for ( size_t m = 0; m < beta_eval.dim(); ++m ) {
-												row_result += beta_jacobian[l][m] * v_j[l] + v_j_jacobian[l][m] * beta_eval[l];
+												row_result += beta_jacobian[l][m] * v_i[l] + v_i_jacobian[l][m] * beta_eval[l];
 											}
 											divergence_of_beta_v_j_tensor_beta[l] = row_result;
 										}
@@ -1411,6 +1411,7 @@ namespace Dune
 													const ElementCoordinateType xOutside = faceQuadratureNeighbour.point( quad );
 													const LocalIntersectionCoordinateType xLocal = faceQuadratureElement.localPoint( quad );
 													const VelocityRangeType xWorld = geometry.global( x );
+													const VelocityRangeType xWorld_Outside = geometry.global( xOutside );
 													// get the integration factor
 													const double elementVolume = intersectionGeoemtry.integrationElement( xLocal );
 													// get the quadrature weight
@@ -1435,11 +1436,15 @@ namespace Dune
 													if ( beta_times_normal < 0 ) {
 														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
 														flux_value = 0;
+														flux_value = beta_eval;
+														beta_.evaluate( xWorld, flux_value );
 													}
 													else {
 														velocityBaseFunctionSetElement.evaluate( j, xOutside, flux_value );
-//														flux_value = v_i;
-														flux_value *= 0.5;
+														flux_value = beta_eval;
+//														flux_value *= 0.5;
+														flux_value = 0;
+														beta_.evaluate( xWorld_Outside, flux_value );
 													}
 													//inner edge (self)
 													const double flux_times_v_i = flux_value * v_i;
@@ -1491,6 +1496,7 @@ namespace Dune
 													const ElementCoordinateType xInside = faceQuadratureElement.point( quad );
 													const ElementCoordinateType xOutside = faceQuadratureNeighbour.point( quad );
 													const VelocityRangeType xWorld = geometry.global( xInside );
+													const VelocityRangeType xWorld_Outside = geometry.global( xOutside );
 													const LocalIntersectionCoordinateType xLocal = faceQuadratureNeighbour.localPoint( quad );
 													// get the integration factor
 													const double elementVolume = intersectionGeoemtry.integrationElement( xLocal );
@@ -1516,15 +1522,18 @@ namespace Dune
 													const double beta_times_normal = beta_eval * outerNormal;
 													VelocityRangeType flux_value;
 													if ( beta_times_normal < 0 ) {
-														velocityBaseFunctionSetElement.evaluate( j, xInside, flux_value );
-														flux_value *= 0.5;
+//														velocityBaseFunctionSetElement.evaluate( j, xInside, flux_value );
+														flux_value = 0;
+//														flux_value *= 0.5;
+														beta_.evaluate( xWorld, flux_value );
 													}
 													else {
-														velocityBaseFunctionSetElement.evaluate( i, xOutside, flux_value );
-														flux_value = 0;
+//														velocityBaseFunctionSetElement.evaluate( i, xOutside, flux_value );
+														beta_.evaluate( xWorld_Outside, flux_value );
+//														flux_value = 0;
 													}
 
-													const double flux_times_v_i = flux_value * v_j;
+													const double flux_times_v_i = flux_value * v_i;
 													Y_i_j += elementVolume
 														* integrationWeight
 														* beta_times_normal
