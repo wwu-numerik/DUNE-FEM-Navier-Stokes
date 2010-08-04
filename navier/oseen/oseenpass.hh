@@ -778,7 +778,7 @@ namespace Dune
 
 										//calc u_h * \nabla * (v \tensor \beta )
 										VelocityRangeType beta_eval;
-										beta_.evaluate( xWorld, beta_eval );
+										beta_.localFunction( entity ).evaluate( x, beta_eval );
 
 //										VelocityRangeType derep = divergence_of_dyadic_product(  );
 										VelocityJacobianRangeType beta_jacobian,v_j_jacobian;
@@ -928,7 +928,7 @@ namespace Dune
 										VelocityRangeType v_j( 0.0 );
 										velocityBaseFunctionSetElement.evaluate( j, x, v_j );
 										VelocityRangeType f( 0.0 );
-										discreteModel_.force( 0.0, xWorld, f );
+										discreteModel_.forceF().localFunction(entity).evaluate( x, f );
 										const double f_times_v_j = f * v_j;
 										H2_j += elementVolume
 											* integrationWeight
