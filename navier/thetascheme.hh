@@ -10,6 +10,7 @@
 #include <dune/navier/oseen/oseenpass.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
+#include <dune/stuff/functions.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
@@ -279,6 +280,8 @@ namespace Dune {
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
+					double meanGD
+							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesModelType
 							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
 										stokesForce,
@@ -294,6 +297,7 @@ namespace Dune {
 					RunInfo info;
 					stokesPass.getRuninfo( info );
 					Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
+					Logger().Info() << "Dirichlet boundary integral " << meanGD << std::endl;
 					return info;
 				}
 
