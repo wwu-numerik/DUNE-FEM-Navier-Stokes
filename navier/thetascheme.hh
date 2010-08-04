@@ -204,6 +204,9 @@ namespace Dune {
 					errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					errorFunctions_.discreteVelocity() -= currentFunctions_.discreteVelocity();
 
+					double meanPressure_exact = Stuff::meanValue( exactSolution_.exactPressure(), currentFunctions_.discretePressure().space() );
+					double meanPressure_discrete = Stuff::meanValue( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() );
+
 					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
 					const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
@@ -217,7 +220,8 @@ namespace Dune {
 
 					Logger().Info().Resume();
 					Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
-									<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << std::endl;
+									<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << "\n"
+									<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
 					const double max_l2_error = 1e4;
 					if ( l2_error_velocity_ > max_l2_error )
 						DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
@@ -303,7 +307,8 @@ namespace Dune {
 					const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
 					double dt_new = grid_width * grid_width * 2;
 					//constants
-					const double viscosity				= 1.0;
+//					const double viscosity				= 1.0;
+					const double viscosity				= 1.0;// / ( 3 * M_PI);
 					const double d_t					= timeprovider_.deltaT();
 					const double quasi_stokes_alpha		= 1 / ( theta_ * d_t );
 					const double reynolds				= 1 / viscosity;//not really, but meh
