@@ -197,6 +197,10 @@ namespace Dune {
 				{
 					currentFunctions_.assign( nextFunctions_ );
 					nextFunctions_.clear();
+					if ( step == 3 )
+					{
+
+					}
 
 					//error calc
 					exactSolution_.project();
@@ -308,14 +312,22 @@ namespace Dune {
 					//initial flow field at t = 0
 					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
 
+					typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType meanVelocity
+							= Stuff::meanValue( currentFunctions_.discreteVelocity(), currentFunctions_.discreteVelocity().space() );
+					const double typicalVelocity = meanVelocity.two_norm();
+					Stuff::printFieldVector( meanVelocity, "meanVelocity", Logger().Info() );
+					Logger().Info() << "typicalVelocity " << typicalVelocity << std::endl;
+					const double typicalLength = 1.0;
+
 					const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
 					double dt_new = grid_width * grid_width * 2;
 					//constants
-//					const double viscosity				= 1.0;
-					const double viscosity				= 1.0;// / ( 3 * M_PI);
+					const double viscosity				= Parameters().getParam( "viscosity", 1.0 );
+//					const double viscosity				= 1 / ( 3 * M_PI);
 					const double d_t					= timeprovider_.deltaT();
 					const double quasi_stokes_alpha		= 1 / ( theta_ * d_t );
-					const double reynolds				= 1 / viscosity;//not really, but meh
+//					const double reynolds				= typicalVelocity * typicalLength / viscosity;
+					const double reynolds				= 1.0 / viscosity;
 					const double stokes_viscosity		= operator_weight_alpha_ / reynolds;
 					const double beta_qout_re			= operator_weight_beta_ / reynolds;
 					const int verbose					= 1;
@@ -332,49 +344,55 @@ namespace Dune {
 
 						nextStep( 1, info_dummy );
 						//Nonlinear step
-						{
-							const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t );
-							const double oseen_viscosity = operator_weight_beta_ / reynolds;
+						oseenStep( d_t, force, reynolds );
 
-							typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
-																			  currentFunctions_.discreteVelocity(),
-																			  currentFunctions_.discretePressure(),
-																			  force,
-																			  operator_weight_alpha_ / reynolds,
-																			  oseen_alpha );
-
-							typedef Dune::DiscreteStokesModelDefault< typename Traits::OseenModelTraits >
-								OseenModelType;
-							typedef NonlinearStep::OseenPass< OseenModelType,typename Traits::StokesStartPassType >
-									OseenpassType;
-							typename Traits::StokesStartPassType stokesStartPass;
-
-							typename Traits::AnalyticalDirichletDataType stokesDirichletData =
-									Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-													::getInstance( timeprovider_,
-																   functionSpaceWrapper_ );
-							OseenModelType
-									stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
-												nonlinearForce,
-												stokesDirichletData,
-												oseen_viscosity,
-												oseen_alpha );
-							OseenpassType oseenPass( stokesStartPass,
-													stokesModel,
-													gridPart_,
-													functionSpaceWrapper_,
-													currentFunctions_.discreteVelocity() );
-							oseenPass.apply( currentFunctions_, nextFunctions_ );
-
-						}
 						nextStep( 2, info_dummy );
 						//stokes step B
+						currentFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						RunInfo info = stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
 						profiler().StopTiming( "Timestep" );
 						nextStep( 3, info );
 						runInfoVector.push_back( info );
 					}
 					return runInfoVector;
+				}
+
+				void oseenStep( const double d_t,
+								const typename Traits::AnalyticalForceType& force,
+								const double reynolds )
+				{
+					const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t );
+					const double oseen_viscosity = operator_weight_beta_ / reynolds;
+
+					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
+																	  currentFunctions_.discreteVelocity(),
+																	  currentFunctions_.discretePressure(),
+																	  force,
+																	  operator_weight_alpha_ / reynolds,
+																	  oseen_alpha );
+
+					typedef Dune::DiscreteStokesModelDefault< typename Traits::OseenModelTraits >
+						OseenModelType;
+					typedef NonlinearStep::OseenPass< OseenModelType,typename Traits::StokesStartPassType >
+							OseenpassType;
+					typename Traits::StokesStartPassType stokesStartPass;
+
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+											::getInstance( timeprovider_,
+														   functionSpaceWrapper_ );
+					OseenModelType
+							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+										nonlinearForce,
+										stokesDirichletData,
+										oseen_viscosity,
+										oseen_alpha );
+					OseenpassType oseenPass( stokesStartPass,
+											stokesModel,
+											gridPart_,
+											functionSpaceWrapper_,
+											currentFunctions_.discreteVelocity() );
+					oseenPass.apply( currentFunctions_, nextFunctions_ );
 				}
 
 		};
