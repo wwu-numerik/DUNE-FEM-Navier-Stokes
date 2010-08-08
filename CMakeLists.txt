@@ -151,3 +151,6 @@ TARGET_LINK_LIBRARIES(testing "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLI
 
 ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} ${navier} )
 TARGET_LINK_LIBRARIES(navier "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+
+ADD_EXECUTABLE(oseen src/oseen.cc ${header} ${stokes} ${stuff} ${navier} )
+TARGET_LINK_LIBRARIES(oseen "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )

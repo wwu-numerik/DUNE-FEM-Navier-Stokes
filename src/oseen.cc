@@ -82,14 +82,11 @@
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
 
-#include <dune/navier/thetascheme.hh>
-#include <dune/navier/testdata.hh>
+#include "oseen.hh"
 
 #ifndef COMMIT
 	#define COMMIT "undefined"
 #endif
-
-#define MODEL_PROVIDES_LOCALFUNCTION 1
 
 static const std::string commit_string (COMMIT);
 
@@ -243,28 +240,71 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 
-	// model traits
-	typedef Dune::NavierStokes::ThetaSchemeTraits<
-					CollectiveCommunication,
-					GridPartType,
-					Dune::NavierStokes::TESTCASE::Force,
-					Dune::NavierStokes::TESTCASE::DirichletData,
-					Dune::NavierStokes::TESTCASE::Pressure,
-					Dune::NavierStokes::TESTCASE::Velocity,
-					gridDim,
-					polOrder,
-					VELOCITY_POLORDER,
-					PRESSURE_POLORDER >
-		ThetaSchemeTraitsType;
-
 //	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
+
+	const double theta_ = 1.0;
+	const double d_t = 1.0;
+	const double operator_weight_beta_ = 1.0;
+	const double operator_weight_alpha_ = 1.0;
+	const double reynolds = 1.0;
+	const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t );
+	const double oseen_viscosity = operator_weight_beta_ / reynolds;
+
+	typedef Dune::Oseen::Traits<
+			CollectiveCommunication,
+			GridPartType,
+			gridDim,
+			polOrder,
+			VELOCITY_POLORDER,
+			PRESSURE_POLORDER >
+		OseenTraits;
+
+	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
+	OseenTraits::TimeProviderType timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, comm );
+	OseenTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
+
+	typedef OseenTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
+		DiscreteStokesFunctionWrapperType;
+	DiscreteStokesFunctionWrapperType currentFunctions(  "current_",
+						functionSpaceWrapper,
+						gridPart );
+	DiscreteStokesFunctionWrapperType nextFunctions(  "next_",
+					functionSpaceWrapper,
+					gridPart );
+	DiscreteStokesFunctionWrapperType errorFunctions(  "error_",
+					functionSpaceWrapper,
+					gridPart );
+	OseenTraits::ExactSolutionType exactSolution( timeprovider_,
+					gridPart,
+					functionSpaceWrapper );
+
+	OseenTraits::StartPassType startPass;
+	OseenTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData =
+			OseenTraits::OseenModelTraits ::AnalyticalDirichletDataTraitsImplementation
+							::getInstance( timeprovider_,
+										   functionSpaceWrapper );
+	const double viscosity = 1.0;
+	OseenTraits::OseenModelTraits::PressureFunctionSpaceType
+			continousPressureSpace;
+	OseenTraits::OseenModelTraits::VelocityFunctionSpaceType
+			continousVelocitySpace;
+
+	OseenTraits::OseenModelTraits::AnalyticalForceFunctionType force( oseen_viscosity, continousVelocitySpace, oseen_alpha );
+	OseenTraits::OseenModelType
+			stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+						force,
+						stokesDirichletData,
+						oseen_viscosity,
+						oseen_alpha );
+	OseenTraits::OseenPassType oseenPass( startPass,
+							stokesModel,
+							gridPart,
+							functionSpaceWrapper,
+							currentFunctions.discreteVelocity() );
+	oseenPass.apply( currentFunctions, nextFunctions );
 
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
-
-	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
-			thetaScheme( gridPart );
-	runInfoVector = thetaScheme.run();
 
 	return runInfoVector;
 }
@@ -289,3 +329,4 @@ void eocCheck( const RunInfoVector& runInfos )
 						<< std::endl;
 	}
 }
+

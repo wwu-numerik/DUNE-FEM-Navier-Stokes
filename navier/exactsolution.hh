@@ -4,28 +4,28 @@
 namespace Dune {
 	namespace NavierStokes {
 
-		template < class ThetaSchemeTraitsImp >
-		class ExactSolution : public ThetaSchemeTraitsImp ::DiscreteStokesFunctionWrapperType {
+		template < class TraitsImp >
+		class ExactSolution : public TraitsImp::DiscreteStokesFunctionWrapperType {
 
-				typedef ThetaSchemeTraitsImp
-					ThetaSchemeTraitsType;
-				typedef typename ThetaSchemeTraitsType ::DiscreteStokesFunctionWrapperType
+				typedef TraitsImp
+					TraitsType;
+				typedef typename TraitsType::DiscreteStokesFunctionWrapperType
 					BaseType;
 
-				const typename ThetaSchemeTraitsType::TimeProviderType&
+				const typename TraitsType::TimeProviderType&
 						timeprovider_;
-				typename ThetaSchemeTraitsType::StokesModelTraits::PressureFunctionSpaceType
+				typename TraitsType::PressureFunctionSpaceType
 						continousPressureSpace_;
-				typename ThetaSchemeTraitsType::StokesModelTraits::VelocityFunctionSpaceType
+				typename TraitsType::VelocityFunctionSpaceType
 						continousVelocitySpace_;
-				const typename ThetaSchemeTraitsType::ExactVelocityType
+				const typename TraitsType::ExactVelocityType
 						velocity_;
-				const typename ThetaSchemeTraitsType::ExactPressureType
+				const typename TraitsType::ExactPressureType
 						pressure_;
 			public:
-				ExactSolution(	const typename ThetaSchemeTraitsType::TimeProviderType& timeprovider,
-								typename ThetaSchemeTraitsType::GridPartType& gridPart,
-								typename ThetaSchemeTraitsType::DiscreteStokesFunctionSpaceWrapperType& space_wrapper)
+				ExactSolution(	const typename TraitsType::TimeProviderType& timeprovider,
+								typename TraitsType::GridPartType& gridPart,
+								typename TraitsType::DiscreteStokesFunctionSpaceWrapperType& space_wrapper)
 					: BaseType( "exact",
 								space_wrapper,
 								gridPart ),
@@ -40,12 +40,12 @@ namespace Dune {
 					projectInto( velocity_, pressure_ );
 				}
 
-				const typename ThetaSchemeTraitsType::ExactVelocityType& exactVelocity() const
+				const typename TraitsType::ExactVelocityType& exactVelocity() const
 				{
 					return velocity_;
 				}
 
-				const typename ThetaSchemeTraitsType::ExactPressureType& exactPressure() const
+				const typename TraitsType::ExactPressureType& exactPressure() const
 				{
 					return pressure_;
 				}

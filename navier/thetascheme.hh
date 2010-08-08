@@ -48,6 +48,10 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 					StokesModelTraits;
+			typedef typename StokesModelTraits::PressureFunctionSpaceType
+				PressureFunctionSpaceType;
+			typedef typename StokesModelTraits::VelocityFunctionSpaceType
+				VelocityFunctionSpaceType;
 			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
 				StokesModelType;
 			typedef typename StokesModelTraits::DiscreteStokesFunctionSpaceWrapperType
