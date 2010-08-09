@@ -18,9 +18,9 @@ namespace Dune {
 						continousPressureSpace_;
 				typename TraitsType::VelocityFunctionSpaceType
 						continousVelocitySpace_;
-				const typename TraitsType::ExactVelocityType
+				typename TraitsType::ExactVelocityType
 						velocity_;
-				const typename TraitsType::ExactPressureType
+				typename TraitsType::ExactPressureType
 						pressure_;
 			public:
 				ExactSolution(	const typename TraitsType::TimeProviderType& timeprovider,
@@ -46,6 +46,16 @@ namespace Dune {
 				}
 
 				const typename TraitsType::ExactPressureType& exactPressure() const
+				{
+					return pressure_;
+				}
+
+				typename TraitsType::ExactVelocityType& exactVelocity()
+				{
+					return velocity_;
+				}
+
+				typename TraitsType::ExactPressureType& exactPressure()
 				{
 					return pressure_;
 				}
