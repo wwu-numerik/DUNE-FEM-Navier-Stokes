@@ -976,7 +976,7 @@ namespace AdapterFunctionsVectorial {
 				const double y			= arg[1];
 				const double z			= arg[2];
 
-				ret[0] = x + y + z;
+				ret[0] = std::sin(z) + std::sin(x) + std::sin(y);
 			}
 
 		private:
@@ -1028,10 +1028,17 @@ namespace AdapterFunctionsVectorial {
 //				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 				const double x			= arg[0];
 				const double y			= arg[1];
+				const double z			= arg[2];
 
-				ret[0] = 1;
-				ret[1] = 1;
-				ret[2] = 1;
+				ret[0] = 2*x;
+				ret[1] = 2*y;
+				ret[2] = 2*z;
+
+
+
+				ret[0] = std::cos(x);
+				ret[1] = std::cos(y);
+				ret[2] = std::cos(z);
 			}
 
 		private:

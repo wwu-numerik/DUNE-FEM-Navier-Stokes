@@ -1,3 +1,4 @@
+#Stationaere Loesung von oseen nach CKS,Oseen paper
 # LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
 # --> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_FILE = 46
 # ANY odd number will disable ALL logging
@@ -5,11 +6,11 @@
 loglevel: 62
 
 #only prefix
-logfile: dune_stokes
+logfile: oseen_testcase_01
 
 #path (relative to binary) where .vtu etc will be saved
-fem.io.datadir: data
-fem.prefix: data
+fem.io.datadir: oseen_testcase_01
+fem.prefix: oseen_testcase_01
 #path (relative to binary) where logs and matlab files will be saved
 fem.io.logdir: log
 #0: grape, 1: vtk,  2: vtkvtx, 3: gnuplot
@@ -42,7 +43,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: grid_2d.dgf
+dgf_file_2d: oseen_testcase_01.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -85,6 +86,7 @@ accurracy_steps: 5
 #*********** end runtype specific parameters **************************************************
 
 viscosity: 1.0
+reynolds: 1.0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
 alpha: 0.0
 
@@ -92,8 +94,8 @@ alpha: 0.0
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-10
-inner_absLimit: 1e-10
+absLimit: 1e-06
+inner_absLimit: 1e-06
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
@@ -105,7 +107,7 @@ clear_p: 0
 max_adaptions: 5
 
 # > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
-solverVerbosity: 1
+solverVerbosity: 4
 
 disableSolver: 0
 diff-tolerance: 0.01

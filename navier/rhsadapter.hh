@@ -55,8 +55,6 @@ namespace Dune {
 			GradientAdapterFunction ( const TimeProviderType& timeProvider,
 								  const DiscreteVelocityFunctionType& velocity,
 								  SigmaFunctionType& dummy,
-								  const double beta_re_qoutient = 1,
-								  const double quasi_stokes_alpha = 1,
 								  int polOrd = -1 )
 				: BaseType( "grad" , dummy.space()),
 				timeProvider_( timeProvider )
@@ -78,8 +76,6 @@ namespace Dune {
 				typedef typename DiscreteVelocityFunctionType::LocalFunctionType
 					LocalFType;
 
-				typename DiscreteFunctionSpaceType::RangeType ret (0.0);
-
 				const DiscreteFunctionSpaceType space ( velocity.space().gridPart() );
 				const GridPartType& gridPart = space.gridPart();
 				// type of quadrature
@@ -95,7 +91,6 @@ namespace Dune {
 
 				// check whether geometry mappings are affine or not
 				const bool affineMapping = massMatrix.affine();
-				const int out_i = 1;
 
 				// clear destination
 				BaseType::clear();
@@ -139,7 +134,7 @@ namespace Dune {
 						// evaluate function
 						typename DiscreteVelocityFunctionType::DiscreteFunctionSpaceType::RangeType
 							velocity_eval;
-						velocity.evaluate( xWorld, velocity_eval );
+						velocity_local.evaluate( quad[qP], velocity_eval );
 
 						typename DiscreteVelocityFunctionType::DiscreteFunctionSpaceType::JacobianRangeType
 							velocity_jacobian_eval;

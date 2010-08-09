@@ -96,14 +96,14 @@ namespace Dune {
 					const double startTime()	const { return startTime_;	}
 					const double endTime()		const { return endTime_;	}
 
-					SubStepTimeproviderType& subStepTimeprovider( const double =0.0 )
-					{
-						delete subProvider_;
-						subProvider_ = new SubStepTimeproviderType(subTime(),BaseType::comm_);
-						const double stepsize = ( 1 - 2 * theta_ ) * deltaT();
-						subProvider_->init( stepsize );
-						return *subProvider_;
-					}
+//					SubStepTimeproviderType& subStepTimeprovider( const double =0.0 )
+//					{
+//						delete subProvider_;
+//						subProvider_ = new SubStepTimeproviderType(subTime(),BaseType::comm_);
+//						const double stepsize = ( 1 - 2 * theta_ ) * deltaT();
+//						subProvider_->init( stepsize );
+//						return *subProvider_;
+//					}
 
 					int timeStep () const
 					{

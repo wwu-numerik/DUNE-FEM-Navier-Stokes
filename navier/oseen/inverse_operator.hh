@@ -456,6 +456,7 @@ class SaddlepointInverseOperator
 		typedef typename InnerCGSolverWrapperType::ReturnValueType
             ReturnValueType;
 		ReturnValueType a_solver_info;
+		SaddlepointInverseOperatorInfo info;
 
         //the bfg scheme uses the outer acc. as a base
         double current_inner_accuracy = do_bfg ? tau * outer_absLimit : inner_absLimit;
@@ -495,11 +496,8 @@ class SaddlepointInverseOperator
         // u^0 = A^{-1} ( F - B * p^0 )
         b_mat.apply( pressure, tmp1 );
 		F-=tmp1; // F ^= rhs2 - B * p
-		SaddlepointInverseOperatorInfo info;
-		innerCGSolverWrapper.apply(F,velocity,info);
-#if ! defined(DO_FULL_COUPLED_SYSTEM)
-		return info;
-#else
+		innerCGSolverWrapper.apply(F,velocity);
+
         // r^0 = G - B_t * u^0 + C * p^0
         b_t_mat.apply( velocity, tmp2 );
         residuum -= tmp2;
@@ -613,7 +611,6 @@ class SaddlepointInverseOperator
         info.max_inner_accuracy = max_inner_accuracy;
 #endif
         return info;
-#endif //DO_FULL_COUPLED_SYSTEM
 	} //end SaddlepointInverseOperator::solve
 
   };//end class SaddlepointInverseOperator
@@ -788,10 +785,16 @@ class ReducedInverseOperator
 
 		// u^0 = A^{-1} ( F - B * p^0 )
 		b_mat.apply( pressure, tmp1 );
+#if defined(DO_FULL_COUPLED_SYSTEM)
 		F-=tmp1; // F ^= rhs2 - B * p
+#endif
 		logInfo << "OSEEN: first apply\n" ;
+		SaddlepointInverseOperatorInfo info;
 		innerCGSolverWrapper.apply(F,velocity);
-return SaddlepointInverseOperatorInfo();
+#if ! defined(DO_FULL_COUPLED_SYSTEM)
+		return info;
+#else
+
 		logInfo << "OSEEN: first apply - done\n" ;
 
 		// r^0 = G - B_t * u^0 + C * p^0
@@ -894,7 +897,6 @@ return SaddlepointInverseOperatorInfo();
 
 		logInfo << "End SaddlePointInverseOperator " << std::endl;
 
-		SaddlepointInverseOperatorInfo info; //left blank in case of no bfg
 #ifdef USE_BFG_CG_SCHEME
 		const double avg_inner_iterations = total_inner_iterations / (double)iteration;
 		if( solverVerbosity > 0 )
@@ -908,7 +910,8 @@ return SaddlepointInverseOperatorInfo();
 		info.max_inner_accuracy = max_inner_accuracy;
 #endif
 		return info;
-	} //end SaddlepointInverseOperator::solve
+#endif //DO_FULL_COUPLED_SYSTEM
+	} //end ReducedInverseOperator::solve
 
 
   };//end class ReducedInverseOperator
