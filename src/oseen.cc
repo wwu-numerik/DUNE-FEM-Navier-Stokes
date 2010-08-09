@@ -312,12 +312,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	oseenPass.apply( currentFunctions, nextFunctions );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
-	errorFunctions.discretePressure() -= currentFunctions.discretePressure();
+	errorFunctions.discretePressure() -= nextFunctions.discretePressure();
 	errorFunctions.discreteVelocity().assign( exactSolution.discreteVelocity() );
-	errorFunctions.discreteVelocity() -= currentFunctions.discreteVelocity();
+	errorFunctions.discreteVelocity() -= nextFunctions.discreteVelocity();
 
-	double meanPressure_exact = Stuff::meanValue( exactSolution.exactPressure(), currentFunctions.discretePressure().space() );
-	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), currentFunctions.discretePressure().space() );
+	double meanPressure_exact = Stuff::meanValue( exactSolution.exactPressure(), nextFunctions.discretePressure().space() );
+	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), nextFunctions.discretePressure().space() );
 
 	Dune::L2Norm< GridPartType > l2_Error( gridPart );
 
