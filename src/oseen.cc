@@ -100,7 +100,7 @@ static const std::string commit_string (COMMIT);
 typedef std::vector<std::string>
 	ColumnHeaders;
 
-
+#define DO_FULL_COUPLED_SYSTEM 1
 /** \brief one single application of the discretisation and solver
 
 	\param  mpicomm
@@ -283,6 +283,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	OseenTraits::ExactSolutionType exactSolution( timeprovider_,
 					gridPart,
 					functionSpaceWrapper );
+	exactSolution.project();
 	exactSolution.exactPressure().setShift( currentFunctions.discretePressure().space() );
 
 	OseenTraits::StartPassType startPass;
@@ -290,7 +291,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 			OseenTraits::OseenModelTraits ::AnalyticalDirichletDataTraitsImplementation
 							::getInstance( timeprovider_,
 										   functionSpaceWrapper );
-	const double viscosity = 1.0;
+
 	OseenTraits::OseenModelTraits::PressureFunctionSpaceType
 			continousPressureSpace;
 	OseenTraits::OseenModelTraits::VelocityFunctionSpaceType
