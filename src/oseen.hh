@@ -198,14 +198,14 @@ namespace Oseen {
 		};
 
 		template < class DomainType, class RangeType >
-		void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
+		void VelocityEvaluate( const double lambda, const double time, const DomainType& arg, RangeType& ret)
 		{
 			const double x				= arg[0];
 			const double y				= arg[1];
-			const double e_minus_2_t	= std::exp( -2 * time );
+			const double e_lambda_x		= std::exp( lambda * x );
 
-			ret[0] = -1 *	std::cos( x ) * std::sin( y ) * e_minus_2_t;
-			ret[1] =		std::sin( x ) * std::cos( y ) * e_minus_2_t;
+			ret[0] = 1 - e_lambda_x * 	std::cos( 2 * M_PI * y );
+			ret[1] = (lambda/(2*M_PI)) * e_lambda_x * 	std::sin( 2 * M_PI * y );
 		}
 
 		/**
@@ -238,8 +238,7 @@ namespace Oseen {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					parameter_a_( parameter_a ),
-					parameter_d_( parameter_d )
+					lambda_( Parameters().getParam( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -254,7 +253,7 @@ namespace Oseen {
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-					VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
 				/**
@@ -268,8 +267,7 @@ namespace Oseen {
 
 			private:
 				  static const int dim_ = FunctionSpaceImp::dimDomain ;
-				  const double parameter_a_;
-				  const double parameter_d_;
+				  const double lambda_;
 		};
 
 		template < class FunctionSpaceImp, class TimeProviderImp >
@@ -295,8 +293,7 @@ namespace Oseen {
 							const double parameter_a = M_PI /2.0 ,
 							const double parameter_d = M_PI /4.0)
 					: BaseType( timeprovider, space ),
-					parameter_a_( parameter_a ),
-					parameter_d_( parameter_d )
+					lambda_( Parameters().getParam( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -310,7 +307,7 @@ namespace Oseen {
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-					VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
 			   /**
@@ -324,8 +321,7 @@ namespace Oseen {
 
 			private:
 				static const int dim_ = FunctionSpaceImp::dimDomain ;
-				const double parameter_a_;
-				const double parameter_d_;
+				const double lambda_;
 		};
 
 		template <	class FunctionSpaceImp,
@@ -354,8 +350,8 @@ namespace Oseen {
 						const double parameter_a = M_PI /2.0 ,
 						const double parameter_d = M_PI /4.0)
 				  : BaseType( timeprovider, space ),
-				  parameter_a_( parameter_a ),
-				  parameter_d_( parameter_d )
+				  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
+				  shift_(0.0)
 			  {}
 
 			  /**
@@ -371,11 +367,15 @@ namespace Oseen {
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 					const double x			= arg[0];
 					const double y			= arg[1];
-					const double e_minus_4_t	= std::exp( -4 * time );
+					const double e_2lambda_x= std::exp( 2 * lambda_ * x );
 
-					ret[0] = -0.25 * (
-										std::cos( 2 * x ) + std::cos( 2 * y )
-									) * e_minus_4_t;
+					ret[0] = 0.5 * e_2lambda_x + shift_;
+				}
+
+				template < class DiscreteFunctionSpace >
+				void setShift( const DiscreteFunctionSpace& space )
+				{
+					shift_ = -1 * Stuff::meanValue( *this, space );
 				}
 
 				/**
@@ -389,8 +389,8 @@ namespace Oseen {
 
 			private:
 				static const int dim_ = FunctionSpaceImp::dimDomain ;
-				const double parameter_a_;
-				const double parameter_d_;
+				const double lambda_;
+				double shift_;
 		};
 
 	} //end namespace Oseem::TestCase2D

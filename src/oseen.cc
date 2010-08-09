@@ -177,15 +177,11 @@ int main( int argc, char** argv )
 			  ref <= maxref;
 			  ++ref )
 		{
-			rf[ref] = singleRun( mpicomm, ref );
-			rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
+			singleRun( mpicomm, ref );
+//			rf[ref] =
+//			rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
 			profiler().NextRun();
 		}
-
-//		profiler().Output( mpicomm, rf );
-
-		Stuff::TimeSeriesOutput out( rf );
-		out.writeTex( "dummy" );
 
 		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
 		return err;
@@ -240,15 +236,25 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 
+	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
+	infoStream << "  - max grid width: " << grid_width << std::endl;
+
 //	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
 
+	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
 	const double theta_ = 1.0;
 	const double d_t = 1.0;
 	const double operator_weight_beta_ = 1.0;
 	const double operator_weight_alpha_ = 1.0;
-	const double reynolds = 1.0;
-	const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t );
-	const double oseen_viscosity = operator_weight_beta_ / reynolds;
+	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
+	const double oseen_viscosity = 1 / reynolds;
+	const double lambda = ( reynolds * 0.5 )
+						  - std::sqrt(
+								  ( std::pow( reynolds, 2 ) * 0.25 )
+								  + ( 4 * std::pow( M_PI, 2 ) )
+									  ) ;
+
+	Parameters().setParam( "lambda", lambda );
 
 	typedef Dune::Oseen::Traits<
 			CollectiveCommunication,
@@ -277,6 +283,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	OseenTraits::ExactSolutionType exactSolution( timeprovider_,
 					gridPart,
 					functionSpaceWrapper );
+	exactSolution.exactPressure().setShift( currentFunctions.discretePressure().space() );
 
 	OseenTraits::StartPassType startPass;
 	OseenTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData =
@@ -300,11 +307,53 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							currentFunctions.discreteVelocity() );
+							exactSolution.discreteVelocity() );
 	oseenPass.apply( currentFunctions, nextFunctions );
 
-	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
-	infoStream << "  - max grid width: " << grid_width << std::endl;
+	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
+	errorFunctions.discretePressure() -= currentFunctions.discretePressure();
+	errorFunctions.discreteVelocity().assign( exactSolution.discreteVelocity() );
+	errorFunctions.discreteVelocity() -= currentFunctions.discreteVelocity();
+
+	double meanPressure_exact = Stuff::meanValue( exactSolution.exactPressure(), currentFunctions.discretePressure().space() );
+	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), currentFunctions.discretePressure().space() );
+
+	Dune::L2Norm< GridPartType > l2_Error( gridPart );
+
+	const double l2_error_pressure				= l2_Error.norm( errorFunctions.discretePressure() );
+	const double l2_error_velocity				= l2_Error.norm( errorFunctions.discreteVelocity() );
+	const double relative_l2_error_pressure		= l2_error_pressure / l2_Error.norm( exactSolution.discretePressure() );
+	const double relative_l2_error_velocity		= l2_error_velocity / l2_Error.norm( exactSolution.discreteVelocity() );
+
+	Logger().Info().Resume();
+	Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
+					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
+					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
+
+	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
+							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
+							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
+							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
+							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
+							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*
+						>
+		OutputTupleType;
+	typedef Dune::TimeAwareDataWriter<	OseenTraits::TimeProviderType,
+										GridPartType::GridType,
+										OutputTupleType >
+		DataWriterType;
+	OutputTupleType out( &nextFunctions.discreteVelocity(),
+						 &nextFunctions.discretePressure(),
+						 &exactSolution.discreteVelocity(),
+						 &exactSolution.discretePressure(),
+						 &errorFunctions.discreteVelocity(),
+						 &errorFunctions.discretePressure()
+						 );
+
+	DataWriterType dt( timeprovider_,
+					   gridPart.grid(),
+					   out );
+	dt.write();
 
 	return runInfoVector;
 }
