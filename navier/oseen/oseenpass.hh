@@ -1438,16 +1438,18 @@ namespace Dune
 													const double beta_times_normal = beta_eval * outerNormal;
 													VelocityRangeType flux_value;
 													if ( beta_times_normal < 0 ) {
-														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
 														flux_value = 0;
-														flux_value = beta_eval;
+//														flux_value = beta_eval;
 														beta_.evaluate( xWorld, flux_value );
 													}
 													else {
-														velocityBaseFunctionSetElement.evaluate( j, xOutside, flux_value );
-														flux_value = beta_eval;
-//														flux_value *= 0.5;
-														flux_value = 0;
+//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
+//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+//														flux_value = beta_eval;
+////														flux_value *= 0.5;
+//														flux_value = 0;
 														beta_.evaluate( xWorld_Outside, flux_value );
 													}
 													//inner edge (self)
@@ -1526,13 +1528,15 @@ namespace Dune
 													const double beta_times_normal = beta_eval * outerNormal;
 													VelocityRangeType flux_value;
 													if ( beta_times_normal < 0 ) {
-//														velocityBaseFunctionSetElement.evaluate( j, xInside, flux_value );
+//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
 														flux_value = 0;
-//														flux_value *= 0.5;
+////														flux_value *= 0.5;
 														beta_.evaluate( xWorld, flux_value );
 													}
 													else {
-//														velocityBaseFunctionSetElement.evaluate( i, xOutside, flux_value );
+//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
 														beta_.evaluate( xWorld_Outside, flux_value );
 //														flux_value = 0;
 													}
