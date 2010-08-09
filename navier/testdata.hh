@@ -279,6 +279,7 @@ namespace Dune {
 		}//end namespace TestCase3D
 
 		namespace TestCase2D {
+			static const double pi_factor = 1.0;//controls number of vortices
 			template < class FunctionSpaceImp >
 			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
@@ -333,10 +334,11 @@ namespace Dune {
 			{
 				const double x				= arg[0];
 				const double y				= arg[1];
-				const double e_minus_2_t	= std::exp( -2 * time );
+				const double v				= Parameters().getParam( "viscosity", 1.0 );
+				const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * v * time );
 
-				ret[0] = -1 *	std::cos( x ) * std::sin( y ) * e_minus_2_t;
-				ret[1] =		std::sin( x ) * std::cos( y ) * e_minus_2_t;
+				ret[0] = -1 *	std::cos( pi_factor * x ) * std::sin( pi_factor * y ) * e_minus_2_t;
+				ret[1] =		std::sin( pi_factor * x ) * std::cos( pi_factor * y ) * e_minus_2_t;
 			}
 
 			/**
@@ -500,12 +502,13 @@ namespace Dune {
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
 						Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
-						const double x			= arg[0];
-						const double y			= arg[1];
-						const double e_minus_4_t	= std::exp( -4 * time );
+						const double x				= arg[0];
+						const double y				= arg[1];
+						const double v				= Parameters().getParam( "viscosity", 1.0 );
+						const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
 
 						ret[0] = -0.25 * (
-											std::cos( 2 * x ) + std::cos( 2 * y )
+											std::cos( 2 * pi_factor * x ) + std::cos( 2 * pi_factor * y )
 										) * e_minus_4_t;
 					}
 
