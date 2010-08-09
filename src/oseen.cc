@@ -48,6 +48,8 @@
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
 
+#define DO_FULL_COUPLED_SYSTEM 1
+
 #include <vector>
 #include <string>
 
@@ -100,7 +102,6 @@ static const std::string commit_string (COMMIT);
 typedef std::vector<std::string>
 	ColumnHeaders;
 
-#define DO_FULL_COUPLED_SYSTEM 1
 /** \brief one single application of the discretisation and solver
 
 	\param  mpicomm
