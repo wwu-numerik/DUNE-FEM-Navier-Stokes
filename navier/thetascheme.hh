@@ -201,10 +201,6 @@ namespace Dune {
 				{
 					currentFunctions_.assign( nextFunctions_ );
 					nextFunctions_.clear();
-					if ( step == 3 )
-					{
-
-					}
 
 					//error calc
 					exactSolution_.project();
@@ -273,12 +269,14 @@ namespace Dune {
 					timeprovider_.nextFractional();
 				}
 
-				RunInfo stokesStep( const typename Traits::AnalyticalForceType& force,
+				RunInfo stokesStep( const double viscosity,
 								 const double stokes_viscosity,
 								 const double quasi_stokes_alpha,
 								 const double beta_qout_re )
 				{
 					Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+					const typename Traits::AnalyticalForceType force ( viscosity,
+																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
 																				   currentFunctions_.discreteVelocity(),
 																				   force,
@@ -314,7 +312,7 @@ namespace Dune {
 					RunInfoVector runInfoVector;
 
 					//initial flow field at t = 0
-					currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
+					currentFunctions_.assign( exactSolution_ );
 
 					typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType meanVelocity
 							= Stuff::meanValue( currentFunctions_.discreteVelocity(), currentFunctions_.discreteVelocity().space() );
@@ -335,8 +333,6 @@ namespace Dune {
 					const double stokes_viscosity		= operator_weight_alpha_ / reynolds;
 					const double beta_qout_re			= operator_weight_beta_ / reynolds;
 					const int verbose					= 1;
-					const typename Traits::AnalyticalForceType force ( viscosity,
-																 currentFunctions_.discreteVelocity().space() );
 
 					for( timeprovider_.init( d_t ); timeprovider_.time() < timeprovider_.endTime(); )
 					{
@@ -344,16 +340,31 @@ namespace Dune {
 						profiler().StartTiming( "Timestep" );
 						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
 						//stokes step A
-						stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re );
-
+						if( Parameters().getParam( "enable_stokesA", true ) )
+							stokesStep( viscosity, stokes_viscosity, quasi_stokes_alpha, beta_qout_re );
+						else {
+							exactSolution_.project();
+							nextFunctions_.assign( exactSolution_ );
+						}
 						nextStep( 1, info_dummy );
 						//Nonlinear step
-						oseenStep( d_t, force, reynolds );
+						if( Parameters().getParam( "enable_oseen", true ) )
+							oseenStep( viscosity, d_t, reynolds );
+						else {
+							exactSolution_.project();
+							nextFunctions_.assign( exactSolution_ );
+						}
 
 						nextStep( 2, info_dummy );
 						//stokes step B
-						currentFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
-						RunInfo info = stokesStep( force, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
+						RunInfo info;
+						if( Parameters().getParam( "enable_stokesB", true ) )
+							info = stokesStep( viscosity, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
+						else {
+							exactSolution_.project();
+							nextFunctions_.assign( exactSolution_ );
+						}
+
 						profiler().StopTiming( "Timestep" );
 						nextStep( 3, info );
 						runInfoVector.push_back( info );
@@ -361,12 +372,15 @@ namespace Dune {
 					return runInfoVector;
 				}
 
-				void oseenStep( const double d_t,
-								const typename Traits::AnalyticalForceType& force,
+				void oseenStep( const double viscosity,
+								const double d_t,
 								const double reynolds )
 				{
 					const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t );
 					const double oseen_viscosity = operator_weight_beta_ / reynolds;
+
+					const typename Traits::AnalyticalForceType force ( viscosity,
+																 currentFunctions_.discreteVelocity().space() );
 
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																	  currentFunctions_.discreteVelocity(),
