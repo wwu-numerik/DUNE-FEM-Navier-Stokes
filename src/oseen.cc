@@ -256,6 +256,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 									  ) ;
 
 	Parameters().setParam( "lambda", lambda );
+	Parameters().setParam( "viscosity", oseen_viscosity );
 
 	typedef Dune::Oseen::Traits<
 			CollectiveCommunication,
@@ -319,6 +320,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	double meanPressure_exact = Stuff::meanValue( exactSolution.exactPressure(), nextFunctions.discretePressure().space() );
 	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 	Dune::L2Norm< GridPartType > l2_Error( gridPart );
 
@@ -330,7 +332,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Logger().Info().Resume();
 	Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
 					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
-					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
+					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
+					<< "GD: " << GD << std::endl;
 
 	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
