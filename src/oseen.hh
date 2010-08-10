@@ -616,8 +616,8 @@ namespace Oseen {
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 					const double x			= arg[0];
 					const double y			= arg[1];
-					const double v				= Parameters().getParam( "viscosity", 1.0 );
-					const double e_x			= std::exp( -4 * std::pow(M_PI,2) * v * time );
+					const double v			= Parameters().getParam( "viscosity", 1.0 );
+					const double e_x		= std::exp( -4 * std::pow(M_PI,2) * v * time );
 
 					ret[0] = - 0.25 * (
 							std::cos(2 * M_PI * x) + std::cos(2 * M_PI * y)
