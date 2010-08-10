@@ -1432,32 +1432,33 @@ namespace Dune
 														* integrationWeight
 														* mu
 														* v_i_times_v_j;
-													//calc (\beta * n) *  ( \hat{u}^c_h * v )
+													//calc u^c_h \tensor beta * v \tensor n
 													VelocityRangeType beta_eval;
 													beta_.evaluate( xWorld, beta_eval );
 													const double beta_times_normal = beta_eval * outerNormal;
-													VelocityRangeType flux_value;
+													VelocityJacobianRangeType v_i_tensor_n = dyadicProduct( v_i, outerNormal );
+													double c_s;
+
 													if ( beta_times_normal < 0 ) {
-//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
-//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
-														flux_value = 0;
-//														flux_value = beta_eval;
-														beta_.evaluate( xWorld, flux_value );
+														c_s = - beta_times_normal * 0.5;
 													}
 													else {
-//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
-//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
-//														flux_value = beta_eval;
-////														flux_value *= 0.5;
-//														flux_value = 0;
-														beta_.evaluate( xWorld_Outside, flux_value );
+														c_s = beta_times_normal * 0.5;
 													}
+													VelocityRangeType u_h_half = v_i;
+													u_h_half *= 0.5;
+													VelocityJacobianRangeType flux_value = dyadicProduct( v_i, beta_eval );
+
+													VelocityJacobianRangeType u_jump = dyadicProduct( v_i, outerNormal );
+													u_jump *= c_s;
+
+													flux_value += u_jump;
+
+													double ret  = Stuff::colonProduct( flux_value, v_i_tensor_n );
 													//inner edge (self)
-													const double flux_times_v_i = flux_value * v_i;
 													Y_i_j += elementVolume
 														* integrationWeight
-														* beta_times_normal
-														* flux_times_v_i;
+														* ret;
 
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
@@ -1521,31 +1522,33 @@ namespace Dune
 														* integrationWeight
 														* mu
 														* v_i_times_v_j;
-													//calc (\beta * n) *  ( \hat{u}^c_h * v )
-													//inner edge (neigh)
+													//calc u^c_h \tensor beta * v \tensor n
 													VelocityRangeType beta_eval;
 													beta_.evaluate( xWorld, beta_eval );
 													const double beta_times_normal = beta_eval * outerNormal;
-													VelocityRangeType flux_value;
+													VelocityJacobianRangeType v_i_tensor_n = dyadicProduct( v_i, outerNormal );
+													double c_s;
+
 													if ( beta_times_normal < 0 ) {
-//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
-//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
-														flux_value = 0;
-////														flux_value *= 0.5;
-														beta_.evaluate( xWorld, flux_value );
+														c_s = - beta_times_normal * 0.5;
 													}
 													else {
-//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
-//														velocityBaseFunctionSetNeighbour.evaluate( j, xOutside, flux_value );
-														beta_.evaluate( xWorld_Outside, flux_value );
-//														flux_value = 0;
+														c_s = beta_times_normal * 0.5;
 													}
+													VelocityRangeType u_h_half = v_i;
+													u_h_half *= 0.5;
+													VelocityJacobianRangeType flux_value = dyadicProduct( v_i, beta_eval );
 
-													const double flux_times_v_i = flux_value * v_i;
+													VelocityJacobianRangeType u_jump = dyadicProduct( v_i, outerNormal );
+													u_jump *= c_s;
+
+													flux_value += u_jump;
+
+													double ret  = Stuff::colonProduct( flux_value, v_i_tensor_n );
+													//inner edge (self)
 													Y_i_j += elementVolume
 														* integrationWeight
-														* beta_times_normal
-														* flux_times_v_i;
+														* ret;
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
 													Stuff::printFieldVector( xInside, "xInside", debugStream, "        " );
@@ -2183,16 +2186,16 @@ namespace Dune
 													const double beta_times_normal = beta_eval * outerNormal;
 													VelocityRangeType flux_value;
 													if ( beta_times_normal < 0 ) {
+//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
 														VelocityRangeType gD( 0.0 );
 														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
 														flux_value = gD;
-//														flux_value *= -1;
 													}
 													else {
 														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
-														VelocityRangeType gD( 0.0 );
-														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
-														flux_value = gD;
+//														VelocityRangeType gD( 0.0 );
+//														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
+//														flux_value = gD;
 													}
 													const double flux_times_v_i = flux_value * v_i;
 													Y_i_j += elementVolume
