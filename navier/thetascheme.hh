@@ -209,8 +209,8 @@ namespace Dune {
 					errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					errorFunctions_.discreteVelocity() -= currentFunctions_.discreteVelocity();
 
-					double meanPressure_exact = Stuff::meanValue( exactSolution_.exactPressure(), currentFunctions_.discretePressure().space() );
-					double meanPressure_discrete = Stuff::meanValue( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() );
+					double meanPressure_exact = Stuff::integralAndVolume( exactSolution_.exactPressure(), currentFunctions_.discretePressure().space() ).first;
+					double meanPressure_discrete = Stuff::integralAndVolume( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() ).first;
 
 					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
