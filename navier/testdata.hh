@@ -324,13 +324,14 @@ namespace Dune {
 						  const double v			= viscosity_;
 						  const double P			= pi_factor;
 						  const double E			= std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
+						  const double F			= std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
 						  const double S_x			= std::sin( P * x );
 						  const double S_y			= std::sin( P * y );
 						  const double S_2x			= std::sin( 2 * P * x );
 						  const double S_2y			= std::sin( 2 * P * y );
 						  const double C_x			= std::cos( P * x );
 						  const double C_y			= std::cos( P * y );
-						  ret[0] =
+						  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
 						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
