@@ -802,9 +802,9 @@ namespace Dune
 											}
 											divergence_of_beta_v_j_tensor_beta[l] = row_result;
 										}
-//										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
-//											assert( !isnan(divergence_of_beta_v_j_tensor_beta[l]) );
-//										}
+										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
+											assert( !isnan(divergence_of_beta_v_j_tensor_beta[l]) );
+										}
 //										Stuff::printFieldVector( divergence_of_beta_v_j_tensor_beta, "jaco", std::cerr, "DIV ");
 										const double u_h_times_divergence_of_beta_v_j_tensor_beta =
 												v_j * divergence_of_beta_v_j_tensor_beta;
@@ -2189,14 +2189,14 @@ namespace Dune
 //														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
 														VelocityRangeType gD( 0.0 );
 														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
-														flux_value = gD;
+														flux_value = 0;
 													}
 													else {
 														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
 //														VelocityRangeType gD( 0.0 );
 //														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
 //														flux_value = gD;
-														//eigentlich den mw/jump zu gD
+
 													}
 													const double flux_times_v_i = flux_value * v_i;
 													Y_i_j += elementVolume
@@ -2349,6 +2349,24 @@ namespace Dune
 														* integrationWeight
 														* mu
 														* v_j_times_gD_times_normal_times_normal;
+
+													VelocityRangeType beta_eval;
+													beta_.evaluate( xWorld, beta_eval );
+													const double beta_times_normal = beta_eval * outerNormal;
+													VelocityRangeType flux_value;
+													if ( beta_times_normal < 0 ) {
+//														velocityBaseFunctionSetElement.evaluate( i, xInside, flux_value );
+														flux_value = gD;
+													}
+													else {
+//														velocityBaseFunctionSetElement.evaluate( j, xLocal, flux_value );
+//														flux_value = gD;
+													}
+													const double flux_times_v_j = flux_value * v_j;
+													H2_j -= elementVolume
+														* integrationWeight
+														* beta_times_normal
+														* flux_times_v_j;
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
 													Stuff::printFieldVector( x, "x", debugStream, "        " );
