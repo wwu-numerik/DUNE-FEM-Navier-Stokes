@@ -169,7 +169,8 @@ namespace Oseen {
 					  : BaseType ( space ),
 						viscosity_( viscosity ),
 						alpha_( alpha ),
-						lambda_( Parameters().getParam( "lambda", 0.0 ) )
+						lambda_( Parameters().getParam( "lambda", 0.0 ) ),
+						gamma_( Parameters().getParam( "alpha", 0.0 ) )
 				  {}
 
 				  /**
@@ -194,21 +195,20 @@ namespace Oseen {
 					  const double e_lambda_x		= std::exp( lambda * x );
 					  const double cos				= std::cos( 2 * M_PI * y );
 					  const double sin				= std::sin( 2 * M_PI * y );
-					  const double gamma			= 0.0;
 					  const double lambda_square	= lambda * lambda;
-					  ret[0] = gamma * ( 1 - e_lambda_x * cos ) + e_lambda_x * (
+					  ret[0] = gamma_ * ( 1 - e_lambda_x * cos ) + e_lambda_x * (
 							  ( 1 - e_lambda_x * cos ) * (-1 * lambda ) * cos
 							  + ( std::pow(lambda,3)/ (2 * std::pow(M_PI,2) )  ) * e_lambda_x * std::pow( sin, 2 )
 							  - viscosity_ * 2 * lambda * M_PI * sin
 							  - e_lambda_x
 							  );
-					  ret[1] = gamma * ( lambda / ( 2 * M_PI ) ) * e_lambda_x * cos
+					  ret[1] = gamma_ * ( lambda / ( 2 * M_PI ) ) * e_lambda_x * cos
 							   + e_lambda_x * sin * (
 									( lambda_square / ( 2 * M_PI ) ) * e_lambda_x * cos
 									+ ( 1 - e_lambda_x * cos ) * 2 * M_PI
 									+ viscosity_ * 2 * lambda * M_PI
 									   );
-					  ret = RangeType(0);
+//					  ret = RangeType(0);
 				  }
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const {
 					  evaluate(0, arg, ret);
@@ -218,6 +218,7 @@ namespace Oseen {
 				  const double viscosity_;
 				  const double alpha_;
 				  const double lambda_;
+				  const double gamma_;
 				  static const int dim_ = FunctionSpaceImp::dimDomain;
 		};
 
@@ -473,8 +474,11 @@ namespace Oseen {
 						const double x				= arg[0];
 						const double y				= arg[1];
 						ret[0] = M_PI * std::cos( M_PI * x ) * std::sin( M_PI * y );
-						ret[1] = M_PI * std::sin( M_PI * x ) * std::cos( M_PI * y );
-//						ret[0]= 414323214213124;
+						ret[1] = M_PI * std::cos( M_PI * y ) * (
+								 M_PI * std::sin( M_PI * x ) - std::sin( M_PI * y )
+								)
+								 + std::sin( M_PI * y ) * 0.5 * M_PI;
+//						ret[0]= 0;
 //						ret[1]= 0;
 				  }
 
@@ -686,7 +690,7 @@ namespace Oseen {
 	}//end namespace TestCaseTaylor2D
 
 #ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE Oseen::TestCase2D
+	#define OSEEN_DATA_NAMESPACE Oseen::TestCaseTaylor2D
 #endif
 
 	template <	class CommunicatorImp,
