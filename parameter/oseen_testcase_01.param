@@ -43,7 +43,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: oseen_testcase_01.dgf
+dgf_file_2d: oseen_testcase_02.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -63,9 +63,11 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 1
-maxref: 1
-
+minref: 3
+maxref: 3
+enable_stokesA: 1
+enable_stokesB: 0
+enable_oseen: 0
 #in runtype 1 vary
 minpow: -1
 maxpow: 1
@@ -107,7 +109,7 @@ clear_p: 0
 max_adaptions: 5
 
 # > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
-solverVerbosity: 4
+solverVerbosity: 2
 
 disableSolver: 0
 diff-tolerance: 0.01
