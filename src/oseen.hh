@@ -168,7 +168,8 @@ namespace Oseen {
 				  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
 					  : BaseType ( space ),
 						viscosity_( viscosity ),
-						alpha_( alpha )
+						alpha_( alpha ),
+						lambda_( Parameters().getParam( "lambda", 0.0 ) )
 				  {}
 
 				  /**
@@ -185,15 +186,38 @@ namespace Oseen {
 				   *  \param  ret
 				   *          value of force at given point
 				   **/
-				  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
+				  inline void evaluate( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 				  {
+					  const double lambda			= lambda_;
+					  const double x				= arg[0];
+					  const double y				= arg[1];
+					  const double e_lambda_x		= std::exp( lambda * x );
+					  const double cos				= std::cos( 2 * M_PI * y );
+					  const double sin				= std::sin( 2 * M_PI * y );
+					  const double gamma			= 0.0;
+					  const double lambda_square	= lambda * lambda;
+					  ret[0] = gamma * ( 1 - e_lambda_x * cos ) + e_lambda_x * (
+							  ( 1 - e_lambda_x * cos ) * (-1 * lambda ) * cos
+							  + ( std::pow(lambda,3)/ (2 * std::pow(M_PI,2) )  ) * e_lambda_x * std::pow( sin, 2 )
+							  - viscosity_ * 2 * lambda * M_PI * sin
+							  - e_lambda_x
+							  );
+					  ret[1] = gamma * ( lambda / ( 2 * M_PI ) ) * e_lambda_x * cos
+							   + e_lambda_x * sin * (
+									( lambda_square / ( 2 * M_PI ) ) * e_lambda_x * cos
+									+ ( 1 - e_lambda_x * cos ) * 2 * M_PI
+									+ viscosity_ * 2 * lambda * M_PI
+									   );
 					  ret = RangeType(0);
 				  }
-				  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
+				  inline void evaluate( const DomainType& arg, RangeType& ret ) const {
+					  evaluate(0, arg, ret);
+				  }
 
 			  private:
 				  const double viscosity_;
 				  const double alpha_;
+				  const double lambda_;
 				  static const int dim_ = FunctionSpaceImp::dimDomain;
 		};
 
@@ -375,7 +399,9 @@ namespace Oseen {
 				template < class DiscreteFunctionSpace >
 				void setShift( const DiscreteFunctionSpace& space )
 				{
-					shift_ = -1 * Stuff::meanValue( *this, space );
+					shift_ = Stuff::meanValue( *this, space );
+					Logger().Info() <<  "mean pressure pre-shift: " << shift_ << std::endl;
+					shift_ = 0;//std::sqrt( shift_ / 10) ;
 				}
 
 				/**
@@ -660,7 +686,7 @@ namespace Oseen {
 	}//end namespace TestCaseTaylor2D
 
 #ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE Oseen::TestCaseTaylor2D
+	#define OSEEN_DATA_NAMESPACE Oseen::TestCase2D
 #endif
 
 	template <	class CommunicatorImp,
