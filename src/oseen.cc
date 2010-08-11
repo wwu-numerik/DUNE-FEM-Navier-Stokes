@@ -249,11 +249,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double operator_weight_alpha_ = 1.0;
 	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
 	const double oseen_viscosity = 1 / reynolds;
-	const double lambda = ( reynolds * 0.5 )
-						  - std::sqrt(
-								  ( std::pow( reynolds, 2 ) * 0.25 )
-								  + ( 4 * std::pow( M_PI, 2 ) )
-									  ) ;
+//	const double lambda = ( reynolds * 0.5 )
+//						  - std::sqrt(
+//								  ( std::pow( reynolds, 2 ) * 0.25 )
+//								  + ( 4 * std::pow( M_PI, 2 ) )
+//									  ) ;
+	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
 
 	Parameters().setParam( "lambda", lambda );
 	Parameters().setParam( "viscosity", oseen_viscosity );
@@ -306,11 +307,13 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						stokesDirichletData,
 						oseen_viscosity,
 						oseen_alpha );
+	currentFunctions.assign( exactSolution );
+	currentFunctions.discreteVelocity() *= Parameters().getParam( "DANGER", 2.0 );;
 	OseenTraits::OseenPassType oseenPass( startPass,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							exactSolution.discreteVelocity() );
+							currentFunctions.discreteVelocity() );
 	oseenPass.apply( currentFunctions, nextFunctions );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
@@ -333,7 +336,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
 					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
 					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
-					<< "GD: " << GD << std::endl;
+					<< "GD: " << GD << "\n"
+					<< "lambda: " << lambda << std::endl;
 
 	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
