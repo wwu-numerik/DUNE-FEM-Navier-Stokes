@@ -433,11 +433,24 @@ namespace Oseen {
 				   *  \param  ret
 				   *          value of force at given point
 				   **/
-				  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
+//				  inline void evaluate( const double /*time*/, const DomainType& arg, RangeType& ret ) const
+//				  {
+//						const double x				= arg[0];
+//						const double y				= arg[1];
+//						ret[0] = M_PI * std::cos( M_PI * x ) * std::sin( M_PI * y );
+//						ret[1] = M_PI * std::sin( M_PI * x ) * std::cos( M_PI * y );
+//						ret[0]= 4230;
+//						ret[1]=4213;
+//				  }
+				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
-					  ret = RangeType(0);
+						const double x				= arg[0];
+						const double y				= arg[1];
+						ret[0] = M_PI * std::cos( M_PI * x ) * std::sin( M_PI * y );
+						ret[1] = M_PI * std::sin( M_PI * x ) * std::cos( M_PI * y );
+//						ret[0]= 414323214213124;
+//						ret[1]= 0;
 				  }
-				  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
 
 			  private:
 				  const double viscosity_;
@@ -453,8 +466,8 @@ namespace Oseen {
 			const double v				= Parameters().getParam( "viscosity", 1.0 );
 			const double e_x			= std::exp( -2 * std::pow(M_PI,2) * v * time );
 
-			ret[0] = - std::cos( M_PI * x ) * std::sin( M_PI * y ) * e_x;
-			ret[1] = + std::sin( M_PI * x ) * std::cos( M_PI * y ) * e_x;
+			ret[0] = - std::cos( M_PI * x ) * std::sin( M_PI * y );
+			ret[1] = + std::sin( M_PI * x ) * std::cos( M_PI * y );
 		}
 
 		/**
