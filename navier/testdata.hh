@@ -279,7 +279,7 @@ namespace Dune {
 		}//end namespace TestCase3D
 
 		namespace TestCase2D {
-			static const double pi_factor = 1.0;//controls number of vortices
+			static const double pi_factor = M_PI;//controls number of vortices
 			template < class FunctionSpaceImp >
 			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
@@ -317,11 +317,15 @@ namespace Dune {
 					   *  \param  ret
 					   *          value of force at given point
 					   **/
-					  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
+					  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 					  {
-						  ret = RangeType(0);
+						  const double x				= arg[0];
+						  const double y				= arg[1];
+						  const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * viscosity_ * time );
+						  ret[0] = M_PI * std::cos( M_PI * x ) * std::sin( M_PI * y ) * e_minus_2_t;
+						  ret[1] = M_PI * std::sin( M_PI * x ) * std::cos( M_PI * y ) * e_minus_2_t;
 					  }
-					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
+					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
 				  private:
 					  const double viscosity_;
