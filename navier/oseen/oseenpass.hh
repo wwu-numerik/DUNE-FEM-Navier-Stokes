@@ -2196,6 +2196,7 @@ namespace Dune
 //														VelocityRangeType gD( 0.0 );
 //														discreteModel_.dirichletData( intersection, 0.0, xWorld,  gD );
 //														flux_value = gD;
+														//eigentlich den mw/jump zu gD
 													}
 													const double flux_times_v_i = flux_value * v_i;
 													Y_i_j += elementVolume
