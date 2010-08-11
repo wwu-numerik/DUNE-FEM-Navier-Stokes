@@ -319,11 +319,19 @@ namespace Dune {
 					   **/
 					  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 					  {
-						  const double x				= arg[0];
-						  const double y				= arg[1];
-						  const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * viscosity_ * time );
-						  ret[0] = M_PI * std::cos( M_PI * x ) * std::sin( M_PI * y ) * e_minus_2_t;
-						  ret[1] = M_PI * std::sin( M_PI * x ) * std::cos( M_PI * y ) * e_minus_2_t;
+						  const double x			= arg[0];
+						  const double y			= arg[1];
+						  const double v			= viscosity_;
+						  const double P			= pi_factor;
+						  const double E			= std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
+						  const double S_x			= std::sin( P * x );
+						  const double S_y			= std::sin( P * y );
+						  const double S_2x			= std::sin( 2 * P * x );
+						  const double S_2y			= std::sin( 2 * P * y );
+						  const double C_x			= std::cos( P * x );
+						  const double C_y			= std::cos( P * y );
+						  ret[0] =
+						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
