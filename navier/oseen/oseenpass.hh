@@ -779,18 +779,10 @@ namespace Dune
 										//calc u_h * \nabla * (v \tensor \beta )
 										VelocityRangeType beta_eval;
 										beta_.localFunction( entity ).evaluate( x, beta_eval );
-
-//										VelocityRangeType derep = divergence_of_dyadic_product(  );
 										VelocityJacobianRangeType beta_jacobian,v_i_jacobian;
-//										beta_.jacobian( xWorld, beta_jacobian );
-										velocityBaseFunctionSetElement.jacobian( i, x, beta_jacobian );
 										const typename DiscreteVelocityFunctionType::LocalFunctionType& beta_lf =
 												beta_.localFunction( entity );
-										for ( size_t l = 0; l < beta_eval.dim(); ++l ) {
-											for ( size_t m = 0; m < beta_eval.dim(); ++m ) {
-												beta_jacobian[l][m] *= beta_lf[l];
-											}
-										}
+										beta_lf.jacobian( x, beta_jacobian );
 //										Stuff::printFieldMatrix( beta_jacobian, "jaco", std::cerr, "JACOB ");
 
 										velocityBaseFunctionSetElement.jacobian( i, x, v_i_jacobian );
@@ -1437,14 +1429,8 @@ namespace Dune
 													beta_.evaluate( xWorld, beta_eval );
 													const double beta_times_normal = beta_eval * outerNormal;
 													VelocityJacobianRangeType v_i_tensor_n = dyadicProduct( v_i, outerNormal );
-													double c_s;
+													double c_s = beta_times_normal * 0.5;
 
-													if ( beta_times_normal < 0 ) {
-														c_s = - beta_times_normal * 0.5;
-													}
-													else {
-														c_s = beta_times_normal * 0.5;
-													}
 													VelocityRangeType u_h_half = v_i;
 													u_h_half *= 0.5;
 													VelocityJacobianRangeType flux_value = dyadicProduct( v_i, beta_eval );
