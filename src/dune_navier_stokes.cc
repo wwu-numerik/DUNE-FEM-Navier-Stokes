@@ -48,6 +48,10 @@
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
 
+#if (GRIDDIM==3)
+	#define MODEL_PROVIDES_LOCALFUNCTION 1
+#endif
+
 #include <vector>
 #include <string>
 
