@@ -9,8 +9,8 @@ loglevel: 62
 logfile: oseen_testcase_01
 
 #path (relative to binary) where .vtu etc will be saved
-fem.io.datadir: oseen_testcase_01
-fem.prefix: oseen_testcase_01
+fem.io.datadir: data_oseen_testcase_01
+fem.prefix: data_oseen_testcase_01
 #path (relative to binary) where logs and matlab files will be saved
 fem.io.logdir: log
 #0: grape, 1: vtk,  2: vtkvtx, 3: gnuplot
@@ -65,9 +65,9 @@ runtype: 5
 #in runtype 0 refine maxref + 1 - minref times
 minref: 3
 maxref: 3
-enable_stokesA: 1
+enable_stokesA: 0
 enable_stokesB: 0
-enable_oseen: 0
+enable_oseen: 1
 #in runtype 1 vary
 minpow: -1
 maxpow: 1
