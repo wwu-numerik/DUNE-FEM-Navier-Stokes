@@ -471,15 +471,20 @@ namespace Oseen {
 //				  }
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
-						const double x				= arg[0];
-						const double y				= arg[1];
-						ret[0] = M_PI * std::cos( M_PI * x ) * std::sin( M_PI * y );
-						ret[1] = M_PI * std::cos( M_PI * y ) * (
-								 M_PI * std::sin( M_PI * x ) - std::sin( M_PI * y )
-								)
-								 + std::sin( M_PI * y ) * 0.5 * M_PI;
-//						ret[0]= 0;
-//						ret[1]= 0;
+					  const double x			= arg[0];
+					  const double y			= arg[1];
+					  const double v			= viscosity_;
+					  const double P			= M_PI;//pi_factor;
+					  const double E			= 1;//std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
+					  const double F			= 1;//std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
+					  const double S_x			= std::sin( P * x );
+					  const double S_y			= std::sin( P * y );
+					  const double S_2x			= std::sin( 2 * P * x );
+					  const double S_2y			= std::sin( 2 * P * y );
+					  const double C_x			= std::cos( P * x );
+					  const double C_y			= std::cos( P * y );
+					  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
+					  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
 				  }
 
 			  private:
@@ -493,12 +498,14 @@ namespace Oseen {
 		{
 			const double x				= arg[0];
 			const double y				= arg[1];
+			const double pi_factor		= M_PI;
 			const double v				= Parameters().getParam( "viscosity", 1.0 );
 			const double e_x			= std::exp( -2 * std::pow(M_PI,2) * v * time );
 
-			ret[0] = - std::cos( M_PI * x ) * std::sin( M_PI * y );
-			ret[1] = + std::sin( M_PI * x ) * std::cos( M_PI * y );
-		}
+			const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * v * time );
+
+			ret[0] = -1 *	std::cos( pi_factor * x ) * std::sin( pi_factor * y ) * e_minus_2_t;
+			ret[1] =		std::sin( pi_factor * x ) * std::cos( pi_factor * y ) * e_minus_2_t;		}
 
 		/**
 		*  \brief  describes the dirichlet boundary data
@@ -657,14 +664,15 @@ namespace Oseen {
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
-					const double x			= arg[0];
-					const double y			= arg[1];
-					const double v			= Parameters().getParam( "viscosity", 1.0 );
-					const double e_x		= std::exp( -4 * std::pow(M_PI,2) * v * time );
+					const double x				= arg[0];
+					const double y				= arg[1];
+					const double v				= Parameters().getParam( "viscosity", 1.0 );
+					const double pi_factor		= M_PI;
+					const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
 
-					ret[0] = - 0.25 * (
-							std::cos(2 * M_PI * x) + std::cos(2 * M_PI * y)
-									) * e_x;
+					ret[0] = -0.25 * (
+										std::cos( 2 * pi_factor * x ) + std::cos( 2 * pi_factor * y )
+									) * e_minus_4_t;
 				}
 
 				template < class DiscreteFunctionSpace >
