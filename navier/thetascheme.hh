@@ -311,9 +311,6 @@ namespace Dune {
 				{
 					RunInfoVector runInfoVector;
 
-					//initial flow field at t = 0
-					currentFunctions_.assign( exactSolution_ );
-
 					typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType meanVelocity
 							= Stuff::meanValue( currentFunctions_.discreteVelocity(), currentFunctions_.discreteVelocity().space() );
 					const double typicalVelocity = meanVelocity.two_norm();
@@ -334,7 +331,15 @@ namespace Dune {
 					const double beta_qout_re			= operator_weight_beta_ / reynolds;
 					const int verbose					= 1;
 
-					for( timeprovider_.init( d_t ); timeprovider_.time() < timeprovider_.endTime(); )
+					timeprovider_.init( d_t );
+					//initial flow field at t = 0
+					exactSolution_.project();
+					currentFunctions_.assign( exactSolution_ );
+					dataWriter_.write();
+					//set current time to t_0 + theta
+					timeprovider_.nextFractional();
+
+					for( ;timeprovider_.time() < timeprovider_.endTime(); )
 					{
 						RunInfo info_dummy;
 						profiler().StartTiming( "Timestep" );

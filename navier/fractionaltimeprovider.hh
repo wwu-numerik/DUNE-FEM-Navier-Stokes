@@ -7,8 +7,9 @@
 namespace Dune {
 	namespace NavierStokes {
 
-		typedef unsigned int
+		typedef int
 				StepType;
+		const StepType initStep			= -1;
 		const StepType StokesStepA		= 0;
 		const StepType NonlinearStepID	= 1;
 		const StepType StokesStepB		= 2;
@@ -58,7 +59,7 @@ namespace Dune {
 						theta_( theta ),
 						theta_alpha_( theta_alpha ),
 						theta_beta_( theta_beta ),
-						currentStepType_( StokesStepA ),
+						currentStepType_( initStep ),
 						subProvider_( 0 )
 					{
 						dt_ = Parameter :: getValidValue( "fem.timeprovider.dt",
@@ -70,10 +71,10 @@ namespace Dune {
 					const double subTime( ) const
 					{
 						switch ( currentStepType_ ) {
-							case StokesStepA:
 							default: return BaseType::time();
-							case NonlinearStepID: return BaseType::time()+ deltaT() * theta_ ;
-							case StokesStepB: return BaseType::time()+ deltaT() * (1 - theta_);
+							case StokesStepA: return BaseType::time() + deltaT() * theta_ ;
+							case NonlinearStepID: return BaseType::time()+ deltaT() * (1 - theta_);
+							case StokesStepB: return BaseType::time()+ deltaT();
 						}
 					}
 
@@ -84,7 +85,10 @@ namespace Dune {
 
 					void nextFractional()
 					{
-						if ( currentStepType_ == StokesStepB ) {
+						if ( currentStepType_ == initStep ) {
+							currentStepType_ = StokesStepA;
+						}
+						else if ( currentStepType_ == StokesStepB ) {
 							next( deltaT() );
 						}
 						else
@@ -107,7 +111,7 @@ namespace Dune {
 
 					int timeStep () const
 					{
-						return timeStep_ * 3 + currentStepType_;
+						return timeStep_ * 3 + currentStepType_ + 1;
 					}
 
 				protected:
