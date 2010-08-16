@@ -100,7 +100,10 @@ absLimit: 1e-06
 inner_absLimit: 1e-06
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
-use_velocity_reconstruct: 1
+use_velocity_reconstruct: 0
+use_pressure_reconstruct: 0
+use_pressure_reconstruct_A: 1
+pressure_cheat: 1
 #clear computed functions at start of every singleRun ?
 clear_u: 1
 clear_p: 0
