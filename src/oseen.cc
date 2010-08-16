@@ -170,7 +170,7 @@ int main( int argc, char** argv )
 
 		int err = 0;
 
-		const unsigned int minref = Parameters().getParam( "minref", 0 );
+		const int minref = Parameters().getParam( "minref", 0 );
 		// ensures maxref>=minref
 		const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
 		profiler().Reset( maxref - minref + 1 );
@@ -180,8 +180,6 @@ int main( int argc, char** argv )
 			  ++ref )
 		{
 			singleRun( mpicomm, ref );
-//			rf[ref] =
-//			rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
 			profiler().NextRun();
 		}
 
