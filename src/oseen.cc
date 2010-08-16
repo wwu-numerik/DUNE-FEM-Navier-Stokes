@@ -171,7 +171,8 @@ int main( int argc, char** argv )
 		int err = 0;
 
 		const unsigned int minref = Parameters().getParam( "minref", 0 );
-		const unsigned int maxref = Parameters().getParam( "maxref", 0 );
+		// ensures maxref>=minref
+		const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
 		profiler().Reset( maxref - minref + 1 );
 		RunInfoVectorMap rf;
 		for ( unsigned int ref = minref;
