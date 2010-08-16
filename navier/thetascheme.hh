@@ -352,6 +352,8 @@ namespace Dune {
 							nextFunctions_.assign( exactSolution_ );
 						}
 						nextStep( 1, info_dummy );
+						if( Parameters().getParam( "pressure_cheat", false ) )
+							nextFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						//Nonlinear step
 						if( Parameters().getParam( "enable_oseen", true ) )
 							oseenStep( viscosity, d_t, reynolds );
@@ -372,6 +374,8 @@ namespace Dune {
 
 						profiler().StopTiming( "Timestep" );
 						nextStep( 3, info );
+						if( Parameters().getParam( "pressure_cheat", false ) )
+							nextFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						runInfoVector.push_back( info );
 					}
 					return runInfoVector;
