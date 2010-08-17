@@ -226,6 +226,13 @@ namespace Dune {
 
 					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
+					if ( Parameters().getParam( "error_scaling", false ) ) {
+							const double viscosity	= Parameters().getParam( "viscosity", 1.0 );
+							const double scale		= 1 / std::sqrt( viscosity );
+							errorFunctions_.discretePressure() *= scale;
+							errorFunctions_.discreteVelocity() *= scale;
+					}
+
 					const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
 					const double l2_error_velocity_				= l2_Error.norm( errorFunctions_.discreteVelocity() );
 					const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
