@@ -179,6 +179,7 @@ namespace Dune {
 				const double reynolds_;
 				const double stokes_viscosity_;
 				const double beta_qout_re_;
+				double current_max_gridwidth_;
 
 
 			public:
@@ -221,12 +222,14 @@ namespace Dune {
 					quasi_stokes_alpha_( 1 / ( theta_ * d_t_ ) ),
 					reynolds_( 1.0 / viscosity_ ),
 					stokes_viscosity_( operator_weight_alpha_ / reynolds_ ),
-					beta_qout_re_( operator_weight_beta_ / reynolds_ )
+					beta_qout_re_( operator_weight_beta_ / reynolds_ ),
+					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
 
 				{}
 
 				void nextStep( const int step, RunInfo& info )
 				{
+					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
 					currentFunctions_.assign( nextFunctions_ );
 					nextFunctions_.clear();
 
@@ -272,11 +275,13 @@ namespace Dune {
 						Dune::StabilizationCoefficients stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
 						info.codim0			= gridPart_.grid().size( 0 );
-						info.grid_width		= Dune::GridWidth::calcGridWidth( gridPart_ );
+						info.grid_width		= current_max_gridwidth_;
 						info.run_time		= profiler().GetTiming( "Timestep" );
 						info.delta_t		= timeprovider_.deltaT();
 						info.current_time	= timeprovider_.time();
 						info.L2Errors		= error_vector;
+						info.viscosity		= viscosity_;
+						info.reynolds		= reynolds_;
 
 						info.c11			= Pair( stabil_coeff.Power( "C11" ), stabil_coeff.Factor( "C11" ) );
 						info.c12			= Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
@@ -321,8 +326,8 @@ namespace Dune {
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-					stab_coeff.Factor( "D11", 1 / stokes_viscosity_ );
-					stab_coeff.Factor( "C11", stokes_viscosity_ );
+					stab_coeff.Factor( "D11", ( 1 / stokes_viscosity_ ) * current_max_gridwidth_ );
+					stab_coeff.Factor( "C11", stokes_viscosity_  / current_max_gridwidth_ );
 					dummyFunctions_.discreteVelocity().assign( stokesForce );
 
 					typename Traits::StokesModelType
@@ -436,8 +441,8 @@ namespace Dune {
 														   functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 					dummyFunctions_.discreteVelocity().assign( nonlinearForce );
-					stab_coeff.Factor( "D11", 1 / oseen_viscosity );
-					stab_coeff.Factor( "C11", oseen_viscosity );
+					stab_coeff.Factor( "D11", ( 1 / oseen_viscosity ) * current_max_gridwidth_ );
+					stab_coeff.Factor( "C11", oseen_viscosity / current_max_gridwidth_ );
 					stab_coeff.FactorFromParams("D12");
 					OseenModelType
 							stokesModel(stab_coeff,
