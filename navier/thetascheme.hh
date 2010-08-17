@@ -120,7 +120,8 @@ namespace Dune {
 										T3& t3,
 										T4& t4)
 			{
-				static TupleType t( &(t1.discreteVelocity()),
+				//yay for dangling pointers, but using a local static here fubared sequential runs with diff grid
+				TupleType* t = new  TupleType( &(t1.discreteVelocity()),
 									&(t1.discretePressure()),
 									&(t2.discreteVelocity()),
 									&(t2.discretePressure()),
@@ -128,7 +129,7 @@ namespace Dune {
 									&(t3.discretePressure()),
 									&(t4.discreteVelocity()),
 									&(t4.discretePressure()));
-				return t;
+				return *t;
 			}
 		};
 
