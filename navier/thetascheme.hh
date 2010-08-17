@@ -103,26 +103,31 @@ namespace Dune {
 				OseenModelTraits;
 		};
 
-		template < class T1, class T2, class T3 >
+		template < class T1, class T2, class T3, class T4 = T3 >
 		struct TupleSerializer {
 			typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
 									const typename T1::DiscretePressureFunctionType*,
 									const typename T2::DiscreteVelocityFunctionType*,
 									const typename T2::DiscretePressureFunctionType*,
 									const typename T3::DiscreteVelocityFunctionType*,
-									const typename T3::DiscretePressureFunctionType* >
+									const typename T3::DiscretePressureFunctionType*,
+									const typename T4::DiscreteVelocityFunctionType*,
+									const typename T4::DiscretePressureFunctionType*>
 				TupleType;
 
 			static TupleType& getTuple( T1& t1,
 										T2& t2,
-										T3& t3 )
+										T3& t3,
+										T4& t4)
 			{
 				static TupleType t( &(t1.discreteVelocity()),
 									&(t1.discretePressure()),
 									&(t2.discreteVelocity()),
 									&(t2.discretePressure()),
 									&(t3.discreteVelocity()),
-									&(t3.discretePressure()));
+									&(t3.discretePressure()),
+									&(t4.discreteVelocity()),
+									&(t4.discretePressure()));
 				return t;
 			}
 		};
@@ -138,7 +143,8 @@ namespace Dune {
 					ExactSolutionType;
 				typedef TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
 											typename Traits::DiscreteStokesFunctionWrapperType,
-											ExactSolutionType >
+											ExactSolutionType,
+											typename Traits::DiscreteStokesFunctionWrapperType>
 					TupleSerializerType;
 				typedef typename TupleSerializerType::TupleType
 					OutputTupleType;
@@ -161,6 +167,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
+				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType dataWriter_;
 
@@ -188,12 +195,16 @@ namespace Dune {
 					exactSolution_( timeprovider_,
 									gridPart_,
 									functionSpaceWrapper_ ),
+					dummyFunctions_("force",
+									functionSpaceWrapper_,
+									gridPart_ ),
 					dataWriter_( timeprovider_,
 								 gridPart_.grid(),
 								 TupleSerializerType::getTuple(
 										 currentFunctions_,
 										 errorFunctions_,
-										 exactSolution_ )
+										 exactSolution_,
+										 dummyFunctions_)
 								)
 				{}
 
@@ -274,7 +285,8 @@ namespace Dune {
 								 const double quasi_stokes_alpha,
 								 const double beta_qout_re )
 				{
-//					Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+					if ( Parameters().getParam( "silent_stokes", true ) )
+						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
 					const typename Traits::AnalyticalForceType force ( viscosity,
 																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
@@ -291,6 +303,7 @@ namespace Dune {
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 					stab_coeff.Factor( "D11", 1 / stokes_viscosity );
 					stab_coeff.Factor( "C11", stokes_viscosity );
+					dummyFunctions_.discreteVelocity().assign( stokesForce );
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
@@ -306,7 +319,8 @@ namespace Dune {
 					stokesPass.apply( currentFunctions_, nextFunctions_ );
 					RunInfo info;
 					stokesPass.getRuninfo( info );
-//					Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
+					if ( Parameters().getParam( "silent_stokes", true ) )
+						Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
 					Logger().Info() << "Dirichlet boundary integral " << meanGD << std::endl;
 					return info;
 				}
@@ -413,6 +427,7 @@ namespace Dune {
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+					dummyFunctions_.discreteVelocity().assign( nonlinearForce );
 					stab_coeff.Factor( "D11", 1 / oseen_viscosity );
 					stab_coeff.Factor( "C11", oseen_viscosity );
 					stab_coeff.FactorFromParams("D12");
