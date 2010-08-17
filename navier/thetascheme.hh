@@ -412,8 +412,12 @@ namespace Dune {
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
+					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+					stab_coeff.Factor( "D11", 1 / oseen_viscosity );
+					stab_coeff.Factor( "C11", oseen_viscosity );
+					stab_coeff.FactorFromParams("D12");
 					OseenModelType
-							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+							stokesModel(stab_coeff,
 										nonlinearForce,
 										stokesDirichletData,
 										oseen_viscosity,
