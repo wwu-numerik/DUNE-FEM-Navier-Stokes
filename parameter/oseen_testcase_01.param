@@ -68,6 +68,7 @@ maxref: 3
 enable_stokesA: 1
 enable_stokesB: 1
 enable_oseen: 1
+D11: 1
 #in runtype 1 vary
 minpow: -1
 maxpow: 1
@@ -100,7 +101,7 @@ absLimit: 1e-06
 inner_absLimit: 1e-06
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
-use_velocity_reconstruct: 1
+use_velocity_reconstruct: 0
 #clear computed functions at start of every singleRun ?
 clear_u: 1
 clear_p: 0
