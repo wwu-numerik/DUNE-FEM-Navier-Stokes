@@ -274,7 +274,7 @@ namespace Dune {
 								 const double quasi_stokes_alpha,
 								 const double beta_qout_re )
 				{
-					Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+//					Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
 					const typename Traits::AnalyticalForceType force ( viscosity,
 																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
@@ -288,8 +288,12 @@ namespace Dune {
 														   functionSpaceWrapper_ );
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
+					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+					stab_coeff.Factor( "D11", 1 / stokes_viscosity );
+					stab_coeff.Factor( "C11", stokes_viscosity );
+
 					typename Traits::StokesModelType
-							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+							stokesModel(stab_coeff,
 										stokesForce,
 										stokesDirichletData,
 										stokes_viscosity,
@@ -302,7 +306,7 @@ namespace Dune {
 					stokesPass.apply( currentFunctions_, nextFunctions_ );
 					RunInfo info;
 					stokesPass.getRuninfo( info );
-					Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
+//					Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
 					Logger().Info() << "Dirichlet boundary integral " << meanGD << std::endl;
 					return info;
 				}
