@@ -1064,7 +1064,9 @@ namespace Dune
 								const double D_11 = stabil_coeff.Factor("D11") * std::pow( lengthOfIntersection, stabil_coeff.Power("D11") );
 								//we'll leave this on 0 for the time being so it does not generate any additional  penalty terms
 			//					const VelocityRangeType D_12(stabil_coeff.Factor("D12") );//TODO FIXME
-								const VelocityRangeType D_12( 0 );//TODO FIXME
+								VelocityRangeType D_12( 1 );//TODO FIXME
+								D_12 /= D_12.two_norm();
+								D_12 *= stabil_coeff.Factor("D12");
 
 								// if we are inside the grid
 								if ( intersection.neighbor() && !intersection.boundary() ) {
@@ -1746,12 +1748,19 @@ namespace Dune
 													velocityBaseFunctionSetElement.evaluate( j, x, v_j );
 													PressureRangeType q_i( 0.0 );
 													pressureBaseFunctionSetElement.evaluate( i, x, q_i );
-													const double v_j_times_normal = v_j * outerNormal;
-													const double q_i_times_v_j_times_normal = q_i * v_j_times_normal;
-													E_i_j += 0.5
-														* elementVolume
+													VelocityRangeType flux_value = v_j;
+													flux_value *= 0.5;
+													const double v_j_times_outerNormal = v_j * outerNormal;
+													VelocityRangeType jump = D_12;
+													jump *= v_j_times_outerNormal;
+													flux_value += jump;
+													VelocityRangeType q_i_times_flux = flux_value;
+													q_i_times_flux *= q_i;
+													const double q_i_times_flux_times_outerNormal = q_i_times_flux * outerNormal;
+
+													E_i_j += elementVolume
 														* integrationWeight
-														* q_i_times_v_j_times_normal;
+														* q_i_times_flux_times_outerNormal;
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
 													Stuff::printFieldVector( x, "x", debugStream, "        " );
@@ -1761,8 +1770,8 @@ namespace Dune
 													debugStream << "        - integrationWeight: " << integrationWeight;
 													Stuff::printFieldVector( q_i, "q_i", debugStream, "        " );
 													Stuff::printFieldVector( v_j, "v_j", debugStream, "        " );
-													debugStream << "\n          - v_j_times_normal: " << v_j_times_normal << std::endl;
-													debugStream << "          - q_i_times_v_j_times_normal: " << q_i_times_v_j_times_normal << std::endl;
+//													debugStream << "\n          - v_j_times_normal: " << v_j_times_normal << std::endl;
+//													debugStream << "          - q_i_times_v_j_times_normal: " << q_i_times_v_j_times_normal << std::endl;
 													debugStream << "          - E_" << i << "_" << j << "+=: " << E_i_j << std::endl;
 			#endif
 												} // done sum over all quadrature points
@@ -1806,12 +1815,19 @@ namespace Dune
 													velocityBaseFunctionSetElement.evaluate( j, xInside, v_j );
 													PressureRangeType q_i( 0.0 );
 													pressureBaseFunctionSetNeighbour.evaluate( i, xOutside, q_i );
-													const double v_j_times_normal = v_j * outerNormal;
-													const double q_i_times_v_j_times_normal = q_i * v_j_times_normal;
-													E_i_j += -0.5
-														* elementVolume
+													VelocityRangeType flux_value = v_j;
+													flux_value *= 0.5;
+													const double v_j_times_outerNormal = v_j * outerNormal;
+													VelocityRangeType jump = D_12;
+													jump *= v_j_times_outerNormal;
+													flux_value += jump;
+													VelocityRangeType q_i_times_flux = flux_value;
+													q_i_times_flux *= q_i;
+													const double q_i_times_flux_times_outerNormal = q_i_times_flux * outerNormal;
+
+													E_i_j -= elementVolume
 														* integrationWeight
-														* q_i_times_v_j_times_normal;
+														* q_i_times_flux_times_outerNormal;
 			#ifndef NLOG
 													debugStream << "      - quadPoint " << quad;
 													Stuff::printFieldVector( xInside, "xInside", debugStream, "        " );
@@ -1822,8 +1838,8 @@ namespace Dune
 													debugStream << "        - integrationWeight: " << integrationWeight;
 													Stuff::printFieldVector( q_i, "q_i", debugStream, "        " );
 													Stuff::printFieldVector( v_j, "v_j", debugStream, "        " );
-													debugStream << "\n          - v_j_times_normal: " << v_j_times_normal << std::endl;
-													debugStream << "\n          - q_i_times_v_j_times_normal: " << q_i_times_v_j_times_normal << std::endl;
+//													debugStream << "\n          - v_j_times_normal: " << v_j_times_normal << std::endl;
+//													debugStream << "\n          - q_i_times_v_j_times_normal: " << q_i_times_v_j_times_normal << std::endl;
 													debugStream << "          - E_" << i << "_" << j << "+=: " << E_i_j << std::endl;
 			#endif
 												} // done sum over all quadrature points

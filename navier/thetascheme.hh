@@ -102,27 +102,33 @@ namespace Dune {
 				OseenModelTraits;
 		};
 
-		template < class T1, class T2, class T3 >
+		template < class T1, class T2, class T3, class T4 = T3 >
 		struct TupleSerializer {
 			typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
 									const typename T1::DiscretePressureFunctionType*,
 									const typename T2::DiscreteVelocityFunctionType*,
 									const typename T2::DiscretePressureFunctionType*,
 									const typename T3::DiscreteVelocityFunctionType*,
-									const typename T3::DiscretePressureFunctionType* >
+									const typename T3::DiscretePressureFunctionType*,
+									const typename T4::DiscreteVelocityFunctionType*,
+									const typename T4::DiscretePressureFunctionType*>
 				TupleType;
 
 			static TupleType& getTuple( T1& t1,
 										T2& t2,
-										T3& t3 )
+										T3& t3,
+										T4& t4)
 			{
-				static TupleType t( &(t1.discreteVelocity()),
+				//yay for dangling pointers, but using a local static here fubared sequential runs with diff grid
+				TupleType* t = new  TupleType( &(t1.discreteVelocity()),
 									&(t1.discretePressure()),
 									&(t2.discreteVelocity()),
 									&(t2.discretePressure()),
 									&(t3.discreteVelocity()),
-									&(t3.discretePressure()));
-				return t;
+									&(t3.discretePressure()),
+									&(t4.discreteVelocity()),
+									&(t4.discretePressure()));
+				return *t;
 			}
 		};
 
@@ -137,7 +143,8 @@ namespace Dune {
 					ExactSolutionType;
 				typedef TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
 											typename Traits::DiscreteStokesFunctionWrapperType,
-											ExactSolutionType >
+											ExactSolutionType,
+											typename Traits::DiscreteStokesFunctionWrapperType>
 					TupleSerializerType;
 				typedef typename TupleSerializerType::TupleType
 					OutputTupleType;
@@ -160,8 +167,19 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
+				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType dataWriter_;
+
+				//constants
+				const double viscosity_;
+				const double d_t_;
+				const double quasi_stokes_alpha_;
+				const double reynolds_;
+				const double stokes_viscosity_;
+				const double beta_qout_re_;
+				double current_max_gridwidth_;
+
 
 			public:
 				ThetaScheme( typename Traits::GridPartType gridPart,
@@ -187,17 +205,30 @@ namespace Dune {
 					exactSolution_( timeprovider_,
 									gridPart_,
 									functionSpaceWrapper_ ),
+					dummyFunctions_("force",
+									functionSpaceWrapper_,
+									gridPart_ ),
 					dataWriter_( timeprovider_,
 								 gridPart_.grid(),
 								 TupleSerializerType::getTuple(
 										 currentFunctions_,
 										 errorFunctions_,
-										 exactSolution_ )
-								)
+										 exactSolution_,
+										 dummyFunctions_)
+								),
+					viscosity_( Parameters().getParam( "viscosity", 1.0 ) ),
+					d_t_( timeprovider_.deltaT() ),
+					quasi_stokes_alpha_( 1 / ( theta_ * d_t_ ) ),
+					reynolds_( 1.0 / viscosity_ ),
+					stokes_viscosity_( operator_weight_alpha_ / reynolds_ ),
+					beta_qout_re_( operator_weight_beta_ / reynolds_ ),
+					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
+
 				{}
 
 				void nextStep( const int step, RunInfo& info )
 				{
+					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
 					currentFunctions_.assign( nextFunctions_ );
 					nextFunctions_.clear();
 
@@ -212,6 +243,12 @@ namespace Dune {
 					double meanPressure_discrete = Stuff::integralAndVolume( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() ).first;
 
 					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+
+					if ( Parameters().getParam( "error_scaling", false ) ) {
+							const double scale		= 1 / std::sqrt( viscosity_ );
+							errorFunctions_.discretePressure() *= scale;
+							errorFunctions_.discreteVelocity() *= scale;
+					}
 
 					const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
 					const double l2_error_velocity_				= l2_Error.norm( errorFunctions_.discreteVelocity() );
@@ -237,11 +274,13 @@ namespace Dune {
 						Dune::StabilizationCoefficients stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
 						info.codim0			= gridPart_.grid().size( 0 );
-						info.grid_width		= Dune::GridWidth::calcGridWidth( gridPart_ );
+						info.grid_width		= current_max_gridwidth_;
 						info.run_time		= profiler().GetTiming( "Timestep" );
 						info.delta_t		= timeprovider_.deltaT();
 						info.current_time	= timeprovider_.time();
 						info.L2Errors		= error_vector;
+						info.viscosity		= viscosity_;
+						info.reynolds		= reynolds_;
 
 						info.c11			= Pair( stabil_coeff.Power( "C11" ), stabil_coeff.Factor( "C11" ) );
 						info.c12			= Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
@@ -268,19 +307,17 @@ namespace Dune {
 					timeprovider_.nextFractional();
 				}
 
-				RunInfo stokesStep( const double viscosity,
-								 const double stokes_viscosity,
-								 const double quasi_stokes_alpha,
-								 const double beta_qout_re )
+				RunInfo stokesStep()
 				{
-//					Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
-					const typename Traits::AnalyticalForceType force ( viscosity,
+					if ( Parameters().getParam( "silent_stokes", true ) )
+						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
 																				   currentFunctions_.discreteVelocity(),
 																				   force,
-																				   beta_qout_re,
-																				   quasi_stokes_alpha );
+																				   beta_qout_re_,
+																				   quasi_stokes_alpha_ );
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
@@ -288,15 +325,16 @@ namespace Dune {
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-					stab_coeff.Factor( "D11", 1 / stokes_viscosity );
-					stab_coeff.Factor( "C11", stokes_viscosity );
+					stab_coeff.Factor( "D11", ( 1 / stokes_viscosity_ ) * current_max_gridwidth_ );
+					stab_coeff.Factor( "C11", stokes_viscosity_  / current_max_gridwidth_ );
+					dummyFunctions_.discreteVelocity().assign( stokesForce );
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
 										stokesForce,
 										stokesDirichletData,
-										stokes_viscosity,
-										quasi_stokes_alpha );
+										stokes_viscosity_,
+										quasi_stokes_alpha_ );
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::StokesPassType stokesPass( stokesStartPass,
 											stokesModel,
@@ -305,7 +343,8 @@ namespace Dune {
 					stokesPass.apply( currentFunctions_, nextFunctions_ );
 					RunInfo info;
 					stokesPass.getRuninfo( info );
-//					Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
+					if ( Parameters().getParam( "silent_stokes", true ) )
+						Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
 					Logger().Info() << "Dirichlet boundary integral " << meanGD << std::endl;
 					return info;
 				}
@@ -323,18 +362,8 @@ namespace Dune {
 
 					const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
 					double dt_new = grid_width * grid_width * 2;
-					//constants
-					const double viscosity				= Parameters().getParam( "viscosity", 1.0 );
-//					const double viscosity				= 1 / ( 3 * M_PI);
-					const double d_t					= timeprovider_.deltaT();
-					const double quasi_stokes_alpha		= 1 / ( theta_ * d_t );
-//					const double reynolds				= typicalVelocity * typicalLength / viscosity;
-					const double reynolds				= 1.0 / viscosity;
-					const double stokes_viscosity		= operator_weight_alpha_ / reynolds;
-					const double beta_qout_re			= operator_weight_beta_ / reynolds;
-					const int verbose					= 1;
 
-					timeprovider_.init( d_t );
+					timeprovider_.init( d_t_ );
 					//initial flow field at t = 0
 					exactSolution_.project();
 					currentFunctions_.assign( exactSolution_ );
@@ -349,7 +378,7 @@ namespace Dune {
 						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
 						//stokes step A
 						if( Parameters().getParam( "enable_stokesA", true ) )
-							stokesStep( viscosity, stokes_viscosity, quasi_stokes_alpha, beta_qout_re );
+							stokesStep();
 						else {
 							exactSolution_.project();
 							nextFunctions_.assign( exactSolution_ );
@@ -359,7 +388,7 @@ namespace Dune {
 							nextFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						//Nonlinear step
 						if( Parameters().getParam( "enable_oseen", true ) )
-							oseenStep( viscosity, d_t, reynolds );
+							oseenStep();
 						else {
 							exactSolution_.project();
 							nextFunctions_.assign( exactSolution_ );
@@ -369,7 +398,7 @@ namespace Dune {
 						//stokes step B
 						RunInfo info;
 						if( Parameters().getParam( "enable_stokesB", true ) )
-							info = stokesStep( viscosity, stokes_viscosity, quasi_stokes_alpha, beta_qout_re  );
+							stokesStep();
 						else {
 							exactSolution_.project();
 							nextFunctions_.assign( exactSolution_ );
@@ -384,21 +413,19 @@ namespace Dune {
 					return runInfoVector;
 				}
 
-				void oseenStep( const double viscosity,
-								const double d_t,
-								const double reynolds )
+				void oseenStep()
 				{
-					const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t );
-					const double oseen_viscosity = operator_weight_beta_ / reynolds;
+					const double oseen_alpha = 1 / ( ( 1 - 2 * theta_ ) * d_t_ );
+					const double oseen_viscosity = operator_weight_beta_ / reynolds_;
 
-					const typename Traits::AnalyticalForceType force ( viscosity,
+					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																	  currentFunctions_.discreteVelocity(),
 																	  currentFunctions_.discretePressure(),
 																	  force,
-																	  operator_weight_alpha_ / reynolds,
+																	  operator_weight_alpha_ / reynolds_,
 																	  oseen_alpha );
 
 					typedef Dune::DiscreteStokesModelDefault< typename Traits::OseenModelTraits >
@@ -411,8 +438,13 @@ namespace Dune {
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
+					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+					dummyFunctions_.discreteVelocity().assign( nonlinearForce );
+					stab_coeff.Factor( "D11", ( 1 / oseen_viscosity ) * current_max_gridwidth_ );
+					stab_coeff.Factor( "C11", oseen_viscosity / current_max_gridwidth_ );
+					stab_coeff.FactorFromParams("D12");
 					OseenModelType
-							stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+							stokesModel(stab_coeff,
 										nonlinearForce,
 										stokesDirichletData,
 										oseen_viscosity,
