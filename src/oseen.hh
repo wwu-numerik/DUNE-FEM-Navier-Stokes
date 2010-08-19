@@ -697,7 +697,7 @@ namespace Oseen {
 	}//end namespace TestCaseTaylor2D
 
 #ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE Oseen::TestCaseTaylor2D
+	#define OSEEN_DATA_NAMESPACE Oseen::TestCase2D
 #endif
 
 	template <	class CommunicatorImp,

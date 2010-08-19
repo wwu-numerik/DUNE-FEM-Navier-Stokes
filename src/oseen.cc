@@ -307,7 +307,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						oseen_viscosity,
 						oseen_alpha );
 	currentFunctions.assign( exactSolution );
-	currentFunctions.discreteVelocity() *= Parameters().getParam( "DANGER", 2.0 );;
+
 	OseenTraits::OseenPassType oseenPass( startPass,
 							stokesModel,
 							gridPart,
