@@ -333,6 +333,12 @@ namespace Dune {
 						  const double C_y			= std::cos( P * y );
 						  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
 						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
+
+						  //zeitableitung
+						  RangeType u;
+						  VelocityEvaluate( 0, 0, time, arg, u);
+						  ret[0] += ( -2 * time * M_PI * M_PI * v ) * u[0];
+						  ret[1] += ( -2 * time * M_PI * M_PI * v ) * u[1];
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
