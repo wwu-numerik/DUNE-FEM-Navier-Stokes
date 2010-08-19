@@ -325,9 +325,24 @@ namespace Dune {
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-					stab_coeff.Factor( "D11", ( 1 / stokes_viscosity_ ) );
-					stab_coeff.Factor( "C11", stokes_viscosity_  );
+
+					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+						stab_coeff.Factor( "D11", ( 1 / stokes_viscosity_ ) );
+						stab_coeff.Factor( "C11", stokes_viscosity_  );
+					}
+					else {
+						stab_coeff.FactorFromParams("D11");
+						stab_coeff.FactorFromParams("C11");
+					}
+					stab_coeff.FactorFromParams("D12");
+					stab_coeff.FactorFromParams("C12");
+
+
 					dummyFunctions_.discreteVelocity().assign( stokesForce );
+					Logger().Info() << "stokes a/RE|b/RE|y " << stokes_viscosity_ << " | "
+														<< beta_qout_re_ << " | "
+														<< quasi_stokes_alpha_ << "\n";
+					stab_coeff.print( Logger().Info() );
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
@@ -440,9 +455,22 @@ namespace Dune {
 														   functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 					dummyFunctions_.discreteVelocity().assign( nonlinearForce );
-					stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
-					stab_coeff.Factor( "C11", oseen_viscosity );
+					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+						stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
+						stab_coeff.Factor( "C11", oseen_viscosity );
+					}
+					else {
+						stab_coeff.FactorFromParams("D11");
+						stab_coeff.FactorFromParams("C11");
+					}
 					stab_coeff.FactorFromParams("D12");
+					stab_coeff.FactorFromParams("C12");
+
+					Logger().Info() << "oseen a/RE|b/RE|y " << operator_weight_alpha_ / reynolds_ << " | "
+														<< beta_qout_re_ << " | "
+														<< oseen_alpha << "\n";
+					stab_coeff.print( Logger().Info() );
+
 					OseenModelType
 							stokesModel(stab_coeff,
 										nonlinearForce,
