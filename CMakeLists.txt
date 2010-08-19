@@ -36,7 +36,7 @@ SET( GRIDDIM
 	"GRIDDIM" )
 
 SET( TESTCASE
-	"TestCase3D" CACHE STRING
+	"GreenTaylor" CACHE STRING
 	"navier test data define" )
 
 SET( POLORDER

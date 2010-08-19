@@ -776,7 +776,7 @@ namespace Dune {
 
 		}//end namespace TrivialTestCase
 
-		namespace TestCase2D_KOKO {
+		namespace GreenTaylor {
 			template < class FunctionSpaceImp >
 			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
