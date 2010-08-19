@@ -827,13 +827,19 @@ namespace Dune {
 			};
 
 			template < class DomainType, class RangeType >
-			void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double /*time*/, const DomainType& arg, RangeType& ret)
+			void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
 			{
 				const double x				= arg[0];
 				const double y				= arg[1];
+				const double v				= Parameters().getParam( "viscosity", 1.0 );
+				const double F				= std::exp( -8 * std::pow( M_PI, 2 ) * time );
+				const double C1				= std::cos(2*M_PI* ( x + 0.25 ) );
+				const double S1				= std::sin(2*M_PI* ( x + 0.25 ) );
+				const double S2				= std::sin(2*M_PI* ( y + 0.5 ) );
+				const double C2				= std::cos(2*M_PI* ( y + 0.5 ) );
 
-				ret[0] = 1 - (std::exp(-M_PI * y) * std::cos(2*M_PI*y) );
-				ret[1] = - 0.5 * (std::exp(M_PI * x) * std::cos(2*M_PI*y) );
+				ret[0] = ( - 1 / v ) * C1 * S2 * F;
+				ret[1] = (  1 / v ) * S1 * C2 * F;
 			}
 
 			/**
@@ -881,7 +887,7 @@ namespace Dune {
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 					{
-						ret = RangeType(0);
+						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
 					/**
@@ -893,7 +899,7 @@ namespace Dune {
 					**/
 					inline void evaluate( const DomainType& arg, RangeType& ret ) const
 					{
-						ret = RangeType(0);
+						assert(false);
 					}
 
 				private:
@@ -998,12 +1004,19 @@ namespace Dune {
 				   ~Pressure()
 				   {}
 
-					void evaluateTime( const double /*time*/, const DomainType& arg, RangeType& ret ) const
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
 						const double x				= arg[0];
 						const double y				= arg[1];
+						const double v				= Parameters().getParam( "viscosity", 1.0 );
+						const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
+						const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
+						const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
 
-						ret = - 0.5 * (std::exp(M_PI * x) * std::cos(2*M_PI*y) ) - 0.920735694 ;
+						ret = ( -1 / ( 4 * v ) ) * ( C1 + C2 ) * F;
+
+//							  - 0.920735694 ;
+
 					}
 
 					/**
