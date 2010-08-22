@@ -233,39 +233,42 @@ namespace Dune {
 					nextFunctions_.clear();
 
 					//error calc
-					exactSolution_.project();
-					errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
-					errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
-					errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
-					errorFunctions_.discreteVelocity() -= currentFunctions_.discreteVelocity();
+					if ( Parameters().getParam( "error_cacl", true ) ) {
+						exactSolution_.project();
+						errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
+						errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
+						errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+						errorFunctions_.discreteVelocity() -= currentFunctions_.discreteVelocity();
 
-					double meanPressure_exact = Stuff::integralAndVolume( exactSolution_.exactPressure(), currentFunctions_.discretePressure().space() ).first;
-					double meanPressure_discrete = Stuff::integralAndVolume( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() ).first;
+						double meanPressure_exact = Stuff::integralAndVolume( exactSolution_.exactPressure(), currentFunctions_.discretePressure().space() ).first;
+						double meanPressure_discrete = Stuff::integralAndVolume( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() ).first;
 
-					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
-					if ( Parameters().getParam( "error_scaling", false ) ) {
-							const double scale		= 1 / std::sqrt( viscosity_ );
-							errorFunctions_.discretePressure() *= scale;
-							errorFunctions_.discreteVelocity() *= scale;
+						if ( Parameters().getParam( "error_scaling", false ) ) {
+								const double scale		= 1 / std::sqrt( viscosity_ );
+								errorFunctions_.discretePressure() *= scale;
+								errorFunctions_.discreteVelocity() *= scale;
+						}
+
+						const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
+						const double l2_error_velocity_				= l2_Error.norm( errorFunctions_.discreteVelocity() );
+						const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
+						const double relative_l2_error_velocity_	= l2_error_velocity_ / l2_Error.norm( exactSolution_.discreteVelocity() );
+						std::vector<double> error_vector;
+						error_vector.push_back( l2_error_velocity_ );
+						error_vector.push_back( l2_error_pressure_ );
+
+
+						Logger().Info().Resume();
+						Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
+										<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << "\n"
+										<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
+						const double max_l2_error = 1e4;
+						if ( l2_error_velocity_ > max_l2_error )
+							DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
+						info.L2Errors		= error_vector;
 					}
-
-					const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
-					const double l2_error_velocity_				= l2_Error.norm( errorFunctions_.discreteVelocity() );
-					const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
-					const double relative_l2_error_velocity_	= l2_error_velocity_ / l2_Error.norm( exactSolution_.discreteVelocity() );
-					std::vector<double> error_vector;
-					error_vector.push_back( l2_error_velocity_ );
-					error_vector.push_back( l2_error_pressure_ );
-
-
-					Logger().Info().Resume();
-					Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
-									<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << "\n"
-									<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
-					const double max_l2_error = 1e4;
-					if ( l2_error_velocity_ > max_l2_error )
-						DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
 					//end error calc
 
 					if (step == 3) {
@@ -278,7 +281,6 @@ namespace Dune {
 						info.run_time		= profiler().GetTiming( "Timestep" );
 						info.delta_t		= timeprovider_.deltaT();
 						info.current_time	= timeprovider_.time();
-						info.L2Errors		= error_vector;
 						info.viscosity		= viscosity_;
 						info.reynolds		= reynolds_;
 
@@ -303,7 +305,8 @@ namespace Dune {
 
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
 
-					dataWriter_.write();
+					if ( !Parameters().getParam( "write_fulltimestep_only", false ) )
+						dataWriter_.write();
 					timeprovider_.nextFractional();
 				}
 
