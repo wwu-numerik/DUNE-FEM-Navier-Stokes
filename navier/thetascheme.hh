@@ -233,7 +233,7 @@ namespace Dune {
 					nextFunctions_.clear();
 
 					//error calc
-					if ( Parameters().getParam( "error_cacl", true ) ) {
+					if ( Parameters().getParam( "calculate_errors", true ) ) {
 						exactSolution_.project();
 						errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
@@ -301,11 +301,13 @@ namespace Dune {
 						info.bfg_tau				= Parameters().getParam( "bfg-tau", 0.1 );
 
 						info.problemIdentifier = TESTCASE_NAME;
+//						if ( Parameters().getParam( "write_fulltimestep_only", false ) )
+//							dataWriter_.write();
 					}
 
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
 
-					if ( !Parameters().getParam( "write_fulltimestep_only", false ) )
+//					if ( !Parameters().getParam( "write_fulltimestep_only", false ) )
 						dataWriter_.write();
 					timeprovider_.nextFractional();
 				}
@@ -393,7 +395,6 @@ namespace Dune {
 					{
 						RunInfo info_dummy;
 						profiler().StartTiming( "Timestep" );
-						std::cout << "current time (substep " << 0 << "): " << timeprovider_.subTime() << std::endl;
 						//stokes step A
 						if( Parameters().getParam( "enable_stokesA", true ) )
 							stokesStep();

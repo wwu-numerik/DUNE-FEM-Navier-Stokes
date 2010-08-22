@@ -248,12 +248,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double operator_weight_alpha_ = 1.0;
 	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
 	const double oseen_viscosity = 1 / reynolds;
-//	const double lambda = ( reynolds * 0.5 )
-//						  - std::sqrt(
-//								  ( std::pow( reynolds, 2 ) * 0.25 )
-//								  + ( 4 * std::pow( M_PI, 2 ) )
-//									  ) ;
-	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
+	const double lambda = ( reynolds * 0.5 )
+						  - std::sqrt(
+								  ( std::pow( reynolds, 2 ) * 0.25 )
+								  + ( 4 * std::pow( M_PI, 2 ) )
+									  ) ;
+//	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
 
 	Parameters().setParam( "lambda", lambda );
 	Parameters().setParam( "viscosity", oseen_viscosity );

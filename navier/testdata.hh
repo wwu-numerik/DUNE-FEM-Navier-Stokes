@@ -1137,7 +1137,7 @@ namespace Dune {
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 					{
 						ret = RangeType( 0 );
-						if ( arg[1] == 0 )
+						if ( arg[1] == 1 )
 							ret[0] = 1;
 					}
 
