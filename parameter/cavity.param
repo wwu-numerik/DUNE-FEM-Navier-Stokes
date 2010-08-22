@@ -10,7 +10,7 @@ logfile:  taylor
 
 #path (relative to binary) where .vtu etc will be saved
 fem.io.datadir: data_cavity
-fem.prefix: data_taylor
+fem.prefix: data_cavity
 #path (relative to binary) where logs and matlab files will be saved
 fem.io.logdir: log
 #0: grape, 1: vtk,  2: vtkvtx, 3: gnuplot
@@ -41,7 +41,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: cavity.dgf
+dgf_file_2d: cavity_2d.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -61,20 +61,21 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 4
+minref: 3
 maxref: 3
-fem.timeprovider.dt: 0.00050
-fem.timeprovider.endtime: 0.006
+fem.timeprovider.dt: 0.050
+fem.timeprovider.endtime: 4.6
 enable_stokesA: 1
 enable_stokesB: 1
 enable_oseen: 1
-write_fulltimestep_only: 1
-silent_stokes: 1
+write_fulltimestep_only: 0
+silent_stokes: 0
+calculate_errors: 0
 C11: 1.0
 C12: 0.0e-2
 D11: 1.0
 D12: 0.0e-2
-viscosity: 0.010
+viscosity: 0.0010
 stab_coeff_visc_scale: 1
 
 #parameters for runtype 2, do-bfg and bfg-tau are ignored there

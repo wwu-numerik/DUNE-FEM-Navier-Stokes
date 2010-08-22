@@ -43,7 +43,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: oseen_testcase_02.dgf
+dgf_file_2d: oseen_testcase_01.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -63,13 +63,15 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 3
+minref: 4
 maxref: 3
 enable_stokesA: 1
 enable_stokesB: 1
 enable_oseen: 1
-D11: 1.0
+D11: 10.0
+C11: 990.1
 D12: 1.0
+C12: 1
 #in runtype 1 vary
 minpow: -1
 maxpow: 1
@@ -89,8 +91,8 @@ accurracy_steps: 5
 
 #*********** end runtype specific parameters **************************************************
 
-viscosity: 01.00
-reynolds: 1.0
+viscosity: 04.10
+reynolds: 1000.0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
 alpha: 0.0
 
@@ -116,7 +118,7 @@ clear_p: 0
 max_adaptions: 5
 
 # > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
-solverVerbosity: 2
+solverVerbosity: 4
 
 disableSolver: 0
 diff-tolerance: 0.01
