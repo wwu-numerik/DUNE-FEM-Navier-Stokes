@@ -1,4 +1,4 @@
-#Stationaere Loesung von oseen nach CKS,Oseen paper
+#param file for lid driven cavity
 # LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
 # --> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_FILE = 46
 # ANY odd number will disable ALL logging
@@ -9,7 +9,7 @@ loglevel: 62
 logfile:  taylor
 
 #path (relative to binary) where .vtu etc will be saved
-fem.io.datadir: data_taylor
+fem.io.datadir: data_cavity
 fem.prefix: data_taylor
 #path (relative to binary) where logs and matlab files will be saved
 fem.io.logdir: log
@@ -41,7 +41,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: taylor.dgf
+dgf_file_2d: cavity.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -67,7 +67,7 @@ fem.timeprovider.dt: 0.00050
 fem.timeprovider.endtime: 0.006
 enable_stokesA: 1
 enable_stokesB: 1
-enable_oseen: 0
+enable_oseen: 1
 write_fulltimestep_only: 1
 silent_stokes: 1
 C11: 1.0

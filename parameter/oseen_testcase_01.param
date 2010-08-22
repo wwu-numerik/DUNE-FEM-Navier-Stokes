@@ -26,7 +26,7 @@ fem.timeprovider.dt: 0.0050
 femhowto.diffusionTimeStep: 0
 femhowto.verbose: 1
 femhowto.epsilon: 0.003
-femhowto.startTime: 0.0
+femhowto.startTime: 0.002
 
 # write solution vtk every N iterations ( < 1 to disable )
 save_interval: -1
@@ -67,8 +67,8 @@ minref: 3
 maxref: 3
 enable_stokesA: 1
 enable_stokesB: 1
-enable_oseen: 0
-D11: 10000.0
+enable_oseen: 1
+D11: 1.0
 D12: 1.0
 #in runtype 1 vary
 minpow: -1
@@ -89,7 +89,7 @@ accurracy_steps: 5
 
 #*********** end runtype specific parameters **************************************************
 
-viscosity: 0.010
+viscosity: 01.00
 reynolds: 1.0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
 alpha: 0.0
