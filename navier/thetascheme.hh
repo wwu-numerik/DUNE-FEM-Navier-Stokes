@@ -5,6 +5,7 @@
 #include <dune/stokes/stokespass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
+#include <dune/navier/testdata.hh>
 #include <dune/navier/exactsolution.hh>
 #include <dune/navier/oseen/oseenpass.hh>
 #include <dune/fem/misc/mpimanager.hh>
@@ -450,7 +451,22 @@ namespace Dune {
 																	  force,
 																	  operator_weight_alpha_ / reynolds_,
 																	  oseen_alpha );
+					typedef typename Dune::NavierStokes::TESTCASE::PressureGradient< typename Traits::VelocityFunctionSpaceType, typename Traits::TimeProviderType >
+							PressureGradient;
+					typename Traits::VelocityFunctionSpaceType p;
+					PressureGradient pg ( timeprovider_, p);
+					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+
+					Dune::L2Projection< double,
+										double,
+										PressureGradient,
+										DiscreteVelocityFunctionType >
+						()(pg, dummyFunctions_.discreteVelocity() );
+					rhsDatacontainer_.pressure_gradient *=240.414;
+					dummyFunctions_.discreteVelocity() -= rhsDatacontainer_.pressure_gradient;
+					Logger().Info() << "diff pressure grad " << l2_Error.norm( dummyFunctions_.discreteVelocity() ) << std::endl;
 					nonlinearForce -= rhsDatacontainer_.pressure_gradient;
+					dummyFunctions_.discreteVelocity().assign( rhsDatacontainer_.pressure_gradient );
 
 					typedef Dune::DiscreteStokesModelDefault< typename Traits::OseenModelTraits >
 						OseenModelType;
@@ -463,7 +479,7 @@ namespace Dune {
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-					dummyFunctions_.discreteVelocity().assign( nonlinearForce );
+//					dummyFunctions_.discreteVelocity().assign( nonlinearForce );
 					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
 						stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
 						stab_coeff.Factor( "C11", oseen_viscosity );
