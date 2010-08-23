@@ -570,7 +570,7 @@ namespace Dune {
 									self_local[i] += intel * (
 																velocity_real_laplacian_times_phi
 															   + force_eval_times_phi
-															   - pressure_jacobian_eval_times_phi
+//															   - pressure_jacobian_eval_times_phi
 															   + scaled_velocity_times_phi
 															) ;
 								}

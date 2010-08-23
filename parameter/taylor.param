@@ -61,7 +61,7 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 4
+minref: 3
 maxref: 3
 fem.timeprovider.dt: 0.00050
 fem.timeprovider.endtime: 0.006

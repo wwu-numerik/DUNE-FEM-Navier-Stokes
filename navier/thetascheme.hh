@@ -51,6 +51,7 @@ namespace Dune {
 				PressureFunctionSpaceType;
 			typedef typename StokesModelTraits::VelocityFunctionSpaceType
 				VelocityFunctionSpaceType;
+
 			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
 				StokesModelType;
 			typedef typename StokesModelTraits::DiscreteStokesFunctionSpaceWrapperType
@@ -170,6 +171,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType dataWriter_;
+				typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
 
 				//constants
 				const double viscosity_;
@@ -179,7 +181,6 @@ namespace Dune {
 				const double stokes_viscosity_;
 				const double beta_qout_re_;
 				double current_max_gridwidth_;
-
 
 			public:
 				ThetaScheme( typename Traits::GridPartType gridPart,
@@ -216,6 +217,7 @@ namespace Dune {
 										 exactSolution_,
 										 dummyFunctions_)
 								),
+					rhsDatacontainer_( currentFunctions_.discreteVelocity().space() ),
 					viscosity_( Parameters().getParam( "viscosity", 1.0 ) ),
 					d_t_( timeprovider_.deltaT() ),
 					quasi_stokes_alpha_( 1 / ( theta_ * d_t_ ) ),
@@ -223,6 +225,7 @@ namespace Dune {
 					stokes_viscosity_( operator_weight_alpha_ / reynolds_ ),
 					beta_qout_re_( operator_weight_beta_ / reynolds_ ),
 					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
+
 
 				{}
 
@@ -360,7 +363,8 @@ namespace Dune {
 											stokesModel,
 											gridPart_,
 											functionSpaceWrapper_ );
-					stokesPass.apply( currentFunctions_, nextFunctions_ );
+
+					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 					RunInfo info;
 					stokesPass.getRuninfo( info );
 					if ( Parameters().getParam( "silent_stokes", true ) )
@@ -446,6 +450,7 @@ namespace Dune {
 																	  force,
 																	  operator_weight_alpha_ / reynolds_,
 																	  oseen_alpha );
+					nonlinearForce -= rhsDatacontainer_.pressure_gradient;
 
 					typedef Dune::DiscreteStokesModelDefault< typename Traits::OseenModelTraits >
 						OseenModelType;

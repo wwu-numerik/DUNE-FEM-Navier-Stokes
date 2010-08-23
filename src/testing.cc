@@ -352,7 +352,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	DiscreteVelocityFunctionType diffs("diffs", exactSolution_.discreteVelocity().space());
 	DiscreteVelocityFunctionType rhs("rhs", exactSolution_.discreteVelocity().space());
 	rhs.clear();
-//	velocity_laplace_discrete *= 1 / std::sqrt( 2 ) ;
+
 	rhs += exactSolution_.discreteVelocity();
 	rhs -= velocity_convection_discrete;
 	rhs += velocity_laplace_discrete;
