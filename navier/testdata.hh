@@ -546,6 +546,75 @@ namespace Dune {
 					const double parameter_d_;
 			};
 
+			template <	class FunctionSpaceImp,
+						class TimeProviderImp >
+			class PressureGradient : public TimeFunction <	FunctionSpaceImp ,
+													PressureGradient < FunctionSpaceImp,TimeProviderImp >,
+													TimeProviderImp >
+			{
+				public:
+					typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+				  /**
+				   *  \brief  constructor
+				   *
+				   *  doing nothing besides Base init
+				   **/
+				  PressureGradient( const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					  : BaseType( timeprovider, space ),
+					  parameter_a_( parameter_a ),
+					  parameter_d_( parameter_d )
+				  {}
+
+				  /**
+				   *  \brief  destructor
+				   *
+				   *  doing nothing
+				   **/
+				   ~PressureGradient()
+				   {}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+						Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+						const double x				= arg[0];
+						const double y				= arg[1];
+						const double v				= Parameters().getParam( "viscosity", 1.0 );
+						const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
+
+						ret[0] = 2 * pi_factor  * 0.25 * (
+											std::sin( 2 * pi_factor * x )
+										) * e_minus_4_t;
+						ret[1] = 2 * pi_factor  * 0.25 * (
+											std::sin( 2 * pi_factor * y )
+										) * e_minus_4_t;
+					}
+
+					/**
+					* \brief  evaluates the dirichlet data
+					* \param  arg
+					*         point to evaluate at
+					* \param  ret
+					*         value of dirichlet boundary data at given point
+					**/
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+
 		}//end namespace TestCase2D
 
 		namespace TrivialTestCase {
