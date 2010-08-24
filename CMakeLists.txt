@@ -80,7 +80,7 @@ SET( GRAPE_PATH
 	"GRAPE_PATH" )
 
 SET( CXX_FLAGS
-	"-Wall -O3 -fomit-frame-pointer -funroll-loops -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE STRING
+	"-Wall -O3 -fomit-frame-pointer -funroll-loops -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE STRING
 	"")
 
 SET( ENABLE_PARALELL
