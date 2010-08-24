@@ -325,19 +325,42 @@ namespace Dune {
 				{
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+					const bool first_stokes_step = timeprovider_.timeStep() == 1;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
 																				   currentFunctions_.discreteVelocity(),
 																				   force,
 																				   beta_qout_re_,
-																				   quasi_stokes_alpha_ );
+																				   quasi_stokes_alpha_,
+																				   first_stokes_step );
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
+					if ( !first_stokes_step ) {
+						// F = + alpha * mu * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
+						rhsDatacontainer_.velocity_laplace *= operator_weight_beta_;
+						dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
+						dummyFunctions_.discreteVelocity() *= quasi_stokes_alpha_;
+						stokesForce += dummyFunctions_.discreteVelocity();
+						stokesForce -= rhsDatacontainer_.convection;
+						stokesForce += rhsDatacontainer_.velocity_laplace;
+
+						typename Traits::StokesAnalyticalForceAdapterType stokesForce_full( timeprovider_,
+																					   currentFunctions_.discreteVelocity(),
+																					   force,
+																					   beta_qout_re_,
+																					   quasi_stokes_alpha_,
+																					   true );
+						stokesForce_full -= stokesForce;
+						// L2 error
+						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+						Logger().Info() << "FORCE stokes diff " << l2_Error.norm( stokesForce_full ) << std::endl;
+					}
+
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
 					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
@@ -455,22 +478,27 @@ namespace Dune {
 																	  currentFunctions_.discretePressure(),
 																	  force,
 																	  operator_weight_alpha_ / reynolds_,
-																	  oseen_alpha );
+																	  oseen_alpha,
+																	  false );
+					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce_full( timeprovider_,
+																	  currentFunctions_.discreteVelocity(),
+																	  currentFunctions_.discretePressure(),
+																	  force,
+																	  operator_weight_alpha_ / reynolds_,
+																	  oseen_alpha,
+																	  true );
 					typedef typename Dune::NavierStokes::TESTCASE::PressureGradient< typename Traits::VelocityFunctionSpaceType, typename Traits::TimeProviderType >
 							PressureGradient;
 					typename Traits::VelocityFunctionSpaceType p;
 					PressureGradient pg ( timeprovider_, p);
 					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
-					Dune::L2Projection< double,
-										double,
-										PressureGradient,
-										DiscreteVelocityFunctionType >
-						()(pg, dummyFunctions_.discreteVelocity() );
+//					Dune::L2Projection< double,
+//										double,
+//										PressureGradient,
+//										 >
+//						()(pg, dummyFunctions_.discreteVelocity() );
 //					rhsDatacontainer_.pressure_gradient *=240.414;
-					dummyFunctions_.discreteVelocity() -= rhsDatacontainer_.pressure_gradient;
-					rhsDatacontainer_.velocity_laplace *= operator_weight_alpha_;
-					Logger().Info() << "diff pressure grad " << l2_Error.norm( dummyFunctions_.discreteVelocity() ) << std::endl;
 
 					// F = f + \alpha \mu \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
 					nonlinearForce -= rhsDatacontainer_.pressure_gradient;
@@ -480,7 +508,9 @@ namespace Dune {
 					nonlinearForce += dummyFunctions_.discreteVelocity();
 					//
 
-					dummyFunctions_.discreteVelocity().assign( rhsDatacontainer_.pressure_gradient );
+					nonlinearForce_full -= nonlinearForce;
+					Logger().Info() << "FORCE oseen diff " << l2_Error.norm( nonlinearForce_full ) << std::endl;
+
 
 					typename Traits::StokesStartPassType stokesStartPass;
 

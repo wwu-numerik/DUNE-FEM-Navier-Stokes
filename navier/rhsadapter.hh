@@ -182,6 +182,7 @@ namespace Dune {
 					typedef DiscreteVelocityFunctionType
 						BaseType;
 					const TimeProviderType& timeProvider_;
+					const bool add_extra_terms_;
 
 				public:
 					ForceAdapterFunction( const TimeProviderType& timeProvider,
@@ -189,9 +190,11 @@ namespace Dune {
 										  const AnalyticalForceType& force,
 										  const double beta_re_qoutient,
 										  const double quasi_stokes_alpha,
+										  const bool add_extra_terms,
 										  int polOrd = -1 )
 						: BaseType( "stokes-rhsdapater" , velocity.space()),
-						timeProvider_( timeProvider )
+						timeProvider_( timeProvider ),
+						add_extra_terms_( add_extra_terms )
 					{
 						typedef DiscreteVelocityJacobianFunctionType
 							DiscreteSigmaFunctionType;
@@ -330,13 +333,18 @@ namespace Dune {
 									const double nonlin_times_phi = nonlin * phi;
 									const double velocity_real_laplacian_times_phi = beta_re_qoutient * ( velocity_real_laplacian * phi );
 
-									self_local[i] += intel *
-													(
-														velocity_times_phi
-														+ velocity_real_laplacian_times_phi
-														+ force_eval_times_phi
-														- nonlin_times_phi
-													);
+									if ( add_extra_terms_ ) {
+										self_local[i] += intel *
+														(
+															velocity_times_phi
+															+ velocity_real_laplacian_times_phi
+															+ force_eval_times_phi
+															- nonlin_times_phi
+														);
+									}
+									else {
+										self_local[i] += intel * force_eval_times_phi;
+									}
 								}
 							}
 
@@ -428,6 +436,8 @@ namespace Dune {
 					typedef DiscreteVelocityFunctionType
 						BaseType;
 					const TimeProviderType& timeProvider_;
+					const bool add_extra_terms_;
+
 				public:
 					ForceAdapterFunction( const TimeProviderType& timeProvider,
 										  const DiscreteVelocityFunctionType& velocity,
@@ -435,9 +445,11 @@ namespace Dune {
 										  const AnalyticalForceType& force,
 										  const double alpha_re_qoutient,
 										  const double u_factor,
+										  const bool add_extra_terms,
 										  int polOrd = -1)
 						: BaseType( "nonlinear-rhsdapater" , velocity.space()),
-						timeProvider_( timeProvider )
+						timeProvider_( timeProvider ),
+						add_extra_terms_( add_extra_terms )
 					{
 						typedef DiscreteVelocityJacobianFunctionType
 							DiscreteSigmaFunctionType;
@@ -567,12 +579,16 @@ namespace Dune {
 									const double pressure_jacobian_eval_times_phi = pressure_jacobian_eval[0] *  phi;
 									const double velocity_real_laplacian_times_phi = alpha_re_qoutient * ( velocity_real_laplacian * phi );
 
-									self_local[i] += intel * (
-//																velocity_real_laplacian_times_phi
-															   + force_eval_times_phi
-//															   - pressure_jacobian_eval_times_phi
-//															   + scaled_velocity_times_phi
-															) ;
+									if ( add_extra_terms_ ) {
+										self_local[i] += intel * (
+																	velocity_real_laplacian_times_phi
+																   + force_eval_times_phi
+																   - pressure_jacobian_eval_times_phi
+																   + scaled_velocity_times_phi
+																) ;
+									}
+									else
+										self_local[i] += intel * force_eval_times_phi;
 								}
 							}
 
