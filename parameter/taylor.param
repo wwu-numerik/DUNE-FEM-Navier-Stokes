@@ -61,13 +61,13 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 3
-maxref: 3
-fem.timeprovider.dt: 0.00050
+minref: 2
+maxref: 4
+fem.timeprovider.dt: 0.00100
 fem.timeprovider.endtime: 0.006
 enable_stokesA: 1
 enable_stokesB: 1
-enable_oseen: 0
+enable_oseen: 1
 write_fulltimestep_only: 1
 silent_stokes: 1
 C11: 1.0
