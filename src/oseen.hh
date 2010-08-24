@@ -6,7 +6,6 @@
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
-#include <dune/navier/oseen/oseenpass.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/functions.hh>
@@ -728,7 +727,7 @@ namespace Oseen {
 			OseenModelType;
 		typedef Dune::StartPass< typename OseenModelTraits::DiscreteStokesFunctionWrapperType, -1 >
 			StartPassType;
-		typedef Dune::NavierStokes::NonlinearStep::OseenPass< OseenModelType,StartPassType >
+		typedef Dune::StokesPass< OseenModelType,StartPassType >
 			OseenPassType;
 
 		typedef OSEEN_DATA_NAMESPACE::Pressure< typename OseenModelTraits::PressureFunctionSpaceType,

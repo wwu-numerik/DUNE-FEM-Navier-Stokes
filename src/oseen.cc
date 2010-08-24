@@ -316,7 +316,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							currentFunctions.discreteVelocity() );
+							&currentFunctions.discreteVelocity() );
 	oseenPass.apply( currentFunctions, nextFunctions );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
