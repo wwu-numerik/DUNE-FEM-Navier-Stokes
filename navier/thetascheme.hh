@@ -102,6 +102,10 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 				OseenModelTraits;
+			typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
+				OseenModelType;
+			typedef Dune::StokesPass< OseenModelType,StokesStartPassType, 0 >
+				OseenpassType;
 		};
 
 		template < class T1, class T2, class T3, class T4 = T3 >
@@ -468,10 +472,6 @@ namespace Dune {
 					nonlinearForce -= rhsDatacontainer_.pressure_gradient;
 					dummyFunctions_.discreteVelocity().assign( rhsDatacontainer_.pressure_gradient );
 
-					typedef Dune::DiscreteStokesModelDefault< typename Traits::OseenModelTraits >
-						OseenModelType;
-					typedef NonlinearStep::OseenPass< OseenModelType,typename Traits::StokesStartPassType >
-							OseenpassType;
 					typename Traits::StokesStartPassType stokesStartPass;
 
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
@@ -496,17 +496,17 @@ namespace Dune {
 														<< oseen_alpha << "\n";
 					stab_coeff.print( Logger().Info() );
 
-					OseenModelType
+					typename Traits::OseenModelType
 							stokesModel(stab_coeff,
 										nonlinearForce,
 										stokesDirichletData,
 										oseen_viscosity,
 										oseen_alpha );
-					OseenpassType oseenPass( stokesStartPass,
+					typename Traits::OseenpassType oseenPass( stokesStartPass,
 											stokesModel,
 											gridPart_,
 											functionSpaceWrapper_,
-											currentFunctions_.discreteVelocity() );
+											&currentFunctions_.discreteVelocity() );
 					oseenPass.apply( currentFunctions_, nextFunctions_ );
 				}
 
