@@ -325,7 +325,7 @@ namespace Dune {
 				{
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
-					const bool first_stokes_step = timeprovider_.timeStep() == 1;
+					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
@@ -361,6 +361,7 @@ namespace Dune {
 						const double force_abs = l2_Error.norm( stokesForce_full ) ;
 						stokesForce_full -= stokesForce;
 						const double force_error_abs = l2_Error.norm( stokesForce_full ) ;
+						Logging::ResumeLocal rl(Logging::LogStream::default_suspend_priority + 1 );
 						Logger().Info() << "FORCE stokes diff " << force_error_abs << " | " << force_error_abs / force_abs << std::endl;
 					}
 
