@@ -8,6 +8,10 @@
 	#include "config.h"
 #endif
 
+#ifdef NDEBUG
+	#define DNDEBUG
+#endif
+
 #include <cstdio>
 #if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)
 	#warning ("USE_PARDG_ODE_SOLVER enabled, might conflict with custom solvers")
