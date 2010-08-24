@@ -7,7 +7,6 @@
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/testdata.hh>
 #include <dune/navier/exactsolution.hh>
-#include <dune/navier/oseen/oseenpass.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/functions.hh>
@@ -176,6 +175,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType dataWriter_;
+				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
 				typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
 
 				//constants
@@ -222,7 +222,8 @@ namespace Dune {
 										 exactSolution_,
 										 dummyFunctions_)
 								),
-					rhsDatacontainer_( currentFunctions_.discreteVelocity().space() ),
+					sigma_space_( gridPart_ ),
+					rhsDatacontainer_( currentFunctions_.discreteVelocity().space(), sigma_space_ ),
 					viscosity_( Parameters().getParam( "viscosity", 1.0 ) ),
 					d_t_( timeprovider_.deltaT() ),
 					quasi_stokes_alpha_( 1 / ( theta_ * d_t_ ) ),
@@ -466,10 +467,19 @@ namespace Dune {
 										PressureGradient,
 										DiscreteVelocityFunctionType >
 						()(pg, dummyFunctions_.discreteVelocity() );
-					rhsDatacontainer_.pressure_gradient *=240.414;
+//					rhsDatacontainer_.pressure_gradient *=240.414;
 					dummyFunctions_.discreteVelocity() -= rhsDatacontainer_.pressure_gradient;
+					rhsDatacontainer_.velocity_laplace *= operator_weight_alpha_;
 					Logger().Info() << "diff pressure grad " << l2_Error.norm( dummyFunctions_.discreteVelocity() ) << std::endl;
+
+					// F = f + \alpha \mu \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
 					nonlinearForce -= rhsDatacontainer_.pressure_gradient;
+					nonlinearForce += rhsDatacontainer_.velocity_laplace;
+					dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
+					dummyFunctions_.discreteVelocity() *= oseen_alpha;
+					nonlinearForce += dummyFunctions_.discreteVelocity();
+					//
+
 					dummyFunctions_.discreteVelocity().assign( rhsDatacontainer_.pressure_gradient );
 
 					typename Traits::StokesStartPassType stokesStartPass;
