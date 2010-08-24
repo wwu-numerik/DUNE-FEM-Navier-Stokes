@@ -355,10 +355,13 @@ namespace Dune {
 																					   beta_qout_re_,
 																					   quasi_stokes_alpha_,
 																					   true );
-						stokesForce_full -= stokesForce;
+
 						// L2 error
 						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
-						Logger().Info() << "FORCE stokes diff " << l2_Error.norm( stokesForce_full ) << std::endl;
+						const double force_abs = l2_Error.norm( stokesForce_full ) ;
+						stokesForce_full -= stokesForce;
+						const double force_error_abs = l2_Error.norm( stokesForce_full ) ;
+						Logger().Info() << "FORCE stokes diff " << force_error_abs << " | " << force_error_abs / force_abs << std::endl;
 					}
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
@@ -508,8 +511,10 @@ namespace Dune {
 					nonlinearForce += dummyFunctions_.discreteVelocity();
 					//
 
+					const double force_abs = l2_Error.norm( nonlinearForce_full );
 					nonlinearForce_full -= nonlinearForce;
-					Logger().Info() << "FORCE oseen diff " << l2_Error.norm( nonlinearForce_full ) << std::endl;
+					const double force_error_abs = l2_Error.norm( nonlinearForce_full );
+					Logger().Info() << "FORCE oseen diff " <<  force_error_abs << " | " << force_error_abs / force_abs << std::endl;
 
 
 					typename Traits::StokesStartPassType stokesStartPass;
