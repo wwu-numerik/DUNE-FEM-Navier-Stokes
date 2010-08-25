@@ -194,19 +194,20 @@ namespace Oseen {
 					  const double cos				= std::cos( 2 * M_PI * y );
 					  const double sin				= std::sin( 2 * M_PI * y );
 					  const double lambda_square	= lambda * lambda;
-					  ret[0] = gamma_ * ( 1 - e_lambda_x * cos ) + e_lambda_x * (
-							  ( 1 - e_lambda_x * cos ) * (-1 * lambda ) * cos
-							  + ( std::pow(lambda,3)/ (2 * std::pow(M_PI,2) )  ) * e_lambda_x * std::pow( sin, 2 )
-							  - viscosity_ * 2 * lambda * M_PI * sin
-							  - e_lambda_x
-							  );
-					  ret[1] = gamma_ * ( lambda / ( 2 * M_PI ) ) * e_lambda_x * cos
-							   + e_lambda_x * sin * (
-									( lambda_square / ( 2 * M_PI ) ) * e_lambda_x * cos
-									+ ( 1 - e_lambda_x * cos ) * 2 * M_PI
-									+ viscosity_ * 2 * lambda * M_PI
-									   );
-//					  ret = RangeType(0);
+					  RangeType u;
+					  VelocityEvaluate( lambda_, 0, arg, u);
+					  //convection
+					  ret[0] = u[0] * ( -lambda * e_lambda_x * cos ) + u[1] * ( -M_2_PI * e_lambda_x * sin );
+					  ret[1] = u[0] * ( ( lambda_square / M_2_PI ) * e_lambda_x * sin ) + u[1] * lambda * e_lambda_x * cos;
+					  //laplace
+					  ret[0] -= viscosity_ * ( - lambda_square * e_lambda_x * cos );
+					  ret[1] -= viscosity_ * ( - lambda * e_lambda_x * sin );
+					  //pressure grad
+					  ret[0] += lambda * std::exp( lambda * 2 * x );
+					  ret[1] += 0;
+					  //u
+					  ret[0] += gamma_ * u[0];
+					  ret[1] += gamma_ * u[1];
 				  }
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const {
 					  evaluate(0, arg, ret);
@@ -395,12 +396,10 @@ namespace Oseen {
 					ret[0] = 0.5 * e_2lambda_x + shift_;
 				}
 
-				template < class DiscreteFunctionSpace >
-				void setShift( const DiscreteFunctionSpace& space )
+				void setShift( const double shift )
 				{
-					shift_ = Stuff::meanValue( *this, space );
-					Logger().Info() <<  "mean pressure pre-shift: " << shift_ << std::endl;
-					shift_ = 0;//std::sqrt( shift_ / 10) ;
+					shift_ = shift;
+					Logger().Info() <<  "Set pressure shift to: " << shift_ << std::endl;
 				}
 
 				/**

@@ -257,6 +257,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 								  ( std::pow( reynolds, 2 ) * 0.25 )
 								  + ( 4 * std::pow( M_PI, 2 ) )
 									  ) ;
+	const double pressure_C = ( std::exp( 3 * lambda ) - std::exp(-1  * lambda ) ) / ( - 8 * lambda );
+
 //	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
 
 	Parameters().setParam( "lambda", lambda );
@@ -290,7 +292,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					gridPart,
 					functionSpaceWrapper );
 	exactSolution.project();
-	exactSolution.exactPressure().setShift( currentFunctions.discretePressure().space() );
+	exactSolution.exactPressure().setShift( pressure_C );
 
 	OseenTraits::StartPassType startPass;
 	OseenTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData =
@@ -324,7 +326,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	errorFunctions.discreteVelocity().assign( exactSolution.discreteVelocity() );
 	errorFunctions.discreteVelocity() -= nextFunctions.discreteVelocity();
 
-	double meanPressure_exact = Stuff::meanValue( exactSolution.exactPressure(), nextFunctions.discretePressure().space() );
+	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
 	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), nextFunctions.discretePressure().space() );
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
