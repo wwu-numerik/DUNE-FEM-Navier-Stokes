@@ -29,7 +29,7 @@ femhowto.epsilon: 0.003
 femhowto.startTime: 0.002
 
 # write solution vtk every N iterations ( < 1 to disable )
-save_interval: -1
+save_interval: 1
 
 #use this to seperate tokens in a paramter list
 parameterlist_delimiter: ;
@@ -63,15 +63,23 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 4
-maxref: 3
+minref: 3
+maxref: 0
 enable_stokesA: 1
 enable_stokesB: 1
 enable_oseen: 1
-D11: 10.0
-C11: 990.1
-D12: 1.0
-C12: 1
+D11: 1e-0
+C11: 1e+0
+D12: 0.0
+C12: 0.0
+disableSolver: 0
+reduced_oseen_solver: 0
+viscosity: 01.00
+stab_coeff_visc_scale: 0
+save_matrices: 1
+reynolds: 1
+# if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
+alpha: 000
 #in runtype 1 vary
 minpow: -1
 maxpow: 1
@@ -91,17 +99,13 @@ accurracy_steps: 5
 
 #*********** end runtype specific parameters **************************************************
 
-viscosity: 04.10
-reynolds: 1000.0
-# if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-alpha: 0.0
 
 #****************** solver ******************************************************************
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-08
-inner_absLimit: 1e-08
+absLimit: 1e-09
+inner_absLimit: 1e-09
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
@@ -118,14 +122,13 @@ clear_p: 0
 max_adaptions: 5
 
 # > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
-solverVerbosity: 4
+solverVerbosity: 0
 
-disableSolver: 0
 diff-tolerance: 0.01
-do-bfg: 1
+do-bfg: 0
 bfg-tau: 0.1
 
-use_nested_cg_solver: 0
+use_nested_cg_solver: 1
 
 #if using alternative solver break after max maxIter outer iterations
 maxIter: 5000
