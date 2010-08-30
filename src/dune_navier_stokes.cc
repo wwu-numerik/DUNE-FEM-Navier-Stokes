@@ -271,7 +271,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
-	Parameters().setParam( "reduced_oseen_solver", true );
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
 			thetaScheme( gridPart );
 	runInfoVector = thetaScheme.run();
