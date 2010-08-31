@@ -29,7 +29,7 @@ femhowto.epsilon: 0.003
 femhowto.startTime: 0.002
 
 # write solution vtk every N iterations ( < 1 to disable )
-save_interval: 1
+save_interval: -1
 
 #use this to seperate tokens in a paramter list
 parameterlist_delimiter: ;
@@ -45,57 +45,30 @@ use_grape: 0
 #
 dgf_file_2d: oseen_testcase_01.dgf
 dgf_file_3d: grid_3d.dgf
-# scale domain to have length 2
-domain_scale_x: 2.0
-domain_scale_y: 2.0
-# shift domain to be [-1;1]^2
-domain_shift_x: -1.0
-domain_shift_y: -1.0
 
-#*********** runtype specific parameters **************************************************
-# runtype 		0: minref <= maxref
-#			1: minref, stab coeff are varied
-#			2: minref, bfg-tau-start <= bfg-tau-stop
-#			3: minref, accuracy_start <= accuracy_stop + inner lopo for inner acc
-#			4: minref, accuracy_start <= accuracy_stop
-#			5: one single run with minref
-# no runtype set --> old minrun behavior
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
 minref: 3
 maxref: 0
-enable_stokesA: 1
-enable_stokesB: 1
-enable_oseen: 1
-D11: 1e-0
-C11: 1e+0
-D12: 0.0
-C12: 0.0
+D11: 1e+04
+C11: 1e+04
+D12: 5.0
+C12: 5.0
 disableSolver: 0
 reduced_oseen_solver: 0
-viscosity: 01.00
+use_nested_cg_solver: 0
+use_full_solver: 0
+viscosity: 01e-2
 stab_coeff_visc_scale: 0
-save_matrices: 1
-reynolds: 1
+save_matrices: 0
+reynolds: 100
+do-bfg: 0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-alpha: 000
-#in runtype 1 vary
-minpow: -1
-maxpow: 1
-minfactor: 0.0
-maxfactor: 2.0
-incfactor: 0.5
-
-#parameters for runtype 2, do-bfg and bfg-tau are ignored there
-bfg-tau-start: 0
-bfg-tau-stop: 0.5
-bfg-tau-inc: 0.075
-
-#parameters for runtype 3,
-accurracy_start: 10e-5
-accurracy_factor: 10e-3
-accurracy_steps: 5
+alpha: 1000.0
+use_alternate_vonctetion_volume_disc: 0
+solverVerbosity: 0
+use_cks_convection: 1
 
 #*********** end runtype specific parameters **************************************************
 
@@ -104,15 +77,14 @@ accurracy_steps: 5
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-09
-inner_absLimit: 1e-09
+absLimit: 1e-07
+inner_absLimit: 1e-07
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
 
 use_pressure_reconstruct: 0
 use_pressure_reconstruct_A: 1
-pressure_cheat: 0
 
 #clear computed functions at start of every singleRun ?
 clear_u: 1
@@ -121,14 +93,8 @@ clear_p: 0
 #when nans are detected in solution solver accuracy is multiplied maximal max_adaptions-times by 0.1
 max_adaptions: 5
 
-# > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
-solverVerbosity: 0
-
 diff-tolerance: 0.01
-do-bfg: 0
 bfg-tau: 0.1
-
-use_nested_cg_solver: 1
 
 #if using alternative solver break after max maxIter outer iterations
 maxIter: 5000
