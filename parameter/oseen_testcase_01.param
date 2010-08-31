@@ -51,10 +51,10 @@ runtype: 5
 #in runtype 0 refine maxref + 1 - minref times
 minref: 3
 maxref: 0
-D11: 1e+04
-C11: 1e+04
-D12: 5.0
-C12: 5.0
+D11: 1e+02
+C11: 1e-04
+D12: 0.0
+C12: 0.0
 disableSolver: 0
 reduced_oseen_solver: 0
 use_nested_cg_solver: 0
@@ -62,13 +62,14 @@ use_full_solver: 0
 viscosity: 01e-2
 stab_coeff_visc_scale: 0
 save_matrices: 0
-reynolds: 100
+reynolds: 10
 do-bfg: 0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
 alpha: 1000.0
-use_alternate_vonctetion_volume_disc: 0
-solverVerbosity: 0
-use_cks_convection: 1
+use_alternate_convection_volume_disc: 0
+use_alternate_vonctetion_volume_disc: 1
+solverVerbosity: 1
+use_cks_convection: 0
 
 #*********** end runtype specific parameters **************************************************
 
