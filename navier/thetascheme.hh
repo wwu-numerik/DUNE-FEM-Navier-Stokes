@@ -371,8 +371,8 @@ namespace Dune {
 						const double force_abs = l2_Error.norm( stokesForce_full ) ;
 						stokesForce_full -= stokesForce;
 						const double force_error_abs = l2_Error.norm( stokesForce_full ) ;
-						Logging::ResumeLocal rl(Logging::LogStream::default_suspend_priority + 1 );
-						Logger().Info() << "FORCE stokes diff " << force_error_abs << " | " << force_error_abs / force_abs << std::endl;
+//						Logging::ResumeLocal rl(Logging::LogStream::default_suspend_priority + 1 );
+//						Logger().Info() << "FORCE stokes diff " << force_error_abs << " | " << force_error_abs / force_abs << std::endl;
 					}
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
@@ -387,6 +387,7 @@ namespace Dune {
 					}
 					stab_coeff.FactorFromParams("D12");
 					stab_coeff.FactorFromParams("C12");
+					stab_coeff.FactorFromParams( "E12", 0.5 );
 
 
 					dummyFunctions_.discreteVelocity().assign( stokesForce );
@@ -563,6 +564,7 @@ namespace Dune {
 					}
 					stab_coeff.FactorFromParams("D12");
 					stab_coeff.FactorFromParams("C12");
+					stab_coeff.FactorFromParams( "E12", 0.5 );
 
 					Logger().Info() << "oseen a/RE|b/RE|y " << operator_weight_alpha_ / reynolds_ << " | "
 														<< beta_qout_re_ << " | "
