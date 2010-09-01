@@ -263,6 +263,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	Parameters().setParam( "lambda", lambda );
 	Parameters().setParam( "viscosity", oseen_viscosity );
+	Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+	stab_coeff.FactorFromParams( "D12", 0 );
+	stab_coeff.FactorFromParams( "C12", 0 );
+	stab_coeff.FactorFromParams( "E12", 0.5 );
 
 	typedef Dune::Oseen::Traits<
 			CollectiveCommunication,
@@ -293,6 +297,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					functionSpaceWrapper );
 	exactSolution.project();
 	exactSolution.exactPressure().setShift( pressure_C );
+	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
+	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
+	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
 
 	OseenTraits::StartPassType startPass;
 	OseenTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData =
@@ -307,7 +314,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	OseenTraits::OseenModelTraits::AnalyticalForceFunctionType force( oseen_viscosity, continousVelocitySpace, oseen_alpha );
 	OseenTraits::OseenModelType
-			stokesModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients() ,
+			stokesModel( stab_coeff ,
 						force,
 						stokesDirichletData,
 						oseen_viscosity,
