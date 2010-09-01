@@ -61,12 +61,12 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 3
+minref: 4
 maxref: 0
-fem.timeprovider.dt: 0.0100
-fem.timeprovider.endtime: 0.006
+fem.timeprovider.dt: 0.00050
+fem.timeprovider.endtime: 2.6
 enable_stokesA: 1
-enable_stokesB: 0
+enable_stokesB: 1
 enable_oseen: 1
 reduced_oseen_solver: 1
 use_full_solver: 0
@@ -79,12 +79,13 @@ C12: 0.0e-2
 D11: 1.0
 D12: 0.0e-2
 viscosity: 0.10
-use_alternate_vonctetion_volume_disc: 0
 use_cks_convection: 1
 scale_equations: 1
-solverVerbosity: 1
-stab_coeff_visc_scale: 0
+use_alternate_convection_volume_disc: 0
+solverVerbosity: 0
+stab_coeff_visc_scale: 1
 reynolds: 10.0
+calculate_errors: 0
 #parameters for runtype 2, do-bfg and bfg-tau are ignored there
 alpha: 0.0
 bfg-tau-start: 0
