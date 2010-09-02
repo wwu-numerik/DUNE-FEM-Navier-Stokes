@@ -657,9 +657,10 @@ namespace Dune {
 					   *  \param  ret
 					   *          value of force at given point
 					   **/
-					  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
+					  inline void evaluate( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 					  {
-						  ret = RangeType(0);
+						  ret[0] = -666;
+						  ret[1] = -666;
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
 
@@ -669,11 +670,6 @@ namespace Dune {
 					  static const int dim_ = FunctionSpaceImp::dimDomain;
 			};
 
-			template < class DomainType, class RangeType >
-			void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double /*time*/, const DomainType& /*arg*/, RangeType& ret)
-			{
-				ret = RangeType( 0 );
-			}
 
 			/**
 			*  \brief  describes the dirichlet boundary data
@@ -718,9 +714,14 @@ namespace Dune {
 					{}
 
 					template < class IntersectionType >
-					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& intersection ) const
 					{
-						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+						ret = RangeType( 0 );
+						const int boundary_id = intersection.boundaryId();
+						if ( boundary_id == 3 || boundary_id == 1 ) {
+							ret[0] = 1;
+							ret[1] = 0;
+						}
 					}
 
 					/**
@@ -775,7 +776,8 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+						ret[0] = 1;
+						ret[1] = 0;
 					}
 
 				   /**
@@ -831,9 +833,10 @@ namespace Dune {
 				   ~Pressure()
 				   {}
 
-					void evaluateTime( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
+					void evaluateTime( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 					{
-						ret = RangeType( 0 );
+						double viscosity = Parameters().getParam( "viscosity", 1.0 );
+						ret = 1/viscosity*arg[0] + 1;
 					}
 
 					/**
