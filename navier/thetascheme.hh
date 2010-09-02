@@ -233,7 +233,6 @@ namespace Dune {
 				{
 					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
 					currentFunctions_.assign( nextFunctions_ );
-					nextFunctions_.clear();
 
 					//error calc
 					if ( Parameters().getParam( "calculate_errors", true ) ) {
