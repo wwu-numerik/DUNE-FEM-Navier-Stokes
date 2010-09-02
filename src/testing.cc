@@ -52,10 +52,6 @@
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
 
-#if (GRIDDIM==3)
-	#define MODEL_PROVIDES_LOCALFUNCTION 1
-#endif
-
 #include <vector>
 #include <string>
 
@@ -89,16 +85,23 @@
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
-#include <dune/stuff/signals.hh>
 
 #include <dune/navier/thetascheme.hh>
 #include <dune/navier/testdata.hh>
 
+#include <dune/stokes/discretestokesmodelinterface.hh>
+#include <dune/stokes/stokespass.hh>
+#include <dune/navier/fractionaltimeprovider.hh>
+#include <dune/navier/stokestraits.hh>
+#include <dune/navier/exactsolution.hh>
+#include <dune/fem/misc/mpimanager.hh>
+#include <dune/stuff/datawriter.hh>
+#include <dune/stuff/customprojection.hh>
+#include <dune/common/collectivecommunication.hh>
+
 #ifndef COMMIT
 	#define COMMIT "undefined"
 #endif
-
-#define MODEL_PROVIDES_LOCALFUNCTION 1
 
 static const std::string commit_string (COMMIT);
 
@@ -143,7 +146,6 @@ void eocCheck( const RunInfoVector& runInfos );
 int main( int argc, char** argv )
 {
 #ifdef NDEBUG
-	Stuff::Signals::installSignalHandler();
 	try
 #endif
 	{
@@ -186,20 +188,13 @@ int main( int argc, char** argv )
 		// ensures maxref>=minref
 		const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
 		profiler().Reset( maxref - minref + 1 );
-		RunInfoVectorMap rf;
 		for ( unsigned int ref = minref;
 			  ref <= maxref;
 			  ++ref )
 		{
-			rf[ref] = singleRun( mpicomm, ref );
-			rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
+			singleRun( mpicomm, ref );
 			profiler().NextRun();
 		}
-
-//		profiler().Output( mpicomm, rf );
-
-		Stuff::TimeSeriesOutput out( rf );
-		out.writeTex( "dummy" );
 
 		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
 		return err;
@@ -223,7 +218,7 @@ int main( int argc, char** argv )
   }
 #endif
 }
-
+#include "testing.hh"
 RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
@@ -244,7 +239,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	typedef Dune::AdaptiveLeafGridPart< GridType >
 		GridPartType;
-	GridPartType gridPart( *gridPtr );
+	GridPartType gridPart_( *gridPtr );
 
 	/* ********************************************************************** *
 	 * initialize problem                                                     *
@@ -255,48 +250,179 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 
 	// model traits
+
+#define TESTING_NS AdapterFunctionsVectorial
+
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
 					GridPartType,
-					Dune::NavierStokes::TESTCASE::Force,
-					Dune::NavierStokes::TESTCASE::DirichletData,
-					Dune::NavierStokes::TESTCASE::Pressure,
-					Dune::NavierStokes::TESTCASE::Velocity,
+					Testing::TESTING_NS::Force,
+					Testing::TESTING_NS::DirichletData,
+					Testing::TESTING_NS::Pressure,
+					Testing::TESTING_NS::Velocity,
 					gridDim,
 					polOrder,
 					VELOCITY_POLORDER,
 					PRESSURE_POLORDER >
-		ThetaSchemeTraitsType;
+		Traits;
 
 //	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
 
-	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
+	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
-	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
-			thetaScheme( gridPart );
-	runInfoVector = thetaScheme.run();
+	double theta_ = 1 - std::pow( 2.0, -1/2.0 );
+	Traits::CommunicatorType communicator_= Dune::MPIManager::helper().getCommunicator();
+
+	const double operator_weight_alpha_( ( 1-2*theta_ ) / ( 1-theta_ ) );
+	const double operator_weight_beta_( 1 - operator_weight_alpha_ );
+
+	Traits::TimeProviderType timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, communicator_ );
+	Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_( gridPart_ );
+	Traits::DiscreteStokesFunctionWrapperType currentFunctions_(  "current_",
+						functionSpaceWrapper_,
+						gridPart_ );
+	Traits::DiscreteStokesFunctionWrapperType nextFunctions_(  "next_",
+					functionSpaceWrapper_,
+					gridPart_ );
+	Traits::DiscreteStokesFunctionWrapperType errorFunctions_(  "error_",
+					functionSpaceWrapper_,
+					gridPart_ );
+
+	Traits::ExactSolutionType exactSolution_( timeprovider_,
+					gridPart_,
+					functionSpaceWrapper_ );
+
+
+	//initial flow field at t = 0
+	exactSolution_.project();
+	currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
+
+	//constants
+	const double viscosity				= 1.0;
+	const double d_t					= 1;
+	const double quasi_stokes_alpha		= 1;
+	const double reynolds				= 1 / viscosity;//not really, but meh
+	const double stokes_viscosity		= 1;
+	const double beta_qout_re			= 1;
+	const int verbose					= 1;
+	const Traits::AnalyticalForceType force ( viscosity,
+												 currentFunctions_.discreteVelocity().space() );
+
+	Traits::StokesModelTraits::PressureFunctionSpaceType
+			continousPressureSpace_;
+	Traits::StokesModelTraits::VelocityFunctionSpaceType
+			continousVelocitySpace_;
+	typedef Testing::TESTING_NS::PressureGradient<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+													Traits::TimeProviderType >
+		PressureGradient;
+	PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
+	typedef Testing::TESTING_NS::VelocityLaplace<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+														Traits::TimeProviderType >
+			VelocityLaplace;
+	VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+	typedef Testing::TESTING_NS::VelocityConvection<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+															Traits::TimeProviderType >
+		VelocityConvection;
+	VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
+	Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
+																   exactSolution_.discreteVelocity(),
+																   force,
+																   beta_qout_re,
+																	quasi_stokes_alpha );
+	typedef Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
+		DiscreteVelocityFunctionType;
+	DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", exactSolution_.discreteVelocity().space() );
+	DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", exactSolution_.discreteVelocity().space() );
+	DiscreteVelocityFunctionType pressure_gradient_discrete("pressure_gradient_discrete", exactSolution_.discreteVelocity().space() );
+
+	Dune::L2Projection< double,
+						double,
+						VelocityConvection,
+						DiscreteVelocityFunctionType >
+		()(velocity_convection, velocity_convection_discrete );
+	Dune::L2Projection< double,
+						double,
+						VelocityLaplace,
+						DiscreteVelocityFunctionType >
+		()(velocity_laplace, velocity_laplace_discrete );
+	Dune::L2Projection< double,
+						double,
+						PressureGradient,
+						DiscreteVelocityFunctionType >
+		()(pressure_gradient, pressure_gradient_discrete);
+
+	DiscreteVelocityFunctionType diffs("diffs", exactSolution_.discreteVelocity().space());
+	DiscreteVelocityFunctionType rhs("rhs", exactSolution_.discreteVelocity().space());
+	rhs.clear();
+
+	rhs += exactSolution_.discreteVelocity();
+	rhs -= velocity_convection_discrete;
+	rhs += velocity_laplace_discrete;
+	diffs.assign( rhs );
+	diffs -= stokesForce;
+
+	const double oseen_alpha = 1;
+	const double oseen_viscosity = 1;
+	Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
+													  currentFunctions_.discreteVelocity(),
+													  currentFunctions_.discretePressure(),
+													  force,
+													  1,
+													  1 );
+	DiscreteVelocityFunctionType rhs2("rhs", exactSolution_.discreteVelocity().space());
+	DiscreteVelocityFunctionType diffs2("diffs_nonlinear", exactSolution_.discreteVelocity().space());
+	rhs2.clear();
+	rhs2 += velocity_laplace_discrete;
+	rhs2 += exactSolution_.discreteVelocity();
+	rhs2 -= pressure_gradient_discrete;
+	diffs2.assign( rhs2 );
+	diffs2 -= nonlinearForce;
+
+	Dune::L2Norm< Traits::GridPartType > l2_Error( gridPart_ );
+	const double error1 = l2_Error.norm(diffs);
+	const double error2 = l2_Error.norm(diffs2);
+
+	typedef TupleSerializer<	Traits::DiscreteStokesFunctionWrapperType,
+								Traits::DiscreteStokesFunctionWrapperType,
+								Traits::DiscreteStokesFunctionWrapperType >
+		TupleSerializerType;
+//	typedef TupleSerializerType::TupleType
+//		OutputTupleType;
+
+	typedef Dune::Tuple<	const DiscreteVelocityFunctionType*,
+							const DiscreteVelocityFunctionType*,
+							const DiscreteVelocityFunctionType*,
+							const DiscreteVelocityFunctionType*,
+							const DiscreteVelocityFunctionType*,
+							const DiscreteVelocityFunctionType*,
+							const DiscreteVelocityFunctionType*,
+							const Traits::StokesAnalyticalForceAdapterType*,
+							const Traits::NonlinearForceAdapterFunctionType*
+							>
+		OutputTupleType;
+	typedef Dune::TimeAwareDataWriter<	Traits::TimeProviderType,
+										GridPartType::GridType,
+										OutputTupleType >
+		DataWriterType;
+	OutputTupleType out( &diffs,
+						 &diffs2,
+						 &exactSolution_.discreteVelocity(),
+						 &pressure_gradient_discrete,
+						 &rhs,
+						 &velocity_laplace_discrete,
+						 &velocity_convection_discrete,
+						 &stokesForce,
+						 &nonlinearForce );
+	DataWriterType dt( timeprovider_,
+					   gridPart_.grid(),
+					   out );
+	dt.write();
+
+	std::cout	<< "error stokes\t" << error1 << std::endl
+				<< "error non\t" << error2 << std::endl;
 
 	return runInfoVector;
 }
 
-void eocCheck( const RunInfoVector& runInfos )
-{
-	bool ups = false;
-	RunInfoVector::const_iterator it = runInfos.begin();
-	RunInfo last = *it;
-	++it;
-	for ( ; it != runInfos.end(); ++it ) {
-		ups = ( last.L2Errors[0] < it->L2Errors[0]
-			|| last.L2Errors[1] < it->L2Errors[1] );
-		last = *it;
-	}
-	if ( ups ) {
-		Logger().Err() 	<< 	"----------------------------------------------------------\n"
-						<<	"-                                                        -\n"
-						<<	"-                  negative EOC                          -\n"
-						<<	"-                                                        -\n"
-						<< 	"----------------------------------------------------------\n"
-						<< std::endl;
-	}
-}
+

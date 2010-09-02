@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 2.6)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 include(UseDoxygen)
 
+FIND_PACKAGE(Boost 1.35.0 REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+
 #----------------------------------------------------------------------------------------------------
 # General Settings
 #----------------------------------------------------------------------------------------------------
@@ -35,6 +38,10 @@ SET( GRIDDIM
 	"2" CACHE STRING
 	"GRIDDIM" )
 
+SET( TESTCASE
+	"GreenTaylor" CACHE STRING
+	"navier test data define" )
+
 SET( POLORDER
 	"2" CACHE STRING
 	"Sigma POLORDER" )
@@ -51,9 +58,9 @@ SET( INNER_CG_SOLVERTYPE
 	"OEMCGOp" CACHE STRING
 	"INNER_CG_SOLVERTYPE" )
 
-SET( OUTER_CG_SOLVERTYP
+SET( OUTER_CG_SOLVERTYPE
 	"OEMCGOp" CACHE STRING
-	"OUTER_CG_SOLVERTYP" )
+	"OUTER_CG_SOLVERTYPE" )
 
 SET( PROBLEM
 	"COCKBURN_PROBLEM" CACHE STRING
@@ -76,7 +83,7 @@ SET( GRAPE_PATH
 	"GRAPE_PATH" )
 
 SET( CXX_FLAGS
-	"-Wall -O3 -fomit-frame-pointer -funroll-loops -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE STRING
+	"-Wall -O3 -fomit-frame-pointer -funroll-loops -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE STRING
 	"")
 
 SET( ENABLE_PARALELL
@@ -93,10 +100,10 @@ IF( ${GRIDTYPE} STREQUAL "UGGRID" )
 	SET( UGLIBS "ugS3" "ugS2" "devS")
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
 
-ADD_DEFINITIONS(-DHAVE_CONFIG_H )
+ADD_DEFINITIONS(-DHAVE_CONFIG_H -DTESTCASE=${TESTCASE} )
 ADD_DEFINITIONS(-D${GRIDTYPE} -DGRIDDIM=${GRIDDIM} -D${PROBLEM} -DCOMMIT="${COMMIT}" -DDIRICHLET_DATA=${DIRICHLET_DATA} )
 ADD_DEFINITIONS(-DPOLORDER=${POLORDER} -DPRESSURE_POLORDER=${PRESSUREPOLORDER} -DVELOCITY_POLORDER=${VELOCITYPOLORDER} )
-ADD_DEFINITIONS(-DINNER_CG_SOLVERTYPE=${INNER_CG_SOLVERTYPE} -DOUTER_CG_SOLVERTYP=${OUTER_CG_SOLVERTYP} )
+ADD_DEFINITIONS(-DINNER_CG_SOLVERTYPE=${INNER_CG_SOLVERTYPE} -DOUTER_CG_SOLVERTYPE=${OUTER_CG_SOLVERTYPE} )
 ADD_DEFINITIONS( -I${GRAPE_PATH}
 	-I${ALUGRID_BASE_PATH}/include
 	-I${ALUGRID_BASE_PATH}/include/serial 
@@ -132,13 +139,21 @@ SET(dune-navier-stokesSrc
 
 FILE( GLOB header "src/*.hh" )
 FILE( GLOB_RECURSE navier "navier/*.hh" )
+FILE( GLOB_RECURSE oseen "oseen/*.hh" )
 FILE( GLOB stokes "../dune-stokes/stokes/*.hh" )
 FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 FILE( GLOB stuff "../dune-stuff/stuff/*.hh" )
 
-set_source_files_properties( ${stuff} ${navier} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
+
+set_source_files_properties( ${stuff} ${navier} ${oseen} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
+
+ADD_EXECUTABLE(testing src/testing.cc ${header} ${stokes} ${stuff} ${navier} )
+TARGET_LINK_LIBRARIES(testing "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
 
 ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} ${navier} )
 TARGET_LINK_LIBRARIES(navier "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+
+ADD_EXECUTABLE(oseen src/oseen.cc ${header} ${stokes} ${stuff} ${navier} )
+TARGET_LINK_LIBRARIES(oseen "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )

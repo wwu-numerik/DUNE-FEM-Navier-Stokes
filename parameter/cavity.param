@@ -1,3 +1,4 @@
+#param file for lid driven cavity
 # LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
 # --> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_FILE = 46
 # ANY odd number will disable ALL logging
@@ -5,11 +6,11 @@
 loglevel: 62
 
 #only prefix
-logfile: dune_stokes
+logfile:  taylor
 
 #path (relative to binary) where .vtu etc will be saved
-fem.io.datadir: data
-fem.prefix: data
+fem.io.datadir: data_cavity
+fem.prefix: data_cavity
 #path (relative to binary) where logs and matlab files will be saved
 fem.io.logdir: log
 #0: grape, 1: vtk,  2: vtkvtx, 3: gnuplot
@@ -17,15 +18,13 @@ fem.io.outputformat: 2
 fem.io.datafileprefix: solu_
 fem.io.savestep: 1
 fem.io.savecount: 1
-fem.timeprovider.starttime: 0.0
-fem.timeprovider.endtime: 0.06
-fem.timeprovider.dt: 0.010
+fem.timeprovider.starttime: 0
 
 #nonlinear - models.hh
 femhowto.diffusionTimeStep: 0
 femhowto.verbose: 1
-femhowto.epsilon: 0.003
 femhowto.startTime: 0.0
+femhowto.epsilon: 0.003
 
 # write solution vtk every N iterations ( < 1 to disable )
 save_interval: -1
@@ -42,7 +41,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: grid_2d.dgf
+dgf_file_2d: cavity_2d.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -62,44 +61,48 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 1
-maxref: 1
-
-#in runtype 1 vary
-minpow: -1
-maxpow: 1
-minfactor: 0.0
-maxfactor: 2.0
-incfactor: 0.5
+minref: 3
+maxref: 3
+fem.timeprovider.dt: 0.050
+fem.timeprovider.endtime: 4.6
+enable_stokesA: 1
+enable_stokesB: 1
+enable_oseen: 1
+write_fulltimestep_only: 0
+silent_stokes: 0
+calculate_errors: 0
+C11: 1.0
+C12: 0.0e-2
+D11: 1.0
+D12: 0.0e-2
+viscosity: 0.0010
+stab_coeff_visc_scale: 1
 
 #parameters for runtype 2, do-bfg and bfg-tau are ignored there
 bfg-tau-start: 0
 bfg-tau-stop: 0.5
 bfg-tau-inc: 0.075
 
-#parameters for runtype 3,
-accurracy_start: 10e-5
-accurracy_factor: 10e-3
-accurracy_steps: 5
-
 #*********** end runtype specific parameters **************************************************
 
-viscosity: 1.0
+reynolds: 1.0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
 alpha: 0.0
 
 #****************** solver ******************************************************************
 #pretty much ineffective
-enable_stokesA: 1
-enable_stokesB: 1
-enable_oseen: 1
 relLimit: 1e-08
 
-absLimit: 1e-06
-inner_absLimit: 1e-06
+absLimit: 1e-08
+inner_absLimit: 1e-08
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
+
+use_pressure_reconstruct: 0
+use_pressure_reconstruct_A: 1
+pressure_cheat: 0
+
 #clear computed functions at start of every singleRun ?
 clear_u: 1
 clear_p: 0

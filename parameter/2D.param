@@ -17,15 +17,15 @@ fem.io.outputformat: 2
 fem.io.datafileprefix: solu_
 fem.io.savestep: 1
 fem.io.savecount: 1
-fem.timeprovider.starttime: 0.0
-fem.timeprovider.endtime: 0.06
-fem.timeprovider.dt: 0.010
+fem.timeprovider.starttime: 0.00707107
+fem.timeprovider.endtime: 0.96
+fem.timeprovider.dt: 0.005
 
 #nonlinear - models.hh
 femhowto.diffusionTimeStep: 0
 femhowto.verbose: 1
 femhowto.epsilon: 0.003
-femhowto.startTime: 0.0
+femhowto.startTime: 0.00707107
 
 # write solution vtk every N iterations ( < 1 to disable )
 save_interval: -1
@@ -62,8 +62,8 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 1
-maxref: 1
+minref: 3
+maxref: 3
 
 #in runtype 1 vary
 minpow: -1
@@ -85,14 +85,15 @@ accurracy_steps: 5
 #*********** end runtype specific parameters **************************************************
 
 viscosity: 1.0
+#viscosity: 0.10610329539459689051
+enable_oseen: 1
+enable_stokesA: 0
+enable_stokesB: 0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
 alpha: 0.0
 
 #****************** solver ******************************************************************
 #pretty much ineffective
-enable_stokesA: 1
-enable_stokesB: 1
-enable_oseen: 1
 relLimit: 1e-08
 
 absLimit: 1e-06
@@ -100,12 +101,13 @@ inner_absLimit: 1e-06
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
+use_velocity_reconstruct: 1
 #clear computed functions at start of every singleRun ?
-clear_u: 1
+clear_u: 0
 clear_p: 0
 
 #when nans are detected in solution solver accuracy is multiplied maximal max_adaptions-times by 0.1
-max_adaptions: 5
+max_adaptions: 0
 
 # > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
 solverVerbosity: 1
