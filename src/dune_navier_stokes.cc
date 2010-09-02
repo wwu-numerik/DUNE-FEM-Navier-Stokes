@@ -89,6 +89,7 @@
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
+#include <dune/stuff/signals.hh>
 
 #include <dune/navier/thetascheme.hh>
 #include <dune/navier/testdata.hh>
@@ -142,6 +143,7 @@ void eocCheck( const RunInfoVector& runInfos );
 int main( int argc, char** argv )
 {
 #ifdef NDEBUG
+	Stuff::Signals::installSignalHandler();
 	try
 #endif
 	{
