@@ -434,6 +434,7 @@ namespace Dune {
 					//initial flow field at t = 0
 					exactSolution_.project();
 					currentFunctions_.assign( exactSolution_ );
+					nextFunctions_.assign( exactSolution_ );
 					dataWriter_.write();
 					//set current time to t_0 + theta
 					timeprovider_.nextFractional();
