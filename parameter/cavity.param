@@ -1,4 +1,4 @@
-#param file for lid driven cavity
+#Stationaere Loesung von oseen nach CKS,Oseen paper
 # LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
 # --> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_FILE = 46
 # ANY odd number will disable ALL logging
@@ -6,7 +6,7 @@
 loglevel: 62
 
 #only prefix
-logfile:  taylor
+logfile: cavity 
 
 #path (relative to binary) where .vtu etc will be saved
 fem.io.datadir: data_cavity
@@ -41,7 +41,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: cavity_2d.dgf
+dgf_file_2d: cavity.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -61,40 +61,49 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 3
-maxref: 3
-fem.timeprovider.dt: 0.050
-fem.timeprovider.endtime: 4.6
+minref: 4
+maxref: 0
+fem.timeprovider.dt: 0.00450
+fem.timeprovider.endtime: 0.202
 enable_stokesA: 1
 enable_stokesB: 1
 enable_oseen: 1
-write_fulltimestep_only: 0
+reduced_oseen_solver: 1
+use_full_solver: 0
+use_nested_cg_solver: 0
+write_fulltimestep_only: 1
 silent_stokes: 0
+add_extra_terms: 0
+C11: 1000.0
+C12: 0.0
+D11: 1000.0
+D12: 0.0
+viscosity: 0.0100
+use_cks_convection: 1
+scale_equations: 1
+save_matrices: 0
+paranoid_checks: 0
+use_alternate_convection_volume_disc: 0
+solverVerbosity: 0
+stab_coeff_visc_scale: 0
+reynolds: 100.0
 calculate_errors: 0
-C11: 1.0
-C12: 0.0e-2
-D11: 1.0
-D12: 0.0e-2
-viscosity: 0.0010
-stab_coeff_visc_scale: 1
-
 #parameters for runtype 2, do-bfg and bfg-tau are ignored there
+alpha: 0.0
 bfg-tau-start: 0
 bfg-tau-stop: 0.5
 bfg-tau-inc: 0.075
 
 #*********** end runtype specific parameters **************************************************
 
-reynolds: 1.0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-alpha: 0.0
 
 #****************** solver ******************************************************************
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-08
-inner_absLimit: 1e-08
+absLimit: 1e-06
+inner_absLimit: 1e-06
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
@@ -111,14 +120,12 @@ clear_p: 0
 max_adaptions: 5
 
 # > 2 will show bfg setting per inner iteration, > 1 avg inner iteration count
-solverVerbosity: 1
 
 disableSolver: 0
 diff-tolerance: 0.01
-do-bfg: 1
+do-bfg: 0
 bfg-tau: 0.1
 
-use_nested_cg_solver: 0
 
 #if using alternative solver break after max maxIter outer iterations
 maxIter: 5000
