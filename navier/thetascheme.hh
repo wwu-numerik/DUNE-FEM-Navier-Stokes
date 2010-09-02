@@ -387,8 +387,7 @@ namespace Dune {
 					}
 					stab_coeff.FactorFromParams("D12");
 					stab_coeff.FactorFromParams("C12");
-					stab_coeff.FactorFromParams( "E12", 0.5 );
-
+					stab_coeff.Add( "E12", 0.5 );
 
 					dummyFunctions_.discreteVelocity().assign( stokesForce );
 //					Logger().Info() << "stokes a/RE|b/RE|y " << stokes_viscosity_ << " | "
@@ -564,7 +563,7 @@ namespace Dune {
 					}
 					stab_coeff.FactorFromParams("D12");
 					stab_coeff.FactorFromParams("C12");
-					stab_coeff.FactorFromParams( "E12", 0.5 );
+					stab_coeff.Add( "E12", 0.5 );
 
 					Logger().Info() << "oseen a/RE|b/RE|y " << operator_weight_alpha_ / reynolds_ << " | "
 														<< beta_qout_re_ << " | "
