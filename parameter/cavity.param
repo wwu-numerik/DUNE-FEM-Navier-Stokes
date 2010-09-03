@@ -41,7 +41,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: cavity.dgf
+dgf_file_2d: cavity_2d.dgf
 dgf_file_3d: grid_3d.dgf
 # scale domain to have length 2
 domain_scale_x: 2.0
@@ -61,10 +61,10 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 4
+minref: 5
 maxref: 0
 fem.timeprovider.dt: 0.00450
-fem.timeprovider.endtime: 0.202
+fem.timeprovider.endtime: 2.202
 enable_stokesA: 1
 enable_stokesB: 1
 enable_oseen: 1
