@@ -462,6 +462,8 @@ namespace Dune {
 						}
 
 						nextStep( 2, info_dummy );
+						if( Parameters().getParam( "pressure_cheat", false ) )
+							nextFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						//stokes step B
 						RunInfo info;
 						if( Parameters().getParam( "enable_stokesB", true ) )
