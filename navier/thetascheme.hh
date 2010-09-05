@@ -10,6 +10,7 @@
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/functions.hh>
+#include <dune/stuff/tuple.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
@@ -107,36 +108,6 @@ namespace Dune {
 				OseenpassType;
 		};
 
-		template < class T1, class T2, class T3, class T4 = T3>
-		struct TupleSerializer {
-			typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
-									const typename T1::DiscretePressureFunctionType*,
-									const typename T2::DiscreteVelocityFunctionType*,
-									const typename T2::DiscretePressureFunctionType*,
-									const typename T3::DiscreteVelocityFunctionType*,
-									const typename T3::DiscretePressureFunctionType*,
-									const typename T4::DiscreteVelocityFunctionType*,
-									const typename T4::DiscretePressureFunctionType*>
-				TupleType;
-
-			static TupleType& getTuple( T1& t1,
-										T2& t2,
-										T3& t3,
-										T4& t4)
-			{
-				//yay for dangling pointers, but using a local static here fubared sequential runs with diff grid
-				TupleType* t = new  TupleType( &(t1.discreteVelocity()),
-									&(t1.discretePressure()),
-									&(t2.discreteVelocity()),
-									&(t2.discretePressure()),
-									&(t3.discreteVelocity()),
-									&(t3.discretePressure()),
-									&(t4.discreteVelocity()),
-									&(t4.discretePressure()));
-				return *t;
-			}
-		};
-
 		template < class TraitsImp >
 		class ThetaScheme {
 			protected:
@@ -146,7 +117,7 @@ namespace Dune {
 					CommunicatorType;
 				typedef typename Traits::ExactSolutionType
 					ExactSolutionType;
-				typedef TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
+				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
 											typename Traits::DiscreteStokesFunctionWrapperType,
 											ExactSolutionType,
 											typename Traits::DiscreteStokesFunctionWrapperType>
