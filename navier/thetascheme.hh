@@ -107,7 +107,7 @@ namespace Dune {
 				OseenpassType;
 		};
 
-		template < class T1, class T2, class T3, class T4 = T3 >
+		template < class T1, class T2, class T3, class T4 = T3>
 		struct TupleSerializer {
 			typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
 									const typename T1::DiscretePressureFunctionType*,
@@ -173,6 +173,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
+				typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType dataWriter_;
 				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
@@ -212,6 +213,9 @@ namespace Dune {
 					dummyFunctions_("force",
 									functionSpaceWrapper_,
 									gridPart_ ),
+					updateFunctions_("updates",
+									  functionSpaceWrapper_,
+									  gridPart_ ),
 					dataWriter_( timeprovider_,
 								 gridPart_.grid(),
 								 TupleSerializerType::getTuple(
@@ -370,8 +374,6 @@ namespace Dune {
 						const double force_abs = l2_Error.norm( stokesForce_full ) ;
 						stokesForce_full -= stokesForce;
 						const double force_error_abs = l2_Error.norm( stokesForce_full ) ;
-//						Logging::ResumeLocal rl(Logging::LogStream::default_suspend_priority + 1 );
-//						Logger().Info() << "FORCE stokes diff " << force_error_abs << " | " << force_error_abs / force_abs << std::endl;
 					}
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
@@ -408,6 +410,7 @@ namespace Dune {
 											functionSpaceWrapper_ );
 
 					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
+					setUpdateFunctions();
 					RunInfo info;
 					stokesPass.getRuninfo( info );
 					if ( Parameters().getParam( "silent_stokes", true ) )
@@ -517,18 +520,7 @@ namespace Dune {
 																	  operator_weight_alpha_ / reynolds_,
 																	  oseen_alpha_unscaled,
 																	  true );
-//					typedef typename Dune::NavierStokes::TESTCASE::PressureGradient< typename Traits::VelocityFunctionSpaceType, typename Traits::TimeProviderType >
-//							PressureGradient;
-//					typename Traits::VelocityFunctionSpaceType p;
-//					PressureGradient pg ( timeprovider_, p);
-//					Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 
-//					Dune::L2Projection< double,
-//										double,
-//										PressureGradient,
-//										 >
-//						()(pg, dummyFunctions_.discreteVelocity() );
-//					rhsDatacontainer_.pressure_gradient *=240.414;
 
 					// F = f + \alpha \mu \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
 					if ( !add_extra_terms ) {
@@ -540,12 +532,6 @@ namespace Dune {
 					}
 					nonlinearForce *= scale_factor;
 					//
-
-//					const double force_abs = l2_Error.norm( nonlinearForce_full );
-//					nonlinearForce_full -= nonlinearForce;
-//					const double force_error_abs = l2_Error.norm( nonlinearForce_full );
-//					Logger().Info() << "FORCE oseen diff " <<  force_error_abs << " | " << force_error_abs / force_abs << std::endl;
-
 
 					typename Traits::StokesStartPassType stokesStartPass;
 
@@ -585,6 +571,13 @@ namespace Dune {
 											functionSpaceWrapper_,
 											&currentFunctions_.discreteVelocity() );
 					oseenPass.apply( currentFunctions_, nextFunctions_ );
+					setUpdateFunctions();
+				}
+
+				void setUpdateFunctions()
+				{
+					updateFunctions_.assign( currentFunctions_ );
+					updateFunctions_ -= nextFunctions_;
 				}
 
 		};
