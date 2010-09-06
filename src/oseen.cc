@@ -272,6 +272,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	stab_coeff.FactorFromParams( "D12", 0 );
 	stab_coeff.FactorFromParams( "C12", 0 );
 	stab_coeff.Add( "E12", 0.5 );
+	stab_coeff.FactorFromParams( "E12", 0.5 );
 
 	typedef Dune::Oseen::Traits<
 			CollectiveCommunication,
@@ -326,11 +327,19 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						oseen_alpha );
 	currentFunctions.assign( exactSolution );
 
+	OseenTraits::ConvectionType convection( oseen_viscosity, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convetion", currentFunctions.discreteVelocity().space() );
+	Dune::L2Projection< double,
+						double,
+						OseenTraits::ConvectionType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(convection, discrete_convection);
+
 	OseenTraits::OseenPassType oseenPass( startPass,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							&currentFunctions.discreteVelocity() );
+							&discrete_convection );
 	oseenPass.apply( currentFunctions, nextFunctions );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
