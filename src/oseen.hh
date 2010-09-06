@@ -482,6 +482,7 @@ namespace Oseen {
 					  const double C_y			= std::cos( P * y );
 					  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
 					  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
+					  ret = RangeType(0);
 				  }
 
 			  private:
@@ -495,14 +496,16 @@ namespace Oseen {
 		{
 			const double x				= arg[0];
 			const double y				= arg[1];
-			const double pi_factor		= M_PI;
 			const double v				= Parameters().getParam( "viscosity", 1.0 );
-			const double e_x			= std::exp( -2 * std::pow(M_PI,2) * v * time );
+			const double F				= std::exp( -8 * std::pow( M_PI, 2 ) * time );
+			const double C1				= std::cos(2*M_PI* ( x + 0.25 ) );
+			const double S1				= std::sin(2*M_PI* ( x + 0.25 ) );
+			const double S2				= std::sin(2*M_PI* ( y + 0.5 ) );
+			const double C2				= std::cos(2*M_PI* ( y + 0.5 ) );
 
-			const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * v * time );
-
-			ret[0] = -1 *	std::cos( pi_factor * x ) * std::sin( pi_factor * y ) * e_minus_2_t;
-			ret[1] =		std::sin( pi_factor * x ) * std::cos( pi_factor * y ) * e_minus_2_t;		}
+			ret[0] = ( - 1 / v ) * C1 * S2 * F;
+			ret[1] = (  1 / v ) * S1 * C2 * F;
+		}
 
 		/**
 		*  \brief  describes the dirichlet boundary data
@@ -664,12 +667,11 @@ namespace Oseen {
 					const double x				= arg[0];
 					const double y				= arg[1];
 					const double v				= Parameters().getParam( "viscosity", 1.0 );
-					const double pi_factor		= M_PI;
-					const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
+					const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
+					const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
+					const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
 
-					ret[0] = -0.25 * (
-										std::cos( 2 * pi_factor * x ) + std::cos( 2 * pi_factor * y )
-									) * e_minus_4_t;
+					ret = ( -1 / ( 4 * v ) ) * ( C1 + C2 ) * F;
 				}
 
 				template < class DiscreteFunctionSpace >
@@ -695,7 +697,7 @@ namespace Oseen {
 	}//end namespace TestCaseTaylor2D
 
 #ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE Oseen::TestCase2D
+	#define OSEEN_DATA_NAMESPACE Oseen::TestCaseTaylor2D
 #endif
 
 	template <	class CommunicatorImp,
