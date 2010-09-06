@@ -87,6 +87,7 @@
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
+#include <dune/stuff/signals.hh>
 
 #include "oseen.hh"
 
@@ -135,6 +136,7 @@ void eocCheck( const RunInfoVector& runInfos );
  **/
 int main( int argc, char** argv )
 {
+	Stuff::Signals::installSignalHandler(SIGINT);
 #ifdef NDEBUG
 	try
 #endif
@@ -204,6 +206,9 @@ int main( int argc, char** argv )
   catch ( assert_exception& a ) {
 	  std::cerr << "Exception thrown at:\n" << a.what() << std::endl ;
   }
+	catch ( std::exception& e ) {
+		std::cerr << "Exception thrown at:\n" << e.what() << std::endl ;
+	}
   catch (...){
 	std::cerr << "Unknown exception thrown!" << std::endl;
   }
@@ -266,7 +271,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 	stab_coeff.FactorFromParams( "D12", 0 );
 	stab_coeff.FactorFromParams( "C12", 0 );
-	stab_coeff.FactorFromParams( "E12", 0.5 );
+	stab_coeff.Add( "E12", 0.5 );
 
 	typedef Dune::Oseen::Traits<
 			CollectiveCommunication,
