@@ -142,8 +142,8 @@ void eocCheck( const RunInfoVector& runInfos );
  **/
 int main( int argc, char** argv )
 {
-#ifdef NDEBUG
 	Stuff::Signals::installSignalHandler();
+#ifdef NDEBUG
 	try
 #endif
 	{
