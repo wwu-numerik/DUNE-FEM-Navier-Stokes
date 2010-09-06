@@ -10,6 +10,7 @@
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/functions.hh>
+#include <dune/stuff/tuple.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
@@ -107,36 +108,6 @@ namespace Dune {
 				OseenpassType;
 		};
 
-		template < class T1, class T2, class T3, class T4 = T3>
-		struct TupleSerializer {
-			typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
-									const typename T1::DiscretePressureFunctionType*,
-									const typename T2::DiscreteVelocityFunctionType*,
-									const typename T2::DiscretePressureFunctionType*,
-									const typename T3::DiscreteVelocityFunctionType*,
-									const typename T3::DiscretePressureFunctionType*,
-									const typename T4::DiscreteVelocityFunctionType*,
-									const typename T4::DiscretePressureFunctionType*>
-				TupleType;
-
-			static TupleType& getTuple( T1& t1,
-										T2& t2,
-										T3& t3,
-										T4& t4)
-			{
-				//yay for dangling pointers, but using a local static here fubared sequential runs with diff grid
-				TupleType* t = new  TupleType( &(t1.discreteVelocity()),
-									&(t1.discretePressure()),
-									&(t2.discreteVelocity()),
-									&(t2.discretePressure()),
-									&(t3.discreteVelocity()),
-									&(t3.discretePressure()),
-									&(t4.discreteVelocity()),
-									&(t4.discretePressure()));
-				return *t;
-			}
-		};
-
 		template < class TraitsImp >
 		class ThetaScheme {
 			protected:
@@ -146,17 +117,25 @@ namespace Dune {
 					CommunicatorType;
 				typedef typename Traits::ExactSolutionType
 					ExactSolutionType;
-				typedef TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
+				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
 											typename Traits::DiscreteStokesFunctionWrapperType,
 											ExactSolutionType,
 											typename Traits::DiscreteStokesFunctionWrapperType>
-					TupleSerializerType;
-				typedef typename TupleSerializerType::TupleType
-					OutputTupleType;
+					TupleSerializerType1;
+				typedef typename TupleSerializerType1::TupleType
+					OutputTupleType1;
 				typedef TimeAwareDataWriter<	typename Traits::TimeProviderType,
 												typename Traits::GridPartType::GridType,
-												OutputTupleType >
-					DataWriterType;
+												OutputTupleType1 >
+					DataWriterType1;
+				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType >
+					TupleSerializerType2;
+				typedef typename TupleSerializerType2::TupleType
+					OutputTupleType2;
+				typedef TimeAwareDataWriter<	typename Traits::TimeProviderType,
+												typename Traits::GridPartType::GridType,
+												OutputTupleType2 >
+					DataWriterType2;
 				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
 					DiscreteVelocityFunctionType;
 				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType
@@ -175,7 +154,8 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
 				ExactSolutionType exactSolution_;
-				DataWriterType dataWriter_;
+				DataWriterType1 dataWriter1_;
+				DataWriterType2 dataWriter2_;
 				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
 				typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
 
@@ -216,13 +196,18 @@ namespace Dune {
 					updateFunctions_("updates",
 									  functionSpaceWrapper_,
 									  gridPart_ ),
-					dataWriter_( timeprovider_,
+					dataWriter1_( timeprovider_,
 								 gridPart_.grid(),
-								 TupleSerializerType::getTuple(
+								 TupleSerializerType1::getTuple(
 										 currentFunctions_,
 										 errorFunctions_,
 										 exactSolution_,
 										 dummyFunctions_)
+								),
+					dataWriter2_( timeprovider_,
+								 gridPart_.grid(),
+								 TupleSerializerType2::getTuple(
+										 updateFunctions_)
 								),
 					sigma_space_( gridPart_ ),
 					rhsDatacontainer_( currentFunctions_.discreteVelocity().space(), sigma_space_ ),
@@ -312,7 +297,7 @@ namespace Dune {
 					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
 
 					if ( step == 3 || !Parameters().getParam( "write_fulltimestep_only", false ) )
-						dataWriter_.write();
+						writeData();
 					timeprovider_.nextFractional();
 				}
 
@@ -438,7 +423,7 @@ namespace Dune {
 					exactSolution_.project();
 					currentFunctions_.assign( exactSolution_ );
 					nextFunctions_.assign( exactSolution_ );
-					dataWriter_.write();
+					writeData();
 					//set current time to t_0 + theta
 					timeprovider_.nextFractional();
 
@@ -578,6 +563,12 @@ namespace Dune {
 				{
 					updateFunctions_.assign( currentFunctions_ );
 					updateFunctions_ -= nextFunctions_;
+				}
+
+				void writeData()
+				{
+					dataWriter1_.write();
+					dataWriter2_.write();
 				}
 
 		};
