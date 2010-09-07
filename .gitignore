@@ -46,3 +46,4 @@ CMakeLists.txt.user
 dependencies.m4
 config.lt
 libtool
+results/
