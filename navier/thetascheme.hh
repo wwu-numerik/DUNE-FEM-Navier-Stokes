@@ -516,8 +516,21 @@ namespace Dune {
 						nonlinearForce += dummyFunctions_.discreteVelocity();
 					}
 					nonlinearForce *= scale_factor;
-					//
+					for( unsigned int i = 0; i<Parameters().getParam("oseen_iterations",int(1)); ++i )
+					{
+						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
+						setUpdateFunctions();
+						currentFunctions_.assign( nextFunctions_ );
+					}
+				}
 
+				void oseenStepSingle(	const typename Traits::NonlinearForceAdapterFunctionType& nonlinearForce,
+										const double oseen_viscosity,
+										const double oseen_alpha,
+										const double scale_factor )
+				{
+
+					//
 					typename Traits::StokesStartPassType stokesStartPass;
 
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
@@ -525,7 +538,6 @@ namespace Dune {
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-//					dummyFunctions_.discreteVelocity().assign( nonlinearForce );
 					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
 						stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
 						stab_coeff.Factor( "C11", oseen_viscosity );
@@ -538,9 +550,9 @@ namespace Dune {
 					stab_coeff.FactorFromParams("C12");
 					stab_coeff.Add( "E12", 0.5 );
 
-					Logger().Info() << "oseen a/RE|b/RE|y " << operator_weight_alpha_ / reynolds_ << " | "
-														<< beta_qout_re_ << " | "
-														<< oseen_alpha << "\n";
+//					Logger().Info() << "oseen a/RE|b/RE|y " << operator_weight_alpha_ / reynolds_ << " | "
+//														<< beta_qout_re_ << " | "
+//														<< oseen_alpha << "\n";
 					stab_coeff.print( Logger().Info() );
 
 					typename Traits::OseenModelType
@@ -556,7 +568,7 @@ namespace Dune {
 											functionSpaceWrapper_,
 											&currentFunctions_.discreteVelocity() );
 					oseenPass.apply( currentFunctions_, nextFunctions_ );
-					setUpdateFunctions();
+
 				}
 
 				void setUpdateFunctions()
