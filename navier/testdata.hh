@@ -331,16 +331,29 @@ namespace Dune {
 						  const double S_2y			= std::sin( 2 * P * y );
 						  const double C_x			= std::cos( P * x );
 						  const double C_y			= std::cos( P * y );
-						  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
-						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
+//						  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
+//						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
+
+						  //diff
+						  ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
+						  ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
+
+						  //druck
+						  ret[0] += 0.5 * P * F * S_2x;
+						  ret[1] += 0.5 * P * F * S_2y;
+
+						  //conv
+						  ret[0] +=  E * E *P * C_x * S_x ;
+						  ret[1] += - E * E *P * S_y * C_y;
+
 
 						  //zeitableitung
 						  RangeType u;
 						  VelocityEvaluate( 0, 0, time, arg, u);
-						  ret[0] += ( -2 * time * M_PI * M_PI * v ) * u[0];
-						  ret[1] += ( -2 * time * M_PI * M_PI * v ) * u[1];
+						  ret[0] += ( -2 * M_PI * M_PI * v ) * u[0];
+						  ret[1] += ( -2 * M_PI * M_PI * v ) * u[1];
 
-//						  ret = RangeType(0);
+						  ret = RangeType(0);
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
