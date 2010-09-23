@@ -199,7 +199,7 @@ int main( int argc, char** argv )
 //		profiler().Output( mpicomm, rf );
 
 		Stuff::TimeSeriesOutput out( rf );
-		out.writeTex( "dummy" );
+		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
 
 		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
 		return err;
