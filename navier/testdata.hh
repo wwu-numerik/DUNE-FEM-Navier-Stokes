@@ -353,7 +353,7 @@ namespace Dune {
 						  ret[0] += ( -2 * M_PI * M_PI * v ) * u[0];
 						  ret[1] += ( -2 * M_PI * M_PI * v ) * u[1];
 
-						  ret = RangeType(0);
+						  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
