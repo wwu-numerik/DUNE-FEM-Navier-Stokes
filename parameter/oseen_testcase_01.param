@@ -67,7 +67,7 @@ reynolds: 10
 do-bfg: 1
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
 alpha: 100.0
-use_alternate_convection_volume_disc: 1
+use_alternate_convection_volume_disc: 0
 use_alternate_vonctetion_volume_disc: 1
 solverVerbosity: 4
 use_cks_convection: 0
@@ -79,8 +79,8 @@ use_cks_convection: 0
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-12
-inner_absLimit: 1e-12
+absLimit: 1e-04
+inner_absLimit: 1e-04
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
