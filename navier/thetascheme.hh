@@ -339,8 +339,8 @@ namespace Dune {
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
 					if ( !add_extra_terms ) {
-						// F = + alpha * mu * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
-						rhsDatacontainer_.velocity_laplace *= operator_weight_beta_;
+						// F = f + \alpha / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
+						rhsDatacontainer_.velocity_laplace *= ( operator_weight_beta_ / reynolds_ );
 						dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
 						dummyFunctions_.discreteVelocity() *= stokes_alpha_unscaled;
 						stokesForce += dummyFunctions_.discreteVelocity();
@@ -359,6 +359,7 @@ namespace Dune {
 						const double force_abs = l2_Error.norm( stokesForce_full ) ;
 						stokesForce_full -= stokesForce;
 						const double force_error_abs = l2_Error.norm( stokesForce_full ) ;
+						Logger().Info() << boost::format( "rhs error %f\n" ) % force_error_abs;
 					}
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
@@ -507,12 +508,13 @@ namespace Dune {
 																	  true );
 
 
-					// F = f + \alpha \mu \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
+					// F = f + \alpha \Re \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
 					if ( !add_extra_terms ) {
 						nonlinearForce -= rhsDatacontainer_.pressure_gradient;
+						rhsDatacontainer_.velocity_laplace *= operator_weight_alpha_ / reynolds_;
 						nonlinearForce += rhsDatacontainer_.velocity_laplace;
 						dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
-						dummyFunctions_.discreteVelocity() *= oseen_alpha_unscaled;
+						dummyFunctions_.discreteVelocity() *= ( 1 / delta_t_factor );
 						nonlinearForce += dummyFunctions_.discreteVelocity();
 					}
 					nonlinearForce *= scale_factor;
