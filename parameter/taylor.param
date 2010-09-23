@@ -61,7 +61,7 @@ domain_shift_y: -1.0
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 5
+minref: 4
 maxref: 0
 fem.timeprovider.dt: 0.00150
 fem.timeprovider.endtime: 0.202
@@ -74,15 +74,16 @@ use_nested_cg_solver: 0
 write_fulltimestep_only: 0
 silent_stokes: 0
 add_extra_terms: 1
-C11: 1.0e+00
+C11: 1.0e-02
 C12: 0.0
-D11: 1.0e+00
+D11: 1.0e+02
 D12: 0.0
-viscosity: 0.0100
-use_cks_convection: 1
-scale_equations: 1
-use_alternate_convection_volume_disc: 0
-solverVerbosity: 0
+E12: 0
+viscosity: 0.1000
+use_cks_convection: 0
+scale_equations: 0
+use_alternate_convection_volume_disc: 1
+solverVerbosity: 1
 stab_coeff_visc_scale: 1
 reynolds: 10.0
 calculate_errors: 1
@@ -101,8 +102,8 @@ bfg-tau-inc: 0.075
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-09
-inner_absLimit: 1e-09
+absLimit: 1e-10
+inner_absLimit: 1e-10
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
@@ -121,7 +122,7 @@ max_adaptions: 5
 
 disableSolver: 0
 diff-tolerance: 0.01
-do-bfg: 0
+do-bfg: 1
 bfg-tau: 0.1
 
 
