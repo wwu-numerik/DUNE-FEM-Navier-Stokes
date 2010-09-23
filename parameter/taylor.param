@@ -68,7 +68,7 @@ fem.timeprovider.endtime: 0.202
 enable_stokesA: 1
 enable_stokesB: 1
 enable_oseen: 1
-reduced_oseen_solver: 1
+reduced_oseen_solver: 0
 use_full_solver: 0
 use_nested_cg_solver: 0
 write_fulltimestep_only: 0
