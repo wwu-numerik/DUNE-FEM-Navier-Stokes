@@ -99,6 +99,8 @@
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 
+#include <boost/format.hpp>
+
 #ifndef COMMIT
 	#define COMMIT "undefined"
 #endif
@@ -271,17 +273,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
-	double theta_ = 1 - std::pow( 2.0, -1/2.0 );
 	Traits::CommunicatorType communicator_= Dune::MPIManager::helper().getCommunicator();
 
-	const double operator_weight_alpha_( ( 1-2*theta_ ) / ( 1-theta_ ) );
-	const double operator_weight_beta_( 1 - operator_weight_alpha_ );
-
-	Traits::TimeProviderType timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, communicator_ );
 	Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_( gridPart_ );
-	Traits::DiscreteStokesFunctionWrapperType currentFunctions_(  "current_",
-						functionSpaceWrapper_,
-						gridPart_ );
+
 	Traits::DiscreteStokesFunctionWrapperType nextFunctions_(  "next_",
 					functionSpaceWrapper_,
 					gridPart_ );
@@ -289,25 +284,44 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					functionSpaceWrapper_,
 					gridPart_ );
 
-	Traits::ExactSolutionType exactSolution_( timeprovider_,
-					gridPart_,
-					functionSpaceWrapper_ );
 
 
-	//initial flow field at t = 0
-	exactSolution_.project();
-	currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
+
+	Dune::NavierStokes::ThetaScheme<Traits>
+			thetaScheme( gridPart_ );
+	thetaScheme.Init();
+	thetaScheme.stokesStep();
+	const Traits::ExactSolutionType& exactSolution_ = thetaScheme.exactSolution();
+	const Traits::DiscreteStokesFunctionWrapperType& currentFunctions_ = thetaScheme.currentFunctions();
+	const Traits::TimeProviderType& timeprovider_ = thetaScheme.timeprovider();
+
+
+//	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
+
+
+	infoStream << "  - max grid width: " << grid_width << std::endl;
+
+
+//	currentFunctions_.projectInto( exactSolution_.exactVelocity(), exactSolution_.exactPressure() );
 
 	//constants
-	const double viscosity				= 1.0;
-	const double d_t					= 1;
-	const double quasi_stokes_alpha		= 1;
-	const double reynolds				= 1 / viscosity;//not really, but meh
-	const double stokes_viscosity		= 1;
-	const double beta_qout_re			= 1;
+	const double viscosity				= thetaScheme.viscosity_;
+	const double d_t_					= thetaScheme.d_t_;
+	const double theta_					= thetaScheme.theta_;
+	const double delta_t_factor = theta_ * d_t_;
+
+	const double quasi_stokes_alpha		= 1 / delta_t_factor;
+
+	const double reynolds_				= thetaScheme.reynolds_;
+	const double operator_weight_alpha_ = thetaScheme.operator_weight_alpha_;
+	const double operator_weight_beta_ = thetaScheme.operator_weight_beta_;
+	const double stokes_viscosity		= operator_weight_alpha_ / reynolds_;
+
+	const double beta_qout_re			= operator_weight_beta_ / reynolds_;
 	const int verbose					= 1;
 	const Traits::AnalyticalForceType force ( viscosity,
 												 currentFunctions_.discreteVelocity().space() );
+	const bool add_extra_terms = Parameters().getParam( "add_extra_terms", false ) ;
 
 	Traits::StokesModelTraits::PressureFunctionSpaceType
 			continousPressureSpace_;
@@ -325,11 +339,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 															Traits::TimeProviderType >
 		VelocityConvection;
 	VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
-	Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
-																   exactSolution_.discreteVelocity(),
-																   force,
-																   beta_qout_re,
-																	quasi_stokes_alpha );
+	Traits::StokesAnalyticalForceAdapterType stokesForce(	timeprovider_,
+															exactSolution_.discreteVelocity(),
+															force,
+															beta_qout_re,
+															quasi_stokes_alpha,
+															add_extra_terms );
 	typedef Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
 		DiscreteVelocityFunctionType;
 	DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", exactSolution_.discreteVelocity().space() );
@@ -353,35 +368,44 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 		()(pressure_gradient, pressure_gradient_discrete);
 
 	DiscreteVelocityFunctionType diffs("diffs", exactSolution_.discreteVelocity().space());
-	DiscreteVelocityFunctionType rhs("rhs", exactSolution_.discreteVelocity().space());
-	rhs.clear();
+	DiscreteVelocityFunctionType rhs_stokes("rhs", exactSolution_.discreteVelocity().space());
+	rhs_stokes.clear();
 
-	rhs += exactSolution_.discreteVelocity();
-	rhs -= velocity_convection_discrete;
-	rhs += velocity_laplace_discrete;
-	diffs.assign( rhs );
-	diffs -= stokesForce;
+//	rhs_stokes += exactSolution_.discreteVelocity();
+	rhs_stokes += velocity_convection_discrete;
+//	rhs_stokes += velocity_laplace_discrete;
+	diffs.assign( rhs_stokes );
+	diffs -= thetaScheme.rhsDatacontainer().velocity_laplace;
+//	diffs -= thetaScheme.rhsDatacontainer().velocity_laplace;
 
-	const double oseen_alpha = 1;
-	const double oseen_viscosity = 1;
+	RunInfo info_dummy;
+	thetaScheme.nextStep(1,info_dummy);
+	thetaScheme.oseenStep();
+
+	const double delta_t_factor_oseen = ( 1 - 2 * theta_ ) * d_t_;
+	const double oseen_alpha = 1 / delta_t_factor;
+	const double oseen_viscosity = thetaScheme.beta_qout_re_;
 	Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 													  currentFunctions_.discreteVelocity(),
 													  currentFunctions_.discretePressure(),
 													  force,
-													  1,
-													  1 );
-	DiscreteVelocityFunctionType rhs2("rhs", exactSolution_.discreteVelocity().space());
+													  operator_weight_alpha_ / reynolds_,
+													  oseen_alpha,
+													  add_extra_terms);
+	DiscreteVelocityFunctionType rhs_oseen("rhs", exactSolution_.discreteVelocity().space());
 	DiscreteVelocityFunctionType diffs2("diffs_nonlinear", exactSolution_.discreteVelocity().space());
-	rhs2.clear();
-	rhs2 += velocity_laplace_discrete;
-	rhs2 += exactSolution_.discreteVelocity();
-	rhs2 -= pressure_gradient_discrete;
-	diffs2.assign( rhs2 );
-	diffs2 -= nonlinearForce;
+	rhs_oseen.clear();
+//	rhs_oseen += velocity_laplace_discrete;
+//	rhs_oseen += exactSolution_.discreteVelocity();
+	rhs_oseen += pressure_gradient_discrete;
+	diffs2.assign( rhs_oseen );
+	diffs2 -= thetaScheme.rhsDatacontainer().pressure_gradient;
 
 	Dune::L2Norm< Traits::GridPartType > l2_Error( gridPart_ );
 	const double error1 = l2_Error.norm(diffs);
 	const double error2 = l2_Error.norm(diffs2);
+	const double error1_rel = error1 / l2_Error.norm(rhs_stokes);
+	const double error2_rel = error2 / l2_Error.norm(rhs_oseen);
 
 	typedef TupleSerializer<	Traits::DiscreteStokesFunctionWrapperType,
 								Traits::DiscreteStokesFunctionWrapperType,
@@ -409,7 +433,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &diffs2,
 						 &exactSolution_.discreteVelocity(),
 						 &pressure_gradient_discrete,
-						 &rhs,
+						 &rhs_stokes,
 						 &velocity_laplace_discrete,
 						 &velocity_convection_discrete,
 						 &stokesForce,
@@ -419,8 +443,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					   out );
 	dt.write();
 
-	std::cout	<< "error stokes\t" << error1 << std::endl
-				<< "error non\t" << error2 << std::endl;
+	std::cout	<< boost::format("error stokes\t%f (abs)| %f (rel)\nerror non\t%f (abs)| %f (rel)")
+								% error1 % error1_rel % error2 % error2_rel << std::endl;
 
 	return runInfoVector;
 }

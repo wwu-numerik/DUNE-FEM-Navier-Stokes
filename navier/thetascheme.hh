@@ -142,9 +142,11 @@ namespace Dune {
 					DiscretePressureFunctionType;
 
 				typename Traits::GridPartType gridPart_;
+		public:
 				const double theta_;
 				const double operator_weight_alpha_;
 				const double operator_weight_beta_;
+		protected:
 				CommunicatorType& communicator_;
 				typename Traits::TimeProviderType timeprovider_;
 				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
@@ -160,6 +162,7 @@ namespace Dune {
 				typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
 
 				//constants
+			public:
 				const double viscosity_;
 				const double d_t_;
 				const double reynolds_;
@@ -405,19 +408,17 @@ namespace Dune {
 					return info;
 				}
 
-				RunInfoVector run()
+				void Init()
 				{
-					RunInfoVector runInfoVector;
-
 					typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType meanVelocity
 							= Stuff::meanValue( currentFunctions_.discreteVelocity(), currentFunctions_.discreteVelocity().space() );
 					const double typicalVelocity = meanVelocity.two_norm();
 					Stuff::printFieldVector( meanVelocity, "meanVelocity", Logger().Info() );
 					Logger().Info() << "typicalVelocity " << typicalVelocity << std::endl;
-					const double typicalLength = 1.0;
+//					const double typicalLength = 1.0;
 
-					const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
-					double dt_new = grid_width * grid_width * 2;
+//					const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
+//					double dt_new = grid_width * grid_width * 2;
 
 					timeprovider_.init( d_t_ );
 					//initial flow field at t = 0
@@ -427,6 +428,12 @@ namespace Dune {
 					writeData();
 					//set current time to t_0 + theta
 					timeprovider_.nextFractional();
+				}
+
+				RunInfoVector run()
+				{
+					RunInfoVector runInfoVector;
+					Init();
 
 					for( ;timeprovider_.time() < timeprovider_.endTime(); )
 					{
@@ -583,6 +590,26 @@ namespace Dune {
 				{
 					dataWriter1_.write();
 					dataWriter2_.write();
+				}
+
+				typename Traits::StokesPassType::RhsDatacontainer& rhsDatacontainer()
+				{
+					return rhsDatacontainer_;
+				}
+
+				const ExactSolutionType& exactSolution() const
+				{
+					return exactSolution_;
+				}
+
+				const typename Traits::DiscreteStokesFunctionWrapperType& currentFunctions() const
+				{
+					return currentFunctions_;
+				}
+
+				const typename Traits::TimeProviderType& timeprovider() const
+				{
+					return timeprovider_;
 				}
 
 		};

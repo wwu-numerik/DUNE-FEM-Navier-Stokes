@@ -761,6 +761,7 @@ namespace AdapterFunctionsScalar {
 
 namespace AdapterFunctionsVectorial {
 
+	static const double pi_factor = M_PI;//controls number of vortices
 	template < class FunctionSpaceImp >
 	class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 	{
@@ -798,17 +799,63 @@ namespace AdapterFunctionsVectorial {
 			   *  \param  ret
 			   *          value of force at given point
 			   **/
-			  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
+			  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 			  {
-				  ret = RangeType(0);
+				  const double x			= arg[0];
+				  const double y			= arg[1];
+				  const double v			= viscosity_;
+				  const double P			= pi_factor;
+				  const double E			= std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
+				  const double F			= std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
+				  const double S_x			= std::sin( P * x );
+				  const double S_y			= std::sin( P * y );
+				  const double S_2x			= std::sin( 2 * P * x );
+				  const double S_2y			= std::sin( 2 * P * y );
+				  const double C_x			= std::cos( P * x );
+				  const double C_y			= std::cos( P * y );
+//						  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
+//						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
+
+				  //diff
+				  ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
+				  ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
+
+				  //druck
+				  ret[0] += 0.5 * P * F * S_2x;
+				  ret[1] += 0.5 * P * F * S_2y;
+
+				  //conv
+				  ret[0] +=  E * E *P * C_x * S_x ;
+				  ret[1] += - E * E *P * S_y * C_y;
+
+
+				  //zeitableitung
+				  RangeType u;
+				  VelocityEvaluate( 0, 0, time, arg, u);
+				  ret[0] += ( -2 * M_PI * M_PI * v ) * u[0];
+				  ret[1] += ( -2 * M_PI * M_PI * v ) * u[1];
+
+				  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
 			  }
-			  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
+			  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
 		  private:
 			  const double viscosity_;
 			  const double alpha_;
 			  static const int dim_ = FunctionSpaceImp::dimDomain;
 	};
+
+	template < class DomainType, class RangeType >
+	void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
+	{
+		const double x				= arg[0];
+		const double y				= arg[1];
+		const double v				= Parameters().getParam( "viscosity", 1.0 );
+		const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * v * time );
+
+		ret[0] = -1 *	std::cos( pi_factor * x ) * std::sin( pi_factor * y ) * e_minus_2_t;
+		ret[1] =		std::sin( pi_factor * x ) * std::cos( pi_factor * y ) * e_minus_2_t;
+	}
 
 	/**
 	*  \brief  describes the dirichlet boundary data
@@ -911,19 +958,18 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-				const double x				= arg[0];
-				const double y				= arg[1];
-				const double z				= arg[2];
-
-//				ret[0] = std::sin(x);// * std::cos( x );
-//				ret[1] = std::sin(y);// * std::cos( x );;
-
-
-				ret[0] = x*x ;
-				ret[1] = 2*y*y;
-				ret[2] = 4*z*z;
+				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
+
+		   /**
+			* \brief  evaluates the dirichlet data
+			* \param  arg
+			*         point to evaluate at
+			* \param  ret
+			*         value of dirichlet boundary data at given point
+			**/
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
 
 		private:
 			static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -971,19 +1017,32 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
-				const double x			= arg[0];
-				const double y			= arg[1];
-				const double z			= arg[2];
+				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+				const double x				= arg[0];
+				const double y				= arg[1];
+				const double v				= Parameters().getParam( "viscosity", 1.0 );
+				const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
 
-				ret[0] = std::sin(z) + std::sin(x) + std::sin(y);
+				ret[0] = -0.25 * (
+									std::cos( 2 * pi_factor * x ) + std::cos( 2 * pi_factor * y )
+								) * e_minus_4_t;
 			}
+
+			/**
+			* \brief  evaluates the dirichlet data
+			* \param  arg
+			*         point to evaluate at
+			* \param  ret
+			*         value of dirichlet boundary data at given point
+			**/
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
 
 		private:
 			static const int dim_ = FunctionSpaceImp::dimDomain ;
 			const double parameter_a_;
 			const double parameter_d_;
 	};
+
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
@@ -1025,20 +1084,20 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 				const double x			= arg[0];
 				const double y			= arg[1];
-				const double z			= arg[2];
-
-				ret[0] = 2*x;
-				ret[1] = 2*y;
-				ret[2] = 2*z;
-
-
-
-				ret[0] = std::cos(x);
-				ret[1] = std::cos(y);
-				ret[2] = std::cos(z);
+				const double v			= Parameters().getParam( "viscosity", 1.0 );
+				const double P			= pi_factor;
+				const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
+				const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
+				const double S_x			= std::sin( P * x );
+				const double S_y			= std::sin( P * y );
+				const double S_2x			= std::sin( 2 * P * x );
+				const double S_2y			= std::sin( 2 * P * y );
+				const double C_x			= std::cos( P * x );
+				const double C_y			= std::cos( P * y );
+				ret[0] = 0.5 * P * F * S_2x;
+				ret[1] = 0.5 * P * F * S_2y;
 			}
 
 		private:
@@ -1085,13 +1144,20 @@ namespace AdapterFunctionsVectorial {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 //				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-				const double x				= arg[0];
-				const double y				= arg[1];
-				ret[0] =  2;
-				ret[1] =  4;
-				ret[2] =  8;
-//				ret[0] =  - std::sin( x );
-//				ret[1] =  - std::sin( y );
+				const double x			= arg[0];
+				const double y			= arg[1];
+				const double v			= Parameters().getParam( "viscosity", 1.0 );
+				const double P			= pi_factor;
+				const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
+				const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
+				const double S_x			= std::sin( P * x );
+				const double S_y			= std::sin( P * y );
+				const double S_2x			= std::sin( 2 * P * x );
+				const double S_2y			= std::sin( 2 * P * y );
+				const double C_x			= std::cos( P * x );
+				const double C_y			= std::cos( P * y );
+				ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
+				ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
 
 			}
 
@@ -1139,15 +1205,21 @@ namespace AdapterFunctionsVectorial {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 //				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-				const double x				= arg[0];
-				const double y				= arg[1];
-				const double z				= arg[2];
-				const double u_1 = x*x;
-				const double u_2 = 2*y*y;
-				const double u_3 = 4*z*z;
-				ret[0] = u_1 * 2 * x	;
-				ret[1] = u_2 * 4 * y	;
-				ret[2] = u_3 * 8 * z	;
+
+				const double x			= arg[0];
+				const double y			= arg[1];
+				const double v			= Parameters().getParam( "viscosity", 1.0 );;
+				const double P			= pi_factor;
+				const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
+				const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
+				const double S_x			= std::sin( P * x );
+				const double S_y			= std::sin( P * y );
+				const double S_2x			= std::sin( 2 * P * x );
+				const double S_2y			= std::sin( 2 * P * y );
+				const double C_x			= std::cos( P * x );
+				const double C_y			= std::cos( P * y );
+				ret[0] =  E * E *P * C_x * S_x ;
+				ret[1] = - E * E *P * S_y * C_y;
 			}
 
 		private:
