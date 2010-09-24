@@ -576,7 +576,7 @@ namespace Dune {
 											gridPart_,
 											functionSpaceWrapper_,
 											&currentFunctions_.discreteVelocity() );
-					oseenPass.apply( currentFunctions_, nextFunctions_ );
+					oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 
 				}
 
