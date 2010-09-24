@@ -324,11 +324,11 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	rhs_stokes.clear();
 
 //	rhs_stokes += exactSolution_.discreteVelocity();
-	rhs_stokes += velocity_convection_discrete;
-//	rhs_stokes += velocity_laplace_discrete;
+//	rhs_stokes += velocity_convection_discrete;
+	rhs_stokes += velocity_laplace_discrete;
 	diffs.assign( rhs_stokes );
 	pass_laplace.assign( thetaScheme.rhsDatacontainer().velocity_laplace );
-	pass_convection.assign( thetaScheme.rhsDatacontainer().convection  );
+//	pass_convection.assign( thetaScheme.rhsDatacontainer().convection  );
 	diffs -= pass_laplace;
 //	diffs -= thetaScheme.rhsDatacontainer().velocity_laplace;
 
@@ -340,12 +340,14 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	DiscreteVelocityFunctionType diffs2("diffs_nonlinear", exactSolution_.discreteVelocity().space());
 	DiscreteVelocityFunctionType pass_pressure_gradient("pass_pressure_gradient", exactSolution_.discreteVelocity().space());
 	rhs_oseen.clear();
-//	rhs_oseen += velocity_laplace_discrete;
+	rhs_oseen += velocity_convection_discrete;
 //	rhs_oseen += exactSolution_.discreteVelocity();
-	rhs_oseen += pressure_gradient_discrete;
+//	rhs_oseen += pressure_gradient_discrete;
 	diffs2.assign( rhs_oseen );
-	pass_pressure_gradient.assign( thetaScheme.rhsDatacontainer().pressure_gradient );
-	diffs2 -= pass_pressure_gradient;
+//	pass_pressure_gradient.assign( thetaScheme.rhsDatacontainer().pressure_gradient );
+//	diffs2 -= pass_pressure_gradient;
+	pass_convection.assign( thetaScheme.rhsDatacontainer().convection );
+	diffs2 -= pass_convection;
 
 	Dune::L2Norm< Traits::GridPartType > l2_Error( gridPart_ );
 	const double error1 = l2_Error.norm(diffs);
