@@ -325,7 +325,7 @@ namespace Dune {
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
 					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
-					const bool add_extra_terms = Parameters().getParam( "add_extra_terms", true ) || first_stokes_step;
+					const bool add_extra_terms = first_stokes_step;
 					const double stokes_T = theta_ * d_t_;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
@@ -497,7 +497,7 @@ namespace Dune {
 
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
-					const bool add_extra_terms = Parameters().getParam( "add_extra_terms", true );
+					const bool add_extra_terms = false;//Parameters().getParam( "add_extra_terms", true );
 
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																	  currentFunctions_.discreteVelocity(),
