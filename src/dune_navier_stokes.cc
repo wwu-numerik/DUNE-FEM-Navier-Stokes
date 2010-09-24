@@ -93,6 +93,7 @@
 
 #include <dune/navier/thetascheme.hh>
 #include <dune/navier/testdata.hh>
+#include "testing.hh"
 
 #ifndef COMMIT
 	#define COMMIT "undefined"
@@ -255,13 +256,15 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 
 	// model traits
+//#define NS Dune::NavierStokes::TESTCASE
+#define NS Testing::AdapterFunctionsVectorial
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
 					GridPartType,
-					Dune::NavierStokes::TESTCASE::Force,
-					Dune::NavierStokes::TESTCASE::DirichletData,
-					Dune::NavierStokes::TESTCASE::Pressure,
-					Dune::NavierStokes::TESTCASE::Velocity,
+					NS::Force,
+					NS::DirichletData,
+					NS::Pressure,
+					NS::Velocity,
 					gridDim,
 					polOrder,
 					VELOCITY_POLORDER,
