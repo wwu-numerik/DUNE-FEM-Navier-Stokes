@@ -52,7 +52,8 @@
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
 
-#define DO_FULL_COUPLED_SYSTEM 1
+#define TESTING_NS Testing::AdapterFunctionsVectorial
+#include "testing.hh"
 
 #include <vector>
 #include <string>
@@ -335,12 +336,15 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
+	OseenTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
+	OseenTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
+																 sigma_space );
 	OseenTraits::OseenPassType oseenPass( startPass,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
 							&discrete_convection );
-	oseenPass.apply( currentFunctions, nextFunctions );
+	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
 	errorFunctions.discretePressure() -= nextFunctions.discretePressure();
