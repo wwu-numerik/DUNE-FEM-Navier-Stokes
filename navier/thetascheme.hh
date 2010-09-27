@@ -382,7 +382,9 @@ namespace Dune {
 					typename Traits::StokesPassType stokesPass( stokesStartPass,
 											stokesModel,
 											gridPart_,
-											functionSpaceWrapper_ );
+											functionSpaceWrapper_,
+											currentFunctions_.discreteVelocity(),
+											false );
 
 					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 					setUpdateFunctions();
@@ -561,7 +563,8 @@ namespace Dune {
 											stokesModel,
 											gridPart_,
 											functionSpaceWrapper_,
-											&currentFunctions_.discreteVelocity() );
+											currentFunctions_.discreteVelocity(),
+											true );
 					oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 
 				}
