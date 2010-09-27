@@ -1220,7 +1220,7 @@ namespace AdapterFunctionsVectorial {
 				const double S_2y			= std::sin( 2 * P * y );
 				const double C_x			= std::cos( P * x );
 				const double C_y			= std::cos( P * y );
-				ret[0] =  E * E *P * C_x * S_x ;
+				ret[0] = - E * E *P * C_x * S_x ;
 				ret[1] = - E * E *P * S_y * C_y;
 			}
 
