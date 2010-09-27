@@ -56,6 +56,10 @@
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
 
+//#define NS Dune::NavierStokes::TESTCASE
+#define NS Testing::AdapterFunctionsVectorial
+#define TESTING_NS NS
+
 #include <vector>
 #include <string>
 
@@ -256,8 +260,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 
 	// model traits
-//#define NS Dune::NavierStokes::TESTCASE
-#define NS Testing::AdapterFunctionsVectorial
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
 					GridPartType,

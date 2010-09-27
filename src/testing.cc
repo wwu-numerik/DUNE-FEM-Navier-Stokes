@@ -51,6 +51,8 @@
 #endif
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
+#define TESTING_NS Testing::AdapterFunctionsVectorial
+#include "testing.hh"
 
 #include <vector>
 #include <string>
@@ -252,16 +254,13 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 
 	// model traits
-
-#define TESTING_NS AdapterFunctionsVectorial
-
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
 					GridPartType,
-					Testing::TESTING_NS::Force,
-					Testing::TESTING_NS::DirichletData,
-					Testing::TESTING_NS::Pressure,
-					Testing::TESTING_NS::Velocity,
+					TESTING_NS::Force,
+					TESTING_NS::DirichletData,
+					TESTING_NS::Pressure,
+					TESTING_NS::Velocity,
 					gridDim,
 					polOrder,
 					VELOCITY_POLORDER,
@@ -280,15 +279,15 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	Traits::StokesModelTraits::VelocityFunctionSpaceType
 			continousVelocitySpace_;
-	typedef Testing::TESTING_NS::PressureGradient<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+	typedef TESTING_NS::PressureGradient<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
 													Traits::TimeProviderType >
 		PressureGradient;
 	PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
-	typedef Testing::TESTING_NS::VelocityLaplace<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+	typedef TESTING_NS::VelocityLaplace<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
 														Traits::TimeProviderType >
 			VelocityLaplace;
 	VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-	typedef Testing::TESTING_NS::VelocityConvection<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
+	typedef TESTING_NS::VelocityConvection<	Traits::StokesModelTraits::VelocityFunctionSpaceType,
 															Traits::TimeProviderType >
 		VelocityConvection;
 	VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
