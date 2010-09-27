@@ -349,20 +349,6 @@ namespace Dune {
 						stokesForce += dummyFunctions_.discreteVelocity();
 						stokesForce -= rhsDatacontainer_.convection;
 						stokesForce += rhsDatacontainer_.velocity_laplace;
-
-						typename Traits::StokesAnalyticalForceAdapterType stokesForce_full( timeprovider_,
-																					   currentFunctions_.discreteVelocity(),
-																					   force,
-																					   beta_qout_re_,
-																					   stokes_alpha_unscaled,
-																					   true );
-
-						// L2 error
-						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
-						const double force_abs = l2_Error.norm( stokesForce_full ) ;
-						stokesForce_full -= stokesForce;
-						const double force_error_abs = l2_Error.norm( stokesForce_full ) ;
-						Logger().Info() << boost::format( "rhs error %f\n" ) % force_error_abs;
 					}
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
