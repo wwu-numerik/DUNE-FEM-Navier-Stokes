@@ -3,6 +3,7 @@
 
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/stuff/printing.hh>
+#include <dune/stuff/customprojection.hh>
 
 namespace Dune {
 
@@ -356,6 +357,71 @@ namespace Dune {
 						}
 					}
 
+			};
+
+			template <	class TimeProviderType,
+						class AnalyticalForceType,
+						class DiscreteVelocityFunctionType,
+						class DiscreteVelocityJacobianFunctionType >
+			class AnalyticalForceAdapterFunction :
+					public DiscreteVelocityFunctionType
+			{
+				protected:
+					typedef AnalyticalForceAdapterFunction<	TimeProviderType,
+															AnalyticalForceType,
+															DiscreteVelocityFunctionType,
+															DiscreteVelocityJacobianFunctionType >
+						ThisType;
+					typedef DiscreteVelocityFunctionType
+						BaseType;
+					const TimeProviderType& timeProvider_;
+				public:
+//					template < class ConvectionFunctionType, class LaplaceFunctionType >
+					AnalyticalForceAdapterFunction(const TimeProviderType& timeProvider,
+												   const DiscreteVelocityFunctionType& velocity,
+												   const AnalyticalForceType& force,
+												   const double beta_re_qoutient,
+												   const double quasi_stokes_alpha,
+												   bool add_extra_terms,
+												   int polOrd = -1 )
+								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
+								 timeProvider_( timeProvider )
+					{
+						Dune::BetterL2Projection
+							::project( timeProvider_, force, *this );//this = f
+
+						if ( add_extra_terms ) {
+							//						TESTING_NS
+							typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+								VelocityFunctionSpaceType;
+							VelocityFunctionSpaceType continousVelocitySpace_;
+
+							typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+																	TimeProviderType >
+									VelocityLaplace;
+							VelocityLaplace velocity_laplace( timeProvider_, continousVelocitySpace_ );
+							typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+																	TimeProviderType >
+								VelocityConvection;
+							VelocityConvection velocity_convection( timeProvider_, continousVelocitySpace_ );
+
+							DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", velocity.space() );
+							DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", velocity.space() );
+							DiscreteVelocityFunctionType velocity_copy( "velocity", velocity.space() );
+							velocity_copy.assign( velocity );
+
+							Dune::BetterL2Projection
+								::project( velocity_convection, velocity_convection_discrete );
+							Dune::BetterL2Projection
+								::project( velocity_laplace, velocity_laplace_discrete );
+
+							velocity_laplace_discrete *= beta_re_qoutient;
+							*this += velocity_laplace_discrete;// this = f + beta_re_qoutient * laplace
+							*this -= velocity_convection_discrete;
+							velocity_copy *= quasi_stokes_alpha;
+							*this += velocity_copy;
+						}
+					}
 			};
 
 			template < class TimeProviderType, class AnalyticalDirichletType >
