@@ -343,7 +343,7 @@ namespace Dune {
 						  ret[1] += 0.5 * P * F * S_2y;
 
 						  //conv
-						  ret[0] +=  E * E *P * C_x * S_x ;
+						  ret[0] += - E * E *P * C_x * S_x ;
 						  ret[1] += - E * E *P * S_y * C_y;
 
 
@@ -623,6 +623,128 @@ namespace Dune {
 					*         value of dirichlet boundary data at given point
 					**/
 //					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					/**
+					*  \brief  constructor
+					*
+					*  doing nothing besides Base init
+					**/
+					VelocityConvection(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					/**
+					*  \brief  destructor
+					*
+					*  doing nothing
+					**/
+					~VelocityConvection()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+		//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+
+						const double x			= arg[0];
+						const double y			= arg[1];
+						const double v			= Parameters().getParam( "viscosity", 1.0 );;
+						const double P			= pi_factor;
+						const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
+						const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
+						const double S_x			= std::sin( P * x );
+						const double S_y			= std::sin( P * y );
+						const double S_2x			= std::sin( 2 * P * x );
+						const double S_2y			= std::sin( 2 * P * y );
+						const double C_x			= std::cos( P * x );
+						const double C_y			= std::cos( P * y );
+						ret[0] = - E * E *P * C_x * S_x ;
+						ret[1] = - E * E *P * S_y * C_y;
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					/**
+					*  \brief  constructor
+					*
+					*  doing nothing besides Base init
+					**/
+					VelocityLaplace(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					/**
+					*  \brief  destructor
+					*
+					*  doing nothing
+					**/
+					~VelocityLaplace()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+		//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+						const double x			= arg[0];
+						const double y			= arg[1];
+						const double v			= Parameters().getParam( "viscosity", 1.0 );
+						const double P			= pi_factor;
+						const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
+						const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
+						const double S_x			= std::sin( P * x );
+						const double S_y			= std::sin( P * y );
+						const double S_2x			= std::sin( 2 * P * x );
+						const double S_2y			= std::sin( 2 * P * y );
+						const double C_x			= std::cos( P * x );
+						const double C_y			= std::cos( P * y );
+						ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
+						ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
+
+					}
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
