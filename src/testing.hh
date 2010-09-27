@@ -3,6 +3,8 @@
 
 #include <dune/stuff/misc.hh>
 #include <dune/stuff/timefunction.hh>
+#include <dune/stuff/parametercontainer.hh>
+#include <dune/common/tuples.hh>
 
 namespace Testing {
 
@@ -825,7 +827,7 @@ namespace AdapterFunctionsVectorial {
 				  ret[1] += 0.5 * P * F * S_2y;
 
 				  //conv
-				  ret[0] +=  E * E *P * C_x * S_x ;
+				  ret[0] += - E * E *P * C_x * S_x ;
 				  ret[1] += - E * E *P * S_y * C_y;
 
 
