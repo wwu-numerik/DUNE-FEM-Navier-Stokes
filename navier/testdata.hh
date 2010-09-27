@@ -940,7 +940,7 @@ namespace Dune {
 
                 }//end namespace TestCase2D
 
-                namespace TrivialTestCase {
+		namespace TrivialTestCase {
 			template < class FunctionSpaceImp >
 			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
