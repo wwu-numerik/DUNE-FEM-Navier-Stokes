@@ -88,9 +88,7 @@ namespace Dune {
 
 			typedef NonlinearStep::ForceAdapterFunction<	TimeProviderType,
 															AnalyticalForceType,
-															typename DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
-															typename DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType,
-															typename StokesModelTraits::DiscreteSigmaFunctionType>
+															typename DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 				NonlinearForceAdapterFunctionType;
 			typedef NonlinearStep::DiscreteStokesModelTraits<
 						TimeProviderType,
@@ -492,20 +490,10 @@ namespace Dune {
 																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																	  currentFunctions_.discreteVelocity(),
-																	  currentFunctions_.discretePressure(),
 																	  force,
 																	  operator_weight_alpha_ / reynolds_,
 																	  oseen_alpha_unscaled,
-																	  false );
-
-					// F = f + \alpha \Re \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
-					nonlinearForce -= rhsDatacontainer_.pressure_gradient;
-					rhsDatacontainer_.velocity_laplace *= operator_weight_alpha_ / reynolds_;
-					nonlinearForce += rhsDatacontainer_.velocity_laplace;
-					dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
-					dummyFunctions_.discreteVelocity() *= ( 1 / delta_t_factor );
-					nonlinearForce += dummyFunctions_.discreteVelocity();
-
+																	  rhsDatacontainer_ );
 					nonlinearForce *= scale_factor;
 					for( unsigned int i = 0; i<Parameters().getParam("oseen_iterations",int(1)); ++i )
 					{
