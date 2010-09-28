@@ -325,8 +325,6 @@ namespace Dune {
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
 					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
-					const bool add_extra_terms = first_stokes_step;
-					const double stokes_T = theta_ * d_t_;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
@@ -334,14 +332,12 @@ namespace Dune {
 																				   force,
 																				   beta_qout_re_,
 																				   stokes_alpha_unscaled,
-																				   add_extra_terms );
+																				   first_stokes_step );
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
-					double meanGD
-							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
-					if ( !add_extra_terms ) {
+					if ( !first_stokes_step ) {
 						// F = f + \alpha / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
 						rhsDatacontainer_.velocity_laplace *= ( operator_weight_beta_ / reynolds_ );
 						dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
@@ -350,6 +346,7 @@ namespace Dune {
 						stokesForce -= rhsDatacontainer_.convection;
 						stokesForce += rhsDatacontainer_.velocity_laplace;
 					}
+					stokesForce *= scale_factor;
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
@@ -366,12 +363,10 @@ namespace Dune {
 					stab_coeff.Add( "E12", 0.5 );
 
 					dummyFunctions_.discreteVelocity().assign( stokesForce );
-//					Logger().Info() << "stokes a/RE|b/RE|y " << stokes_viscosity_ << " | "
-//														<< beta_qout_re_ << " | "
-//														<< quasi_stokes_alpha_ << "\n";
 					stab_coeff.print( Logger().Info() );
+					double meanGD
+							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
 
-					stokesForce *= scale_factor;
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
 										stokesForce,
@@ -403,10 +398,6 @@ namespace Dune {
 					const double typicalVelocity = meanVelocity.two_norm();
 					Stuff::printFieldVector( meanVelocity, "meanVelocity", Logger().Info() );
 					Logger().Info() << "typicalVelocity " << typicalVelocity << std::endl;
-//					const double typicalLength = 1.0;
-
-//					const double grid_width = Dune::GridWidth::calcGridWidth( gridPart_ );
-//					double dt_new = grid_width * grid_width * 2;
 
 					timeprovider_.init( d_t_ );
 					//initial flow field at t = 0
@@ -485,33 +476,22 @@ namespace Dune {
 
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
-					const bool add_extra_terms = false;//Parameters().getParam( "add_extra_terms", true );
-
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																	  currentFunctions_.discreteVelocity(),
 																	  currentFunctions_.discretePressure(),
 																	  force,
 																	  operator_weight_alpha_ / reynolds_,
 																	  oseen_alpha_unscaled,
-																	  add_extra_terms );
-					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce_full( timeprovider_,
-																	  currentFunctions_.discreteVelocity(),
-																	  currentFunctions_.discretePressure(),
-																	  force,
-																	  operator_weight_alpha_ / reynolds_,
-																	  oseen_alpha_unscaled,
-																	  true );
-
+																	  false );
 
 					// F = f + \alpha \Re \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
-					if ( !add_extra_terms ) {
-						nonlinearForce -= rhsDatacontainer_.pressure_gradient;
-						rhsDatacontainer_.velocity_laplace *= operator_weight_alpha_ / reynolds_;
-						nonlinearForce += rhsDatacontainer_.velocity_laplace;
-						dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
-						dummyFunctions_.discreteVelocity() *= ( 1 / delta_t_factor );
-						nonlinearForce += dummyFunctions_.discreteVelocity();
-					}
+					nonlinearForce -= rhsDatacontainer_.pressure_gradient;
+					rhsDatacontainer_.velocity_laplace *= operator_weight_alpha_ / reynolds_;
+					nonlinearForce += rhsDatacontainer_.velocity_laplace;
+					dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
+					dummyFunctions_.discreteVelocity() *= ( 1 / delta_t_factor );
+					nonlinearForce += dummyFunctions_.discreteVelocity();
+
 					nonlinearForce *= scale_factor;
 					for( unsigned int i = 0; i<Parameters().getParam("oseen_iterations",int(1)); ++i )
 					{
@@ -526,8 +506,6 @@ namespace Dune {
 										const double oseen_alpha,
 										const double scale_factor )
 				{
-
-					//
 					typename Traits::StokesStartPassType stokesStartPass;
 
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
@@ -547,9 +525,6 @@ namespace Dune {
 					stab_coeff.FactorFromParams("C12");
 					stab_coeff.Add( "E12", 0.5 );
 
-//					Logger().Info() << "oseen a/RE|b/RE|y " << operator_weight_alpha_ / reynolds_ << " | "
-//														<< beta_qout_re_ << " | "
-//														<< oseen_alpha << "\n";
 					stab_coeff.print( Logger().Info() );
 
 					typename Traits::OseenModelType
