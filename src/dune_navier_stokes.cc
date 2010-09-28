@@ -236,29 +236,20 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	profiler().StartTiming( "SingleRun" );
 	Logging::LogStream& infoStream = Logger().Info();
 	Logging::LogStream& debugStream = Logger().Dbg();
-	RunInfoVector runInfoVector;
 
-
-	/* ********************************************************************** *
-	 * initialize the grid                                                    *
-	 * ********************************************************************** */
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
 	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
 	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
 	gridPtr->globalRefine( refine_level );
-
 	typedef Dune::AdaptiveLeafGridPart< GridType >
 		GridPartType;
 	GridPartType gridPart( *gridPtr );
 
-	/* ********************************************************************** *
-	 * initialize problem                                                     *
-	 * ********************************************************************** */
-	infoStream << "\n- initialising problem" << std::endl;
-
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
+	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
+	infoStream << "  - max grid width: " << grid_width << std::endl;
 
 	// model traits
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
@@ -274,16 +265,13 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					PRESSURE_POLORDER >
 		ThetaSchemeTraitsType;
 
-//	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
-
-	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
-	infoStream << "  - max grid width: " << grid_width << std::endl;
-
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
-			thetaScheme( gridPart );
-	runInfoVector = thetaScheme.run();
-
-	return runInfoVector;
+			thetaScheme( gridPart );/*,
+						 1 - std::pow( 2.0, -1/2.0 ),
+						 mpicomm,
+						 1,
+						 0);*/
+	return thetaScheme.run();
 }
 
 void eocCheck( const RunInfoVector& runInfos )
