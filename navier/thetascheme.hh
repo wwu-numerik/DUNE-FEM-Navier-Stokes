@@ -162,7 +162,18 @@ namespace Dune {
 				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
 				typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
 
-				//constants
+				//! used cause we cannot use function calls and whatnot to define static constants
+				struct Defaults {
+					Defaults()
+						: theta ( 1 - std::pow( 2.0, -1/2.0 ) ),
+						operator_weight_alpha ( ( 1-2*theta ) / ( 1-theta ) ),
+						operator_weight_beta ( 1 - operator_weight_alpha )
+					{}
+					const double theta;
+					const double operator_weight_alpha;
+					const double operator_weight_beta;
+				};
+
 			public:
 				const double viscosity_;
 				const double d_t_;
@@ -172,13 +183,15 @@ namespace Dune {
 
 			public:
 				ThetaScheme( typename Traits::GridPartType gridPart,
-							 const double theta = 1 - std::pow( 2.0, -1/2.0 ),
-							 CommunicatorType comm = Dune::MPIManager::helper().getCommunicator()
+							 const double theta				= Defaults().theta,
+							 CommunicatorType comm			= Dune::MPIManager::helper().getCommunicator(),
+							 double operator_weight_alpha	= Defaults().operator_weight_alpha,
+							 double operator_weight_beta	= Defaults().operator_weight_beta
 						)
 					: gridPart_( gridPart ),
 					theta_(theta),
-					operator_weight_alpha_( ( 1-2*theta_ ) / ( 1-theta_ ) ),
-					operator_weight_beta_( 1 - operator_weight_alpha_ ),
+					operator_weight_alpha_( operator_weight_alpha ),
+					operator_weight_beta_( operator_weight_beta ),
 					communicator_( comm ),
 					timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, communicator_ ),
 					functionSpaceWrapper_( gridPart_ ),
