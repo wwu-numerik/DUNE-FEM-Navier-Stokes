@@ -14,6 +14,7 @@
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
+#include <boost/scoped_ptr.hpp>
 
 namespace Dune {
 	namespace NavierStokes {
@@ -324,29 +325,26 @@ namespace Dune {
 
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+
 					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
-					typename Traits::StokesAnalyticalForceAdapterType stokesForce( timeprovider_,
-																				   currentFunctions_.discreteVelocity(),
-																				   force,
-																				   beta_qout_re_,
-																				   stokes_alpha_unscaled,
-																				   first_stokes_step );
-					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
-							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-											::getInstance( timeprovider_,
-														   functionSpaceWrapper_ );
-					if ( !first_stokes_step ) {
-						// F = f + \alpha / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
-						rhsDatacontainer_.velocity_laplace *= ( operator_weight_beta_ / reynolds_ );
-						dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
-						dummyFunctions_.discreteVelocity() *= stokes_alpha_unscaled;
-						stokesForce += dummyFunctions_.discreteVelocity();
-						stokesForce -= rhsDatacontainer_.convection;
-						stokesForce += rhsDatacontainer_.velocity_laplace;
-					}
-					stokesForce *= scale_factor;
+					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
+							ptr_stokesForce ( first_stokes_step
+												? new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled )
+												: new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled,
+																										  rhsDatacontainer_ )
+											);
+					*ptr_stokesForce *= scale_factor;
+					dummyFunctions_.discreteVelocity().assign( *ptr_stokesForce );
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
@@ -361,15 +359,18 @@ namespace Dune {
 					stab_coeff.FactorFromParams("D12");
 					stab_coeff.FactorFromParams("C12");
 					stab_coeff.Add( "E12", 0.5 );
-
-					dummyFunctions_.discreteVelocity().assign( stokesForce );
 					stab_coeff.print( Logger().Info() );
+
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+											::getInstance( timeprovider_,
+														   functionSpaceWrapper_ );
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
-										stokesForce,
+										*ptr_stokesForce,
 										stokesDirichletData,
 										stokes_viscosity ,
 										stokes_alpha, scale_factor, scale_factor );

@@ -169,259 +169,106 @@ namespace Dune {
 			  */
 			template <	class TimeProviderType,
 						class AnalyticalForceType,
-						class DiscreteVelocityFunctionType,
-						class DiscreteVelocityJacobianFunctionType >
-			class ForceAdapterFunction :
-					public DiscreteVelocityFunctionType
-			{
-				protected:
-					typedef ForceAdapterFunction<	TimeProviderType,
-													AnalyticalForceType,
-													DiscreteVelocityFunctionType,
-													DiscreteVelocityJacobianFunctionType >
-						ThisType;
-					typedef DiscreteVelocityFunctionType
-						BaseType;
-					const TimeProviderType& timeProvider_;
-					const bool add_extra_terms_;
-
-				public:
-					ForceAdapterFunction( const TimeProviderType& timeProvider,
-										  const DiscreteVelocityFunctionType& velocity,
-										  const AnalyticalForceType& force,
-										  const double beta_re_qoutient,
-										  const double quasi_stokes_alpha,
-										  const bool add_extra_terms,
-										  int polOrd = -1 )
-						: BaseType( "stokes-rhsdapater" , velocity.space()),
-						timeProvider_( timeProvider ),
-						add_extra_terms_( add_extra_terms )
-					{
-						typedef DiscreteVelocityJacobianFunctionType
-							DiscreteSigmaFunctionType;
-
-						typedef typename DiscreteSigmaFunctionType::DiscreteFunctionSpaceType
-							DiscreteSigmaFunctionSpaceType;
-
-						typedef GradientAdapterFunction<	TimeProviderType,
-															DiscreteVelocityFunctionType,
-															DiscreteSigmaFunctionType >
-							GradientType;
-						DiscreteSigmaFunctionSpaceType discrete_sigma_space( velocity.space().gridPart() );
-						DiscreteSigmaFunctionType dummy("d", discrete_sigma_space );
-
-						GradientType velocity_jacobian_function ( timeProvider_,
-												 velocity,
-												 dummy );
-
-
-						typedef typename DiscreteVelocityFunctionType::DiscreteFunctionSpaceType
-							DiscreteVelocityFunctionSpaceType;
-						typedef typename DiscreteVelocityFunctionType::LocalFunctionType
-							LocalFuncType;
-						typedef typename DiscreteVelocityFunctionSpaceType::Traits::GridPartType
-							GridPartType;
-						typedef typename DiscreteVelocityFunctionSpaceType::Traits::IteratorType
-							Iterator;
-						typedef typename DiscreteVelocityFunctionSpaceType::BaseFunctionSetType
-							BaseFunctionSetType ;
-						typedef typename GridPartType::IntersectionIteratorType
-							IntersectionIteratorType;
-						typedef typename DiscreteVelocityFunctionType::LocalFunctionType
-							LocalFType;
-
-						typename DiscreteVelocityFunctionSpaceType::RangeType ret (0.0);
-
-						const DiscreteVelocityFunctionSpaceType& space =  velocity.space();
-						const GridPartType& gridPart = space.gridPart();
-						// type of quadrature
-						typedef CachingQuadrature<GridPartType,0>
-							VolumeQuadratureType;
-						typedef CachingQuadrature<GridPartType,1>
-							FaceQuadratureType;
-						// type of local mass matrix
-						typedef LocalDGMassMatrix<	DiscreteVelocityFunctionSpaceType,
-													VolumeQuadratureType>
-							LocalMassMatrixType;
-
-						const int quadOrd = (polOrd == -1) ? (2 * space.order()) : polOrd;
-
-						// create local mass matrix object
-						LocalMassMatrixType massMatrix( space, quadOrd );
-
-						// check whether geometry mappings are affine or not
-						const bool affineMapping = massMatrix.affine();
-						const int out_i = 1;
-
-						// clear destination
-						BaseType::clear();
-
-						const Iterator endit = space.end();
-						for(Iterator it = space.begin(); it != endit ; ++it)
-						{
-							// get entity
-							const typename GridType::template Codim<0>::Entity& entity = *it;
-							// get geometry
-							typedef  typename GridType::template Codim<0>::Geometry
-								Geometry;
-							const Geometry& geo = entity.geometry();
-
-							// get quadrature
-							VolumeQuadratureType quad(entity, quadOrd);
-
-							// get local function of destination
-							LocalFuncType self_local = BaseType::localFunction(entity);
-							// get local function of argument
-							const LocalFType velocity_local = velocity.localFunction(entity);
-
-							// get base function set
-							const BaseFunctionSetType & baseset = self_local.baseFunctionSet();
-
-							const int quadNop = quad.nop();
-							const int numDofs = self_local.numDofs();
-
-							const typename GradientType::LocalFunctionType& velocity_jacobian_function_local
-									= velocity_jacobian_function.localFunction( entity );
-
-							//volume part
-							for(int qP = 0; qP < quadNop ; ++qP)
-							{
-								const typename DiscreteVelocityFunctionSpaceType::DomainType xLocal = quad.point(qP);
-
-								const double intel = (affineMapping) ?
-									quad.weight(qP): // affine case
-									quad.weight(qP)* geo.integrationElement( xLocal ); // general case
-
-								typename DiscreteVelocityFunctionSpaceType::DomainType
-									xWorld = geo.global( xLocal );
-
-								// evaluate function
-								typename DiscreteVelocityFunctionSpaceType::RangeType
-									velocity_eval;
-								velocity_local.evaluate( quad[qP], velocity_eval );
-
-								typename DiscreteVelocityFunctionSpaceType::JacobianRangeType velocity_jacobian_eval;
-								velocity_local.jacobian( quad[qP], velocity_jacobian_eval );
-
-								typename DiscreteSigmaFunctionSpaceType::JacobianRangeType velocity_jacobian_function_eval;
-								velocity_jacobian_function_local.jacobian( quad[qP], velocity_jacobian_function_eval );
-//								Stuff::printFieldMatrix( velocity_jacobian_function_eval, "sjwo", std::cout, "GRA");
-
-								typename AnalyticalForceType::RangeType force_eval;
-								force.evaluate( timeProvider_.subTime(), xWorld, force_eval );
-
-								typename DiscreteVelocityFunctionSpaceType::RangeType nonlin;
-								for ( unsigned int d = 0; d < nonlin.dim(); ++d ) {
-									nonlin[d] = velocity_eval * velocity_jacobian_eval[d];
-								}
-
-								GradientJacobianToLaplacian<	DiscreteVelocityFunctionSpaceType::RangeType::size,
-																typename DiscreteVelocityFunctionSpaceType::RangeType,
-																typename DiscreteSigmaFunctionSpaceType::JacobianRangeType >
-									velocity_real_laplacian ( velocity_jacobian_function_eval );
-
-
-								// do projection
-								for(int i=0; i<numDofs; ++i)
-								{
-									typename DiscreteVelocityFunctionSpaceType::RangeType phi (0.0);
-									typename DiscreteVelocityFunctionSpaceType::JacobianRangeType phi_jacobian (0.0);
-									baseset.evaluate(i, quad[qP], phi);
-									baseset.jacobian( i, quad[qP], phi_jacobian );
-
-									const double force_eval_times_phi = force_eval * phi;
-									const double velocity_times_phi = quasi_stokes_alpha * ( velocity_eval * phi );
-									const double nonlin_times_phi = nonlin * phi;
-									const double velocity_real_laplacian_times_phi = beta_re_qoutient * ( velocity_real_laplacian * phi );
-
-									if ( add_extra_terms_ ) {
-										self_local[i] += intel *
-														(
-															velocity_times_phi
-															+ velocity_real_laplacian_times_phi
-															+ force_eval_times_phi
-															- nonlin_times_phi
-														);
-									}
-									else {
-										self_local[i] += intel * force_eval_times_phi;
-									}
-								}
-							}
-
-							// in case of non-linear mapping apply inverse
-							if ( ! affineMapping )
-							{
-								massMatrix.applyInverse( entity, self_local );
-							}
-						}
-					}
-
-			};
-
-			template <	class TimeProviderType,
-						class AnalyticalForceType,
-						class DiscreteVelocityFunctionType,
-						class DiscreteVelocityJacobianFunctionType >
+						class DiscreteVelocityFunctionType >
 			class AnalyticalForceAdapterFunction :
 					public DiscreteVelocityFunctionType
 			{
 				protected:
 					typedef AnalyticalForceAdapterFunction<	TimeProviderType,
 															AnalyticalForceType,
-															DiscreteVelocityFunctionType,
-															DiscreteVelocityJacobianFunctionType >
+															DiscreteVelocityFunctionType >
 						ThisType;
 					typedef DiscreteVelocityFunctionType
 						BaseType;
 					const TimeProviderType& timeProvider_;
+					const AnalyticalForceType& force_;
+					const double beta_re_qoutient_;
+					const double quasi_stokes_alpha_;
+
 				public:
-//					template < class ConvectionFunctionType, class LaplaceFunctionType >
+					//! this sginature is used in the first stokes where we have analytical data to derive from
 					AnalyticalForceAdapterFunction(const TimeProviderType& timeProvider,
 												   const DiscreteVelocityFunctionType& velocity,
 												   const AnalyticalForceType& force,
 												   const double beta_re_qoutient,
 												   const double quasi_stokes_alpha,
-												   bool add_extra_terms,
 												   int polOrd = -1 )
 								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
-								 timeProvider_( timeProvider )
+								 timeProvider_( timeProvider ),
+								 force_( force ),
+								 beta_re_qoutient_( beta_re_qoutient ),
+								 quasi_stokes_alpha_( quasi_stokes_alpha )
+					{
+
+						//						TESTING_NS
+						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+							VelocityFunctionSpaceType;
+						VelocityFunctionSpaceType continousVelocitySpace_;
+
+						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+																TimeProviderType >
+								VelocityLaplace;
+						VelocityLaplace velocity_laplace( timeProvider_, continousVelocitySpace_ );
+						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+																TimeProviderType >
+							VelocityConvection;
+						VelocityConvection velocity_convection( timeProvider_, continousVelocitySpace_ );
+
+						DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", velocity.space() );
+						DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", velocity.space() );
+						DiscreteVelocityFunctionType velocity_copy( "velocity", velocity.space() );
+						velocity_copy.assign( velocity );
+
+						Dune::BetterL2Projection
+							::project( velocity_convection, velocity_convection_discrete );
+						Dune::BetterL2Projection
+							::project( velocity_laplace, velocity_laplace_discrete );
+
+						AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete );
+					}
+
+					//! this signature is used in all other stokes steps where we get the data from the previous step's discretisation
+					template < class RhsContainerType >
+					AnalyticalForceAdapterFunction(const TimeProviderType& timeProvider,
+												   const DiscreteVelocityFunctionType& velocity,
+												   const AnalyticalForceType& force,
+												   const double beta_re_qoutient,
+												   const double quasi_stokes_alpha,
+												   const RhsContainerType& rhs_container,
+												   int polOrd = -1 )
+								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
+								 timeProvider_( timeProvider ),
+								 force_( force ),
+								 beta_re_qoutient_( beta_re_qoutient ),
+								 quasi_stokes_alpha_( quasi_stokes_alpha )
+					{
+						AddCommon( velocity, rhs_container.convection, rhs_container.velocity_laplace );
+					}
+
+				protected:
+					//! F = f + \alpha / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
+					void AddCommon( const DiscreteVelocityFunctionType& velocity,
+									const DiscreteVelocityFunctionType& convection,
+									const DiscreteVelocityFunctionType& velocity_laplace )
 					{
 						Dune::BetterL2Projection
-							::project( timeProvider_, force, *this );//this = f
+							::project( timeProvider_, force_, *this );//this = f
 
-						if ( add_extra_terms ) {
-							//						TESTING_NS
-							typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
-								VelocityFunctionSpaceType;
-							VelocityFunctionSpaceType continousVelocitySpace_;
+						DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
 
-							typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
-																	TimeProviderType >
-									VelocityLaplace;
-							VelocityLaplace velocity_laplace( timeProvider_, continousVelocitySpace_ );
-							typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
-																	TimeProviderType >
-								VelocityConvection;
-							VelocityConvection velocity_convection( timeProvider_, continousVelocitySpace_ );
+						tmp.assign( velocity_laplace );
+						tmp *= beta_re_qoutient_;
+						*this += tmp;// this = f + beta_re_qoutient * laplace
 
-							DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", velocity.space() );
-							DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", velocity.space() );
-							DiscreteVelocityFunctionType velocity_copy( "velocity", velocity.space() );
-							velocity_copy.assign( velocity );
+						tmp.assign( convection );
+						*this -= tmp;
 
-							Dune::BetterL2Projection
-								::project( velocity_convection, velocity_convection_discrete );
-							Dune::BetterL2Projection
-								::project( velocity_laplace, velocity_laplace_discrete );
-
-							velocity_laplace_discrete *= beta_re_qoutient;
-							*this += velocity_laplace_discrete;// this = f + beta_re_qoutient * laplace
-							*this -= velocity_convection_discrete;
-							velocity_copy *= quasi_stokes_alpha;
-							*this += velocity_copy;
-						}
+						tmp.assign( velocity );
+						tmp *= quasi_stokes_alpha_;
+						*this += tmp;
 					}
+
+
 			};
 
 			template < class TimeProviderType, class AnalyticalDirichletType >
