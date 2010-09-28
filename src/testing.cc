@@ -300,11 +300,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	Dune::L2Projection< double,
 						double,
-						VelocityConvection,
-						DiscreteVelocityFunctionType >
-		()(velocity_convection, velocity_convection_discrete );
-	Dune::L2Projection< double,
-						double,
 						VelocityLaplace,
 						DiscreteVelocityFunctionType >
 		()(velocity_laplace, velocity_laplace_discrete );
@@ -334,6 +329,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	RunInfo info_dummy;
 	thetaScheme.nextStep(1,info_dummy);
 	thetaScheme.oseenStep();
+
+	Dune::L2Projection< double,
+						double,
+						VelocityConvection,
+						DiscreteVelocityFunctionType >
+		()(velocity_convection, velocity_convection_discrete );
 
 	DiscreteVelocityFunctionType rhs_oseen("rhs_oseen", exactSolution_.discreteVelocity().space());
 	DiscreteVelocityFunctionType diffs2("diffs_nonlinear", exactSolution_.discreteVelocity().space());
