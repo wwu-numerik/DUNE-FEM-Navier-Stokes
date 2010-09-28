@@ -578,8 +578,8 @@ namespace Dune {
 
 				void setUpdateFunctions()
 				{
-					updateFunctions_.assign( currentFunctions_ );
-					updateFunctions_ -= nextFunctions_;
+					updateFunctions_.assign( nextFunctions_);
+					updateFunctions_ -= currentFunctions_ ;
 				}
 
 				void writeData()
