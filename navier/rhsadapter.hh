@@ -62,13 +62,11 @@ namespace Dune {
 
 						DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", velocity.space() );
 						DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", velocity.space() );
-						DiscreteVelocityFunctionType velocity_copy( "velocity", velocity.space() );
-						velocity_copy.assign( velocity );
 
+						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+							::project( timeProvider_.previousSubTime(), velocity_convection, velocity_convection_discrete );
 						Dune::BetterL2Projection
-							::project( velocity_convection, velocity_convection_discrete );
-						Dune::BetterL2Projection
-							::project( velocity_laplace, velocity_laplace_discrete );
+							::project( timeProvider_.previousSubTime(), velocity_laplace, velocity_laplace_discrete );
 
 						AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete );
 					}
