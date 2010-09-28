@@ -6,7 +6,6 @@
 #include <dune/stuff/customprojection.hh>
 
 namespace Dune {
-
 	namespace NavierStokes {
 		namespace StokesStep {
 			/** \brief take previous step solution and analytical RHS to form function to be passed to either StokesStep

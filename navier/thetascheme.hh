@@ -309,7 +309,7 @@ namespace Dune {
 						info.problemIdentifier = TESTCASE_NAME;
 					}
 
-					std::cout << "current time (substep " << step << "): " << timeprovider_.subTime() << std::endl;
+					Logger().Info() << boost::format("current time (substep %d ): %f\n") % step % timeprovider_.subTime();
 
 					if ( step == 3 || !Parameters().getParam( "write_fulltimestep_only", false ) )
 						writeData();

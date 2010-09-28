@@ -77,6 +77,15 @@ namespace Dune {
 							case StokesStepB: return BaseType::time()+ deltaT();
 						}
 					}
+					const double previousSubTime( ) const
+					{
+						switch ( currentStepType_ ) {
+							default: DUNE_THROW( Dune::InvalidStateException, "invalid timeprovider state in previousSubtime call" );
+							case StokesStepA: return BaseType::time()  ;
+							case NonlinearStepID: return BaseType::time() + deltaT() * theta_;
+							case StokesStepB: return BaseType::time() + deltaT() * (1 - theta_);
+						}
+					}
 
 					const double time () const
 					{
