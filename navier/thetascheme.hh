@@ -340,6 +340,28 @@ namespace Dune {
 					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
+
+					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
+					if ( Parameters().getParam( "rhs_cheat", false ) ) {
+						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+							VelocityFunctionSpaceType;
+						VelocityFunctionSpaceType continousVelocitySpace_;
+
+						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+																typename Traits::TimeProviderType >
+							VelocityConvection;
+						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+							::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
+						// ----
+						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+																					typename Traits::TimeProviderType >
+								VelocityLaplace;
+						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection
+							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+					}// END CHEAT
+
 					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
 							ptr_stokesForce ( first_stokes_step
 												? new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
@@ -431,39 +453,19 @@ namespace Dune {
 						RunInfo info_dummy;
 						profiler().StartTiming( "Timestep" );
 						//stokes step A
-						if( Parameters().getParam( "enable_stokesA", true ) )
-							stokesStep();
-						else {
-							exactSolution_.project();
-							nextFunctions_.assign( exactSolution_ );
-						}
+						stokesStep();
 						nextStep( 1, info_dummy );
-						if( Parameters().getParam( "pressure_cheat", false ) )
-							nextFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
-						//Nonlinear step
-						if( Parameters().getParam( "enable_oseen", true ) )
-							oseenStep();
-						else {
-							exactSolution_.project();
-							nextFunctions_.assign( exactSolution_ );
-						}
 
+						//Nonlinear step
+						oseenStep();
 						nextStep( 2, info_dummy );
-						if( Parameters().getParam( "pressure_cheat", false ) )
-							nextFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
+
 						//stokes step B
 						RunInfo info;
-						if( Parameters().getParam( "enable_stokesB", true ) )
-							stokesStep();
-						else {
-							exactSolution_.project();
-							nextFunctions_.assign( exactSolution_ );
-						}
+						info = stokesStep();
+						nextStep( 3, info );
 
 						profiler().StopTiming( "Timestep" );
-						nextStep( 3, info );
-						if( Parameters().getParam( "pressure_cheat", false ) )
-							nextFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						runInfoVector.push_back( info );
 					}
 					return runInfoVector;
@@ -488,6 +490,28 @@ namespace Dune {
 
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
+
+					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
+					if ( Parameters().getParam( "rhs_cheat", false ) ) {
+						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+							VelocityFunctionSpaceType;
+						VelocityFunctionSpaceType continousVelocitySpace_;
+
+						typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+																typename Traits::TimeProviderType >
+							PressureGradient;
+						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+							::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
+						// ----
+						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+																					typename Traits::TimeProviderType >
+								VelocityLaplace;
+						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection
+							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+					}// END CHEAT
+
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
 																	  currentFunctions_.discreteVelocity(),
 																	  force,
