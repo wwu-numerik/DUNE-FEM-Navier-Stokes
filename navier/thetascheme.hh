@@ -154,6 +154,7 @@ namespace Dune {
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
+				typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType1 dataWriter1_;
 				DataWriterType2 dataWriter2_;
@@ -211,6 +212,9 @@ namespace Dune {
 					updateFunctions_("updates",
 									  functionSpaceWrapper_,
 									  gridPart_ ),
+					rhsFunctions_("rhs-adapter",
+								 functionSpaceWrapper_,
+								 gridPart_ ),
 					dataWriter1_( timeprovider_,
 								 gridPart_.grid(),
 								 TupleSerializerType1::getTuple(
@@ -222,7 +226,8 @@ namespace Dune {
 					dataWriter2_( timeprovider_,
 								 gridPart_.grid(),
 								 TupleSerializerType2::getTuple(
-										 updateFunctions_)
+										 updateFunctions_,
+										 rhsFunctions_)
 								),
 					sigma_space_( gridPart_ ),
 					rhsDatacontainer_( currentFunctions_.discreteVelocity().space(), sigma_space_ ),
@@ -377,7 +382,7 @@ namespace Dune {
 																										  rhsDatacontainer_ )
 											);
 					*ptr_stokesForce *= scale_factor;
-					dummyFunctions_.discreteVelocity().assign( *ptr_stokesForce );
+					rhsFunctions_.discreteVelocity().assign( *ptr_stokesForce );
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
@@ -519,6 +524,7 @@ namespace Dune {
 																	  oseen_alpha_unscaled,
 																	  rhsDatacontainer_ );
 					nonlinearForce *= scale_factor;
+					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
 					for( unsigned int i = 0; i<Parameters().getParam("oseen_iterations",int(1)); ++i )
 					{
 						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
