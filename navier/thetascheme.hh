@@ -272,8 +272,9 @@ namespace Dune {
 
 
 						Logger().Info().Resume();
-						Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure_ << " | " << relative_l2_error_pressure_ << "\n"
-										<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity_ << " | " << relative_l2_error_velocity_ << "\n"
+						;
+						Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \n") % l2_error_pressure_ % relative_l2_error_pressure_
+										<< boost::format ("L2-Error Velocity (abs|rel): %e | %e \n") % l2_error_velocity_ % relative_l2_error_velocity_
 										<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
 						const double max_l2_error = 1e4;
 						if ( l2_error_velocity_ > max_l2_error )
