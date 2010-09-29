@@ -1111,7 +1111,8 @@ namespace AdapterFunctionsVectorial {
 			const double parameter_d_;
 	};
 
-	void VelocityLaplaceEvaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+	template < class DomainType, class RangeType >
+	void VelocityLaplaceEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
 		const double x			= arg[0];
 		const double y			= arg[1];
