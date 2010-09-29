@@ -326,10 +326,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //	rhs_stokes += exactSolution_.discreteVelocity();
 //	rhs_stokes += velocity_convection_discrete;
 	rhs_stokes += velocity_laplace_discrete;
-	diffs.assign( pressure_gradient_discrete );
+	diffs.assign( rhs_stokes );
 	pass_laplace.assign( thetaScheme.rhsDatacontainer().velocity_laplace );
 	pass_pressure_gradient.assign( thetaScheme.rhsDatacontainer().pressure_gradient );
-	diffs -= velocity_convection_discrete;
+	diffs -= pass_laplace;
 //	diffs -= thetaScheme.rhsDatacontainer().velocity_laplace;
 
 
