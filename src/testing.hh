@@ -819,8 +819,8 @@ namespace AdapterFunctionsVectorial {
 //						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
 
 				  //diff
-				  ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
-				  ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
+				  ret[0] = - 2 * v * C_x * S_y * E * P * P;
+				  ret[1] =   2 * v * C_y * S_x * E * P * P;
 
 				  //druck
 				  ret[0] += 0.5 * P * F * S_2x;
