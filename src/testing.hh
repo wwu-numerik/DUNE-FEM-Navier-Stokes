@@ -827,8 +827,9 @@ namespace AdapterFunctionsVectorial {
 				  ret[1] += 0.5 * P * F * S_2y;
 
 				  //conv
-				  ret[0] += - E * E *P * C_x * S_x ;
-				  ret[1] += - E * E *P * S_y * C_y;
+				  RangeType conv;
+				  VelocityConvectionEvaluateTime( time, arg, conv );
+				  ret += conv;
 
 
 				  //zeitableitung
@@ -1168,7 +1169,30 @@ namespace AdapterFunctionsVectorial {
 			const double parameter_a_;
 			const double parameter_d_;
 	};
+	template < class DomainType, class RangeType >
+	void VelocityConvectionEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
+	{
+//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 
+		const double x			= arg[0];
+		const double y			= arg[1];
+		const double v			= Parameters().getParam( "viscosity", 1.0 );;
+		const double P			= pi_factor;
+		const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
+		const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
+		const double S_x			= std::sin( P * x );
+		const double S_y			= std::sin( P * y );
+		const double S_2x			= std::sin( 2 * P * x );
+		const double S_2y			= std::sin( 2 * P * y );
+		const double C_x			= std::cos( P * x );
+		const double C_y			= std::cos( P * y );
+		ret[0] = - E * E *P * C_x * S_x ;//eigentlich richtig
+		ret[1] = - E * E *P * S_y * C_y;
+
+//		ret[0] =  E * E *P * C_x * S_x * ( C_y * C_y - S_y * S_y );//eigentlich falsch
+//		ret[1] = - E * E *P * S_y * C_y * ( S_x * S_x - C_x * C_x );
+
+	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
 	class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
@@ -1206,22 +1230,7 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-
-				const double x			= arg[0];
-				const double y			= arg[1];
-				const double v			= Parameters().getParam( "viscosity", 1.0 );;
-				const double P			= pi_factor;
-				const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
-				const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
-				const double S_x			= std::sin( P * x );
-				const double S_y			= std::sin( P * y );
-				const double S_2x			= std::sin( 2 * P * x );
-				const double S_2y			= std::sin( 2 * P * y );
-				const double C_x			= std::cos( P * x );
-				const double C_y			= std::cos( P * y );
-				ret[0] = - E * E *P * C_x * S_x ;
-				ret[1] = - E * E *P * S_y * C_y;
+				VelocityConvectionEvaluateTime( time, arg, ret );
 			}
 
 		private:
