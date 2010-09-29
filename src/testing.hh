@@ -819,8 +819,10 @@ namespace AdapterFunctionsVectorial {
 //						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
 
 				  //diff
-				  ret[0] = - 2 * v * C_x * S_y * E * P * P;
-				  ret[1] =   2 * v * C_y * S_x * E * P * P;
+				  RangeType laplace;
+				  VelocityLaplaceEvaluateTime( time, arg, laplace );
+				  ret = laplace;
+
 
 				  //druck
 				  ret[0] += 0.5 * P * F * S_2x;
@@ -1109,6 +1111,23 @@ namespace AdapterFunctionsVectorial {
 			const double parameter_d_;
 	};
 
+	void VelocityLaplaceEvaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+	{
+		const double x			= arg[0];
+		const double y			= arg[1];
+		const double v			= Parameters().getParam( "viscosity", 1.0 );
+		const double P			= pi_factor;
+		const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
+		const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
+		const double S_x			= std::sin( P * x );
+		const double S_y			= std::sin( P * y );
+		const double S_2x			= std::sin( 2 * P * x );
+		const double S_2y			= std::sin( 2 * P * y );
+		const double C_x			= std::cos( P * x );
+		const double C_y			= std::cos( P * y );
+		ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
+		ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
+	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
 	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
@@ -1147,21 +1166,7 @@ namespace AdapterFunctionsVectorial {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 //				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-				const double x			= arg[0];
-				const double y			= arg[1];
-				const double v			= Parameters().getParam( "viscosity", 1.0 );
-				const double P			= pi_factor;
-				const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
-				const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
-				const double S_x			= std::sin( P * x );
-				const double S_y			= std::sin( P * y );
-				const double S_2x			= std::sin( 2 * P * x );
-				const double S_2y			= std::sin( 2 * P * y );
-				const double C_x			= std::cos( P * x );
-				const double C_y			= std::cos( P * y );
-				ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
-				ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
-
+				VelocityLaplaceEvaluateTime( time, arg, ret );
 			}
 
 		private:
