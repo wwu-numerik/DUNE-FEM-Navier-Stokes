@@ -405,6 +405,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	std::cout	<< boost::format("error stokes\t%f (abs)| %f (rel)\nerror non\t%f (abs)| %f (rel)")
 								% error1 % error1_rel % error2 % error2_rel << std::endl;
+	Stuff::printFunctionMinMax( std::cout, velocity_laplace_discrete );
+	Stuff::printFunctionMinMax( std::cout, velocity_convection_discrete );
+	Stuff::printFunctionMinMax( std::cout, pressure_gradient_discrete );
 
 	return runInfoVector;
 }
