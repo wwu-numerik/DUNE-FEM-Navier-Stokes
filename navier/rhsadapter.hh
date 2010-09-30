@@ -90,7 +90,7 @@ namespace Dune {
 					}
 
 				protected:
-					//! F = f + \alpha / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
+					//! F = f + \beta / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
 					void AddCommon( const DiscreteVelocityFunctionType& velocity,
 									const DiscreteVelocityFunctionType& convection,
 									const DiscreteVelocityFunctionType& velocity_laplace )
