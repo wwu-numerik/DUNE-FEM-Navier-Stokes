@@ -145,6 +145,19 @@ namespace Dune {
 				const double theta_;
 				const double operator_weight_alpha_;
 				const double operator_weight_beta_;
+
+				//! used cause we cannot use function calls and whatnot to define static constants
+				struct Defaults {
+					Defaults()
+						: theta ( 1 - std::pow( 2.0, -1/2.0 ) ),
+						operator_weight_alpha ( ( 1-2*theta ) / ( 1-theta ) ),
+						operator_weight_beta ( 1 - operator_weight_alpha )
+					{}
+					const double theta;
+					const double operator_weight_alpha;
+					const double operator_weight_beta;
+				};
+
 		protected:
 				CommunicatorType& communicator_;
 				typename Traits::TimeProviderType timeprovider_;
@@ -160,18 +173,6 @@ namespace Dune {
 				DataWriterType2 dataWriter2_;
 				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
 				typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
-
-				//! used cause we cannot use function calls and whatnot to define static constants
-				struct Defaults {
-					Defaults()
-						: theta ( 1 - std::pow( 2.0, -1/2.0 ) ),
-						operator_weight_alpha ( ( 1-2*theta ) / ( 1-theta ) ),
-						operator_weight_beta ( 1 - operator_weight_alpha )
-					{}
-					const double theta;
-					const double operator_weight_alpha;
-					const double operator_weight_beta;
-				};
 
 			public:
 				const double viscosity_;
