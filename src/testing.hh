@@ -763,14 +763,14 @@ namespace AdapterFunctionsScalar {
 
 namespace AdapterFunctionsVectorial {
 
-	static const double pi_factor =  M_PI;//controls number of vortices
+	static const double pi_factor =  M_2_PI;//controls number of vortices
 	struct Evals {
 		template < class DomainType >
 		Evals( const DomainType& arg, const double time )
 			:x(arg[0]),
 			y(arg[1]),
-//			time_(time),
-			time_(1),
+			time_(time),
+//			time_(0),
 			v(Parameters().getParam( "viscosity", 1.0 )),
 			P(pi_factor),
 			E(std::exp( -2 * std::pow( P, 2 ) * v * time_ )),

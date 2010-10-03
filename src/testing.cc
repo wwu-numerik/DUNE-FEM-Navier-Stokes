@@ -51,7 +51,8 @@
 #endif
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
-#define TESTING_NS Testing::AdapterFunctionsVisco
+//#define TESTING_NS Testing::AdapterFunctionsVisco
+#define TESTING_NS Testing::AdapterFunctionsVectorial
 #include "testing.hh"
 
 #include <vector>
