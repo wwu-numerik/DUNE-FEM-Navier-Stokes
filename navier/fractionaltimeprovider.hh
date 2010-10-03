@@ -7,12 +7,6 @@
 namespace Dune {
 	namespace NavierStokes {
 
-		typedef int
-				StepType;
-		const StepType initStep			= -1;
-		const StepType StokesStepA		= 0;
-		const StepType NonlinearStepID	= 1;
-		const StepType StokesStepB		= 2;
 
 		template< class CommProvider = DefaultCollectiveCommunicationType >
 		class FractionalTimeProvider : public TimeProvider < CommProvider > {
@@ -28,6 +22,13 @@ namespace Dune {
 					using BaseType :: deltaT;
 					typedef BaseType
 						SubStepTimeproviderType;
+
+					typedef int
+							StepType;
+					static const StepType initStep			= -1;
+					static const StepType StokesStepA		= 0;
+					static const StepType NonlinearStepID	= 1;
+					static const StepType StokesStepB		= 2;
 
 				protected:
 					using BaseType :: comm_;
@@ -121,6 +122,11 @@ namespace Dune {
 					int timeStep () const
 					{
 						return timeStep_ * 3 + currentStepType_ + 1;
+					}
+
+					const StepType stepType () const
+					{
+						return currentStepType_;
 					}
 
 				protected:
