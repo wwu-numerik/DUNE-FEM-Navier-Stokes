@@ -97,6 +97,7 @@ namespace Dune {
 					{
 						Dune::BetterL2Projection
 							::project( timeProvider_, force_, *this );//this = f
+						Stuff::printFunctionMinMax( std::cout, *this );
 
 						DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
 
@@ -110,6 +111,7 @@ namespace Dune {
 						tmp.assign( velocity );
 						tmp *= quasi_stokes_alpha_;
 						*this += tmp;
+						Stuff::printFunctionMinMax( std::cout, *this );
 					}
 
 
