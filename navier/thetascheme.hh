@@ -273,7 +273,6 @@ namespace Dune {
 
 
 						Logger().Info().Resume();
-						;
 						Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \n") % l2_error_pressure_ % relative_l2_error_pressure_
 										<< boost::format ("L2-Error Velocity (abs|rel): %e | %e \n") % l2_error_velocity_ % relative_l2_error_velocity_
 										<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
@@ -339,7 +338,6 @@ namespace Dune {
 						scale_factor = 1;
 						stokes_viscosity = operator_weight_alpha_ / reynolds_;
 					}
-
 
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
@@ -407,6 +405,8 @@ namespace Dune {
 														   functionSpaceWrapper_ );
 					double meanGD
 							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
+					Logger().Info() << boost::format("Dirichlet boundary integral %e") % meanGD
+									<< std::endl;
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
@@ -428,7 +428,6 @@ namespace Dune {
 					stokesPass.getRuninfo( info );
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
-					Logger().Info() << "Dirichlet boundary integral " << meanGD << std::endl;
 					return info;
 				}
 
