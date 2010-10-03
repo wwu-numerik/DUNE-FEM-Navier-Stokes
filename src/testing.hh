@@ -763,7 +763,44 @@ namespace AdapterFunctionsScalar {
 
 namespace AdapterFunctionsVectorial {
 
-	static const double pi_factor = M_PI;//controls number of vortices
+	static const double pi_factor =  M_PI;//controls number of vortices
+	struct Evals {
+		template < class DomainType >
+		Evals( const DomainType& arg, const double time )
+			:x(arg[0]),
+			y(arg[1]),
+//			time_(time),
+			time_(1),
+			v(Parameters().getParam( "viscosity", 1.0 )),
+			P(pi_factor),
+			E(std::exp( -2 * std::pow( P, 2 ) * v * time_ )),
+			F(std::exp( -4 * std::pow( P, 2 ) * v * time_ )),
+			S_x(std::sin( P * x )),
+			S_y(std::sin( P * y )),
+			S_2x(std::sin( 2 * P * x )),
+			S_2y(std::sin( 2 * P * y )),
+			C_2x(std::cos( 2 * P * x )),
+			C_2y(std::cos( 2 * P * y )),
+			C_x(std::cos( P * x )),
+			C_y(std::cos( P * y ))
+		{}
+		const double x;
+		const double y;
+		const double time_;
+		const double v;
+		const double P;
+		const double E;
+		const double F;
+		const double S_x;
+		const double S_y;
+		const double C_2x;
+		const double C_2y;
+		const double S_2x;
+		const double S_2y;
+		const double C_x;
+		const double C_y;
+	};
+
 	template < class FunctionSpaceImp >
 	class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 	{
@@ -803,30 +840,18 @@ namespace AdapterFunctionsVectorial {
 			   **/
 			  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 			  {
-				  const double x			= arg[0];
-				  const double y			= arg[1];
-				  const double v			= viscosity_;
-				  const double P			= pi_factor;
-				  const double E			= std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
-				  const double F			= std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
-				  const double S_x			= std::sin( P * x );
-				  const double S_y			= std::sin( P * y );
-				  const double S_2x			= std::sin( 2 * P * x );
-				  const double S_2y			= std::sin( 2 * P * y );
-				  const double C_x			= std::cos( P * x );
-				  const double C_y			= std::cos( P * y );
-//						  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
-//						  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
-
+				  Evals evals( arg, time );
+				  ret = RangeType(0);
 				  //diff
 				  RangeType laplace;
 				  VelocityLaplaceEvaluateTime( time, arg, laplace );
-				  ret = laplace;
+				  laplace *= evals.v;
+				  ret -= laplace;
 
 
 				  //druck
-				  ret[0] += 0.5 * P * F * S_2x;
-				  ret[1] += 0.5 * P * F * S_2y;
+				  ret[0] += 0.5 * evals.P * evals.F * evals.S_2x;
+				  ret[1] += 0.5 * evals.P * evals.F * evals.S_2y;
 
 				  //conv
 				  RangeType conv;
@@ -837,8 +862,8 @@ namespace AdapterFunctionsVectorial {
 				  //zeitableitung
 				  RangeType u;
 				  VelocityEvaluate( 0, 0, time, arg, u);
-				  ret[0] += ( -2 * M_PI * M_PI * v ) * u[0];
-				  ret[1] += ( -2 * M_PI * M_PI * v ) * u[1];
+//				  ret[0] += ( -2 * std::pow( evals.P, 2 ) * evals.v ) * u[0];
+//				  ret[1] += ( -2 * std::pow( evals.P, 2 ) * evals.v ) * u[1];
 
 				  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
 			  }
@@ -853,13 +878,9 @@ namespace AdapterFunctionsVectorial {
 	template < class DomainType, class RangeType >
 	void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
 	{
-		const double x				= arg[0];
-		const double y				= arg[1];
-		const double v				= Parameters().getParam( "viscosity", 1.0 );
-		const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * v * time );
-
-		ret[0] = -1 *	std::cos( pi_factor * x ) * std::sin( pi_factor * y ) * e_minus_2_t;
-		ret[1] =		std::sin( pi_factor * x ) * std::cos( pi_factor * y ) * e_minus_2_t;
+		Evals evals( arg, time );
+		ret[0] = -1 *	evals.C_x * evals.S_y * evals.E;
+		ret[1] =		evals.S_x * evals.C_y * evals.E;
 	}
 
 	/**
@@ -1023,14 +1044,8 @@ namespace AdapterFunctionsVectorial {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
-				const double x				= arg[0];
-				const double y				= arg[1];
-				const double v				= Parameters().getParam( "viscosity", 1.0 );
-				const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
-
-				ret[0] = -0.25 * (
-									std::cos( 2 * pi_factor * x ) + std::cos( 2 * pi_factor * y )
-								) * e_minus_4_t;
+				Evals evals( arg, time );
+				ret[0] = -0.25 * ( evals.C_2x + evals.C_2y ) * evals.F;
 			}
 
 			/**
@@ -1089,20 +1104,9 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				const double x			= arg[0];
-				const double y			= arg[1];
-				const double v			= Parameters().getParam( "viscosity", 1.0 );
-				const double P			= pi_factor;
-				const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
-				const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
-				const double S_x			= std::sin( P * x );
-				const double S_y			= std::sin( P * y );
-				const double S_2x			= std::sin( 2 * P * x );
-				const double S_2y			= std::sin( 2 * P * y );
-				const double C_x			= std::cos( P * x );
-				const double C_y			= std::cos( P * y );
-				ret[0] = 0.5 * P * F * S_2x;
-				ret[1] = 0.5 * P * F * S_2y;
+				Evals evals( arg, time );
+				ret[0] = 0.5 * evals.P * evals.F * evals.S_2x;
+				ret[1] = 0.5 * evals.P * evals.F * evals.S_2y;
 			}
 
 		private:
@@ -1114,20 +1118,9 @@ namespace AdapterFunctionsVectorial {
 	template < class DomainType, class RangeType >
 	void VelocityLaplaceEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
-		const double x			= arg[0];
-		const double y			= arg[1];
-		const double v			= Parameters().getParam( "viscosity", 1.0 );
-		const double P			= pi_factor;
-		const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
-		const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
-		const double S_x			= std::sin( P * x );
-		const double S_y			= std::sin( P * y );
-		const double S_2x			= std::sin( 2 * P * x );
-		const double S_2y			= std::sin( 2 * P * y );
-		const double C_x			= std::cos( P * x );
-		const double C_y			= std::cos( P * y );
-		ret[0] = - 2 * C_x * E * P * (  v * S_y * P )	;
-		ret[1] = - 2 * C_y * E * P * ( - v * S_x * P );
+		Evals evals( arg, time );
+		ret[0] = - 2 * evals.C_x * evals.E * evals.P * evals.S_y * evals.P ;
+		ret[1] =   2 * evals.C_y * evals.E * evals.P * evals.S_x * evals.P ;
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
 	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
@@ -1178,22 +1171,9 @@ namespace AdapterFunctionsVectorial {
 	template < class DomainType, class RangeType >
 	void VelocityConvectionEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-
-		const double x			= arg[0];
-		const double y			= arg[1];
-		const double v			= Parameters().getParam( "viscosity", 1.0 );;
-		const double P			= pi_factor;
-		const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
-		const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
-		const double S_x			= std::sin( P * x );
-		const double S_y			= std::sin( P * y );
-		const double S_2x			= std::sin( 2 * P * x );
-		const double S_2y			= std::sin( 2 * P * y );
-		const double C_x			= std::cos( P * x );
-		const double C_y			= std::cos( P * y );
-		ret[0] = - E * E *P * C_x * S_x ;//eigentlich richtig
-		ret[1] = - E * E *P * S_y * C_y;
+		Evals evals( arg, time );
+		ret[0] = - evals.E * evals.E * evals.P * evals.C_x * evals.S_x ;//eigentlich richtig
+		ret[1] = - evals.E * evals.E * evals.P * evals.S_y * evals.C_y;
 
 //		ret[0] =  E * E *P * C_x * S_x * ( C_y * C_y - S_y * S_y );//eigentlich falsch
 //		ret[1] = - E * E *P * S_y * C_y * ( S_x * S_x - C_x * C_x );
