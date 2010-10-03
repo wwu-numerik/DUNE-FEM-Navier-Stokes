@@ -266,8 +266,15 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					VELOCITY_POLORDER,
 					PRESSURE_POLORDER >
 		Traits;
-	Dune::NavierStokes::ThetaScheme<Traits>
-			thetaScheme( gridPart_ );
+	typedef Dune::NavierStokes::ThetaScheme<Traits>
+		ThetaSchemeType;
+	ThetaSchemeType::Defaults defaults;
+	ThetaSchemeType thetaScheme( gridPart_ );
+//								 ,
+//								 defaults.theta,
+//								 mpicomm,
+//								 1,
+//								 0);
 	thetaScheme.Init();
 	const Traits::ExactSolutionType& exactSolution_ = thetaScheme.exactSolution();
 	const Traits::DiscreteStokesFunctionWrapperType& currentFunctions_ = thetaScheme.currentFunctions();
