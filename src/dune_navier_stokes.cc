@@ -57,7 +57,7 @@
 #endif
 
 //#define NS Dune::NavierStokes::TESTCASE
-#define NS Testing::AdapterFunctionsVectorial
+#define NS Testing::AdapterFunctionsVisco
 #define TESTING_NS NS
 #include "testing.hh"
 
