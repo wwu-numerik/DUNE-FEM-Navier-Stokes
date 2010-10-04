@@ -243,10 +243,10 @@ namespace Dune {
 				{
 					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
 					currentFunctions_.assign( nextFunctions_ );
+					exactSolution_.project();
 
 					//error calc
 					if ( Parameters().getParam( "calculate_errors", true ) ) {
-						exactSolution_.project();
 						errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
 						errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
