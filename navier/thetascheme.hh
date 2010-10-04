@@ -207,7 +207,7 @@ namespace Dune {
 					exactSolution_( timeprovider_,
 									gridPart_,
 									functionSpaceWrapper_ ),
-					dummyFunctions_("force",
+					dummyFunctions_("dummy",
 									functionSpaceWrapper_,
 									gridPart_ ),
 					updateFunctions_("updates",
@@ -365,7 +365,7 @@ namespace Dune {
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
 						Dune::BetterL2Projection
 							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
-						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+//						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
 					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
@@ -481,7 +481,7 @@ namespace Dune {
 				void oseenStep()
 				{
 					const bool scale_equations = Parameters().getParam( "scale_equations", false );
-					const double delta_t_factor = ( 1 - 2 * theta_ ) * d_t_;
+					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
 					double oseen_alpha, oseen_viscosity,scale_factor;
 					const double oseen_alpha_unscaled = 1 / delta_t_factor;
 					if ( scale_equations ) {
@@ -533,6 +533,8 @@ namespace Dune {
 						setUpdateFunctions();
 						currentFunctions_.assign( nextFunctions_ );
 					}
+					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
+					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
 				}
 
 				void oseenStepSingle(	const typename Traits::NonlinearForceAdapterFunctionType& nonlinearForce,
