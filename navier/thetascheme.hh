@@ -162,7 +162,7 @@ namespace Dune {
 				CommunicatorType& communicator_;
 				typename Traits::TimeProviderType timeprovider_;
 				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
-				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
+				mutable typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
@@ -365,6 +365,7 @@ namespace Dune {
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
 						Dune::BetterL2Projection
 							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
 					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
@@ -433,11 +434,11 @@ namespace Dune {
 
 				void Init()
 				{
-					typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType meanVelocity
-							= Stuff::meanValue( currentFunctions_.discreteVelocity(), currentFunctions_.discreteVelocity().space() );
-					const double typicalVelocity = meanVelocity.two_norm();
-					Stuff::printFieldVector( meanVelocity, "meanVelocity", Logger().Info() );
-					Logger().Info() << "typicalVelocity " << typicalVelocity << std::endl;
+//					typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType meanVelocity
+//							= Stuff::meanValue( currentFunctions_.discreteVelocity(), currentFunctions_.discreteVelocity().space() );
+//					const double typicalVelocity = meanVelocity.two_norm();
+//					Stuff::printFieldVector( meanVelocity, "meanVelocity", Logger().Info() );
+//					Logger().Info() << "typicalVelocity " << typicalVelocity << std::endl;
 
 					timeprovider_.init( d_t_ );
 					//initial flow field at t = 0
