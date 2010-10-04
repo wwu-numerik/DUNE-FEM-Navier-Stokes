@@ -158,4 +158,7 @@ TARGET_LINK_LIBRARIES(navier "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIB
 ADD_EXECUTABLE(oseen src/oseen.cc ${header} ${stokes} ${stuff} ${navier} )
 TARGET_LINK_LIBRARIES(oseen "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
 
+ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${header} ${stokes} ${stuff} ${navier} )
+TARGET_LINK_LIBRARIES(conv_diff "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+
 HEADERCHECK( ${header} ${ossenn} ${navier} )
