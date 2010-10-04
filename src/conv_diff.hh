@@ -1104,7 +1104,7 @@ namespace ConvDiff {
 	}//end namespace TrivialTestCase
 
 #ifndef CONVDIFF_DATA_NAMESPACE
-	#define CONVDIFF_DATA_NAMESPACE ConvDiff::TestCase2D
+	#define CONVDIFF_DATA_NAMESPACE ConvDiff::TrivialTestCase
 #endif
 
 	template <	class CommunicatorImp,
