@@ -197,6 +197,7 @@ namespace Oseen {
 					  RangeType u;
 					  VelocityEvaluate( lambda_, 0, arg, u);
 					  //convection
+					  assert( false ); //M_2_PI == 2 / PI
 					  ret[0] = u[0] * ( -lambda * e_lambda_x * cos ) + u[1] * ( -M_2_PI * e_lambda_x * sin );
 					  ret[1] = u[0] * ( ( lambda_square / M_2_PI ) * e_lambda_x * sin ) + u[1] * lambda * e_lambda_x * cos;
 					  //laplace

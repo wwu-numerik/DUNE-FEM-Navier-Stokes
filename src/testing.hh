@@ -6,6 +6,8 @@
 #include <dune/stuff/parametercontainer.hh>
 #include <dune/common/tuples.hh>
 
+#include <boost/format.hpp>
+
 namespace Testing {
 
 
@@ -763,42 +765,42 @@ namespace AdapterFunctionsScalar {
 
 namespace AdapterFunctionsVectorial {
 
-	static const double pi_factor =  M_2_PI;//controls number of vortices
+	static const double pi_factor =  M_PI / 2.;//controls number of vortices
 	struct Evals {
 		template < class DomainType >
 		Evals( const DomainType& arg, const double time )
 			:x(arg[0]),
 			y(arg[1]),
-			time_(time),
-//			time_(0),
+//			time_(time),
+			time_(0),
 			v(Parameters().getParam( "viscosity", 1.0 )),
 			P(pi_factor),
-			E(std::exp( -2 * std::pow( P, 2 ) * v * time_ )),
-			F(std::exp( -4 * std::pow( P, 2 ) * v * time_ )),
+			E(std::exp( -2. * std::pow( P, 2. ) * v * time_ )),
+			F(std::exp( -4. * std::pow( P, 2. ) * v * time_ )),
 			S_x(std::sin( P * x )),
 			S_y(std::sin( P * y )),
-			S_2x(std::sin( 2 * P * x )),
-			S_2y(std::sin( 2 * P * y )),
-			C_2x(std::cos( 2 * P * x )),
-			C_2y(std::cos( 2 * P * y )),
+			S_2x(std::sin( 2. * P * x )),
+			S_2y(std::sin( 2. * P * y )),
+			C_2x(std::cos( 2. * P * x )),
+			C_2y(std::cos( 2. * P * y )),
 			C_x(std::cos( P * x )),
 			C_y(std::cos( P * y ))
 		{}
-		const double x;
-		const double y;
-		const double time_;
-		const double v;
-		const double P;
-		const double E;
-		const double F;
-		const double S_x;
-		const double S_y;
-		const double C_2x;
-		const double C_2y;
-		const double S_2x;
-		const double S_2y;
-		const double C_x;
-		const double C_y;
+		double x;
+		double y;
+		double time_;
+		double v;
+		double P;
+		double E;
+		double F;
+		double S_x;
+		double S_y;
+		double C_2x;
+		double C_2y;
+		double S_2x;
+		double S_2y;
+		double C_x;
+		double C_y;
 	};
 
 	template < class FunctionSpaceImp >
@@ -1240,14 +1242,14 @@ namespace AdapterFunctionsVisco {
 			P(M_PI),
 			E(std::exp( -8 * std::pow( M_PI, 2 ) * time_ )),
 			F(std::exp( -16 * std::pow( M_PI, 2 ) * time_ )),
-			S_x(std::sin( M_2_PI * ( x + 0.25 ) ) ),
-			S_y(std::sin( M_2_PI * ( y + 0.5  ) ) ),
-			S_2x(std::sin( 2 * M_2_PI * ( x + 0.25 ) ) ),
-			S_2y(std::sin( 2 * M_2_PI * ( x + 0.5  ) ) ),
-			C_2x(std::cos( 2 * M_2_PI * ( x + 0.25 ) ) ),
-			C_2y(std::cos( 2 * M_2_PI * ( x + 0.5  ) ) ),
-			C_x(std::cos( M_2_PI * ( y + 0.25  ) ) ),
-			C_y(std::cos( M_2_PI * ( y + 0.5   ) ) )
+			S_x(std::sin( 2 * M_PI * ( x + 0.25 ) ) ),
+			S_y(std::sin( 2 * M_PI * ( y + 0.5  ) ) ),
+			S_2x(std::sin( 4 * M_PI * ( x + 0.25 ) ) ),
+			S_2y(std::sin( 4 * M_PI * ( x + 0.5  ) ) ),
+			C_2x(std::cos( 4 * M_PI * ( x + 0.25 ) ) ),
+			C_2y(std::cos( 4 * M_PI * ( x + 0.5  ) ) ),
+			C_x(std::cos( 2 * M_PI * ( y + 0.25  ) ) ),
+			C_y(std::cos( 2 * M_PI * ( y + 0.5   ) ) )
 		{}
 		const double x;
 		const double y;
@@ -1646,6 +1648,7 @@ namespace AdapterFunctionsVisco {
 	void VelocityConvectionEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
 		Evals evals( arg, time );
+		assert( false ); //M_2_PI == 2 / PI
 		const double c_fac = evals.E * evals.E * M_2_PI / std::pow( evals.v, 2 );
 		ret[0] = - c_fac * evals.S_x * evals.C_x ;
 		ret[1] = - c_fac * evals.S_y * evals.C_y ;
