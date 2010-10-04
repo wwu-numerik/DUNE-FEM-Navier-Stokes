@@ -140,7 +140,7 @@ namespace Dune {
 				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType
 					DiscretePressureFunctionType;
 
-				typename Traits::GridPartType gridPart_;
+				mutable typename Traits::GridPartType gridPart_;
 		public:
 				const double theta_;
 				const double operator_weight_alpha_;
@@ -163,16 +163,16 @@ namespace Dune {
 				typename Traits::TimeProviderType timeprovider_;
 				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
 				typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
-				typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
+				mutable typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
-				typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
-				typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
+				mutable typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
+				mutable typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
 				ExactSolutionType exactSolution_;
 				DataWriterType1 dataWriter1_;
 				DataWriterType2 dataWriter2_;
 				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
-				typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
+				mutable typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
 
 			public:
 				const double viscosity_;
@@ -322,7 +322,7 @@ namespace Dune {
 					timeprovider_.nextFractional();
 				}
 
-				RunInfo stokesStep()
+				RunInfo stokesStep() const
 				{
 					const bool scale_equations = Parameters().getParam( "scale_equations", false );
 					const double delta_t_factor = theta_ * d_t_;
@@ -577,7 +577,7 @@ namespace Dune {
 
 				}
 
-				void setUpdateFunctions()
+				void setUpdateFunctions() const
 				{
 					updateFunctions_.assign( nextFunctions_);
 					updateFunctions_ -= currentFunctions_ ;

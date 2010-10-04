@@ -163,7 +163,7 @@ namespace Dune {
 						AnalyticalDirichletDataType;
 
 					template <class DiscreteStokesFunctionWrapper >
-					static AnalyticalDirichletDataType getInstance( TimeProviderType& timeProvider, const DiscreteStokesFunctionWrapper& wrapper ) {
+					static AnalyticalDirichletDataType getInstance( const TimeProviderType& timeProvider, const DiscreteStokesFunctionWrapper& wrapper ) {
 						return 	AnalyticalDirichletDataType( timeProvider, wrapper.discreteVelocitySpace() );
 					}
 				};
