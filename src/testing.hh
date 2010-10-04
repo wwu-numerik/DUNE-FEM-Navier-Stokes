@@ -1121,8 +1121,8 @@ namespace AdapterFunctionsVectorial {
 	void VelocityLaplaceEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
 		Evals evals( arg, time );
-		ret[0] = - 2 * evals.C_x * evals.E * evals.P * evals.S_y * evals.P ;
-		ret[1] =   2 * evals.C_y * evals.E * evals.P * evals.S_x * evals.P ;
+		ret[0] =   2 * evals.C_x * evals.E * evals.P * evals.S_y * evals.P ;
+		ret[1] = - 2 * evals.C_y * evals.E * evals.P * evals.S_x * evals.P ;
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
 	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
