@@ -837,8 +837,8 @@ namespace ConvDiff {
 					  const double S_2y			= std::sin( 2 * P * y );
 					  const double C_x			= std::cos( P * x );
 					  const double C_y			= std::cos( P * y );
-					  ret[0] = 0;
-					  ret[1] = -1;
+					  ret[0] = 2*x;
+					  ret[1] = 0;
 				  }
 
 			  private:
@@ -863,10 +863,10 @@ namespace ConvDiff {
 			ret[1] = -y;
 		}
 		template < class FunctionSpaceImp >
-		class Convection : public Function < FunctionSpaceImp , Convection < FunctionSpaceImp > >
+		class Beta : public Function < FunctionSpaceImp , Beta < FunctionSpaceImp > >
 		{
 			  public:
-				  typedef Convection< FunctionSpaceImp >
+				  typedef Beta< FunctionSpaceImp >
 					  ThisType;
 				  typedef Function < FunctionSpaceImp ,ThisType >
 					  BaseType;
@@ -879,32 +879,57 @@ namespace ConvDiff {
 				   *  \brief  constructor
 				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
 				   **/
-				  Convection( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
+				  Beta( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
 					  : BaseType ( space ),
 						viscosity_( viscosity ),
 						alpha_( alpha )
 				  {}
 
-				  ~Convection()
+				  ~Beta()
 				  {}
 
 
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
-					  const double x			= arg[0];
-					  const double y			= arg[1];
-					  const double v			= viscosity_;
-					  const double P			= M_PI;//pi_factor;
-					  const double E			= 1;//std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
-					  const double F			= 1;//std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
-					  const double S_x			= std::sin( P * x );
-					  const double S_y			= std::sin( P * y );
-					  const double S_2x			= std::sin( 2 * P * x );
-					  const double S_2y			= std::sin( 2 * P * y );
-					  const double C_x			= std::cos( P * x );
-					  const double C_y			= std::cos( P * y );
-					  ret[0] = 1;
-					  ret[1] = -1;
+					 VelocityEvaluate( 0,0, arg, ret );
+				  }
+
+			  private:
+				  const double viscosity_;
+				  const double alpha_;
+				  static const int dim_ = FunctionSpaceImp::dimDomain;
+		};
+
+		template < class FunctionSpaceImp >
+		class ExactConvection : public Function < FunctionSpaceImp , ExactConvection < FunctionSpaceImp > >
+		{
+			  public:
+				  typedef ExactConvection< FunctionSpaceImp >
+					  ThisType;
+				  typedef Function < FunctionSpaceImp ,ThisType >
+					  BaseType;
+				  typedef typename BaseType::DomainType
+					  DomainType;
+				  typedef typename BaseType::RangeType
+					  RangeType;
+
+				  /**
+				   *  \brief  constructor
+				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
+				   **/
+				  ExactConvection( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
+					  : BaseType ( space ),
+						viscosity_( viscosity ),
+						alpha_( alpha )
+				  {}
+
+				  ~ExactConvection()
+				  {}
+
+
+				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
+				  {
+					 ret = arg;
 				  }
 
 			  private:
@@ -1144,8 +1169,10 @@ namespace ConvDiff {
 		typedef CONVDIFF_DATA_NAMESPACE::Velocity< typename OseenModelTraits::VelocityFunctionSpaceType,
 								  TimeProviderType >
 			ExactVelocityType;
-		typedef CONVDIFF_DATA_NAMESPACE::Convection< typename OseenModelTraits::VelocityFunctionSpaceType >
+		typedef CONVDIFF_DATA_NAMESPACE::Beta< typename OseenModelTraits::VelocityFunctionSpaceType >
 			ConvectionType;
+		typedef CONVDIFF_DATA_NAMESPACE::ExactConvection< typename OseenModelTraits::VelocityFunctionSpaceType >
+			ExactConvectionType;
 		typedef Dune::NavierStokes::ExactSolution<ThisType>
 			ExactSolutionType;
 		typedef typename OseenModelType::DiscreteStokesFunctionWrapperType

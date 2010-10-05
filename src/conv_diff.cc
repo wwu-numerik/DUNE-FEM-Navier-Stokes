@@ -66,6 +66,7 @@
 #include <dune/fem/pass/pass.hh>
 #include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
 #include <dune/fem/misc/gridwidth.hh>
+#include <dune/fem/misc/l2error.hh>
 
 #include <dune/stokes/discretestokesfunctionspacewrapper.hh>
 #include <dune/stokes/discretestokesmodelinterface.hh>
@@ -81,6 +82,8 @@
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
 #include <dune/stuff/signals.hh>
+#include <dune/stuff/tuple.hh>
+#include <dune/stuff/error.hh>
 
 #include "conv_diff.hh"
 
@@ -304,6 +307,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	ConvDiffTraits::ConvectionType convection( viscosity, continousVelocitySpace );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convection", currentFunctions.discreteVelocity().space() );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_exactConvection( "exact_convection", currentFunctions.discreteVelocity().space() );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType convection_diff( "convection_diff", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ConvectionType,
@@ -321,46 +326,48 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							true );
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
-	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
-	errorFunctions.discretePressure() -= nextFunctions.discretePressure();
-	errorFunctions.discreteVelocity().assign( exactSolution.discreteVelocity() );
-	errorFunctions.discreteVelocity() -= nextFunctions.discreteVelocity();
+	ConvDiffTraits::ExactConvectionType exactConvection( viscosity, continousVelocitySpace );
+	Dune::L2Projection< double,
+						double,
+						ConvDiffTraits::ExactConvectionType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(exactConvection, discrete_exactConvection);
 
-	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
-	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+	typedef Stuff::L2Error<GridPartType>
+			L2ErrorType;
+	L2ErrorType l2Error( gridPart );
+	L2ErrorType::Errors errors_convection = l2Error.get( rhs_container.convection,
+															discrete_exactConvection,
+															convection_diff );
+	L2ErrorType::Errors errors_velocity	 = l2Error.get( nextFunctions.discreteVelocity(),
+															exactSolution.discreteVelocity(),
+															errorFunctions.discreteVelocity() );
+
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 	Dune::L2Norm< GridPartType > l2_Error( gridPart );
 
-	const double l2_error_pressure				= l2_Error.norm( errorFunctions.discretePressure() );
-	const double l2_error_velocity				= l2_Error.norm( errorFunctions.discreteVelocity() );
-	const double relative_l2_error_pressure		= l2_error_pressure / l2_Error.norm( exactSolution.discretePressure() );
-	const double relative_l2_error_velocity		= l2_error_velocity / l2_Error.norm( exactSolution.discreteVelocity() );
-
 	Logger().Info().Resume();
-	Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
-					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
-					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
+	Logger().Info()
+//			<< "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
+					<< errors_convection.str()
+					<< errors_velocity.str()
+//					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
 					<< "GD: " << GD << std::endl;
 
-	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*
-						>
+	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;
 	typedef Dune::TimeAwareDataWriter<	ConvDiffTraits::TimeProviderType,
 										GridPartType::GridType,
 										OutputTupleType >
 		DataWriterType;
 	OutputTupleType out( &nextFunctions.discreteVelocity(),
-						 &nextFunctions.discretePressure(),
 						 &exactSolution.discreteVelocity(),
-						 &exactSolution.discretePressure(),
 						 &errorFunctions.discreteVelocity(),
-						 &errorFunctions.discretePressure()
+						 &rhs_container.convection,
+						 &convection_diff,
+						 &discrete_exactConvection,
+						 0,0,0
 						 );
 
 	DataWriterType dt( timeprovider_,
