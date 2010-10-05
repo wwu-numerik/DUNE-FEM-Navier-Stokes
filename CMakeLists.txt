@@ -140,7 +140,7 @@ SET(dune-navier-stokesSrc
 FILE( GLOB header "src/*.hh" )
 FILE( GLOB_RECURSE navier "navier/*.hh" )
 FILE( GLOB_RECURSE oseen "oseen/*.hh" )
-FILE( GLOB stokes "../dune-stokes/stokes/*.hh" )
+FILE( GLOB_RECURSE stokes "../dune-stokes/stokes/*.hh" )
 FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
