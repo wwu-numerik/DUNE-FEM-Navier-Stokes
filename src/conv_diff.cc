@@ -241,29 +241,13 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	Parameters().setParam( "reduced_oseen_solver", true );
 
-	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
 	const double theta_ = 1.0;
-	const double d_t = 1.0;
-	const double operator_weight_beta_ = 1.0;
-	const double operator_weight_alpha_ = 1.0;
-	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
-	const double oseen_viscosity = 1 / reynolds;
-	const double lambda = ( reynolds * 0.5 )
-						  - std::sqrt(
-								  ( std::pow( reynolds, 2 ) * 0.25 )
-								  + ( 4 * std::pow( M_PI, 2 ) )
-									  ) ;
-	const double pressure_C = ( std::exp( 3 * lambda ) - std::exp(-1  * lambda ) ) / ( - 8 * lambda );
+	const double alpha = Parameters().getParam( "alpha", 1.0 );
+	const double viscosity = Parameters().getParam( "viscosity", 1.0 );
 
-//	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
-
-	Parameters().setParam( "lambda", lambda );
-	Parameters().setParam( "viscosity", oseen_viscosity );
 	Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 	stab_coeff.FactorFromParams( "D12", 0 );
 	stab_coeff.FactorFromParams( "C12", 0 );
-	stab_coeff.Add( "E12", 0.5 );
-	stab_coeff.FactorFromParams( "E12", 0.5 );
 
 	typedef Dune::ConvDiff::Traits<
 			CollectiveCommunication,
@@ -275,7 +259,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 		ConvDiffTraits;
 
 	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
-	ConvDiffTraits::TimeProviderType timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, comm );
+	ConvDiffTraits::TimeProviderType timeprovider_( theta_,0.5,0.5, comm );
 	ConvDiffTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
 	typedef ConvDiffTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
@@ -293,7 +277,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					gridPart,
 					functionSpaceWrapper );
 	exactSolution.project();
-	exactSolution.exactPressure().setShift( pressure_C );
+
 	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
@@ -309,17 +293,17 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	ConvDiffTraits::OseenModelTraits::VelocityFunctionSpaceType
 			continousVelocitySpace;
 
-	ConvDiffTraits::OseenModelTraits::AnalyticalForceFunctionType force( oseen_viscosity, continousVelocitySpace, oseen_alpha );
+	ConvDiffTraits::OseenModelTraits::AnalyticalForceFunctionType force( viscosity, continousVelocitySpace, alpha );
 	ConvDiffTraits::OseenModelType
 			stokesModel( stab_coeff ,
 						force,
 						stokesDirichletData,
-						oseen_viscosity,
-						oseen_alpha );
+						viscosity,
+						alpha );
 	currentFunctions.assign( exactSolution );
 
-	ConvDiffTraits::ConvectionType convection( oseen_viscosity, continousVelocitySpace );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convetion", currentFunctions.discreteVelocity().space() );
+	ConvDiffTraits::ConvectionType convection( viscosity, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convection", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ConvectionType,
@@ -357,8 +341,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
 					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
 					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
-					<< "GD: " << GD << "\n"
-					<< "lambda: " << lambda << std::endl;
+					<< "GD: " << GD << std::endl;
 
 	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
