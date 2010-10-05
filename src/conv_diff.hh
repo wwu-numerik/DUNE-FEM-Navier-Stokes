@@ -828,6 +828,7 @@ namespace ConvDiff {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
+					  const double a			= Parameters().getParam( "alpha", 1.0 );
 					  const double P			= M_PI;//pi_factor;
 					  const double E			= 1;//std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
 					  const double F			= 1;//std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
@@ -837,8 +838,12 @@ namespace ConvDiff {
 					  const double S_2y			= std::sin( 2 * P * y );
 					  const double C_x			= std::cos( P * x );
 					  const double C_y			= std::cos( P * y );
-					  ret[0] = 2*x;
-					  ret[1] = 0;
+					  //beta = u
+					  ret[0] = x * ( 1 + a );
+					  ret[1] = y * ( 1 - a );
+					  //beta = 0
+					  ret[0] = x * ( a );
+					  ret[1] = y * ( - a );
 				  }
 
 			  private:
@@ -891,7 +896,7 @@ namespace ConvDiff {
 
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
-					 VelocityEvaluate( 0,0, arg, ret );
+					 ret=RangeType(0);
 				  }
 
 			  private:
@@ -929,7 +934,7 @@ namespace ConvDiff {
 
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
-					 ret = arg;
+					 ret = RangeType(0);
 				  }
 
 			  private:
@@ -1054,7 +1059,6 @@ namespace ConvDiff {
 				static const int dim_ = FunctionSpaceImp::dimDomain ;
 				const double lambda_;
 		};
-
 		template <	class FunctionSpaceImp,
 					class TimeProviderImp >
 		class Pressure : public TimeFunction <	FunctionSpaceImp ,
@@ -1103,7 +1107,7 @@ namespace ConvDiff {
 					const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
 					const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
 
-					ret = 0.5 - x;
+					ret = ( -1 / ( 4 * v ) ) * ( C1 + C2 ) * F;
 				}
 
 				template < class DiscreteFunctionSpace >
@@ -1126,6 +1130,7 @@ namespace ConvDiff {
 				const double lambda_;
 				double shift_;
 		};
+
 	}//end namespace TrivialTestCase
 
 #ifndef CONVDIFF_DATA_NAMESPACE

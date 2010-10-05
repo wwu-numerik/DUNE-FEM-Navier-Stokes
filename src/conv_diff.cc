@@ -291,8 +291,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							::getInstance( timeprovider_,
 										   functionSpaceWrapper );
 
-	ConvDiffTraits::OseenModelTraits::PressureFunctionSpaceType
-			continousPressureSpace;
 	ConvDiffTraits::OseenModelTraits::VelocityFunctionSpaceType
 			continousVelocitySpace;
 
