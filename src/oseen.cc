@@ -343,7 +343,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							&discrete_convection );
+							discrete_convection,
+							true );
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
