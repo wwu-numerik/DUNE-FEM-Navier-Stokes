@@ -238,10 +238,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
 
-	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
-	infoStream << "  - max grid width: " << grid_width << std::endl;
 
-//	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
+	Parameters().setParam( "reduced_oseen_solver", true );
 
 	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
 	const double theta_ = 1.0;
