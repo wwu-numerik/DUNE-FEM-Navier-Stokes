@@ -42,7 +42,7 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: grid_2d.dgf
+dgf_file_2d: unitsquare.dgf
 dgf_file_3d: grid_3d.dgf
 
 runtype: 5
@@ -59,21 +59,21 @@ disableSolver: 0
 reduced_oseen_solver: 1
 use_nested_cg_solver: 0
 use_full_solver: 0
-solverVerbosity: 0
+solverVerbosity: 2
 rhs_factor: 0.0
 #viscosity: 1.0e-1
-viscosity: 0.02
+viscosity: 0.01
 rhs_cheat: 0
 add_extra_terms: 0
 scale_equations: 0
 silent_stokes: 0
-laplace_scale: 10
+#laplace_scale: 10
 stab_coeff_visc_scale: 1
 save_matrices: 0
 reynolds: 1
 do-bfg: 0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-alpha: 00.0
+alpha: 10.0
 use_alternate_convection_volume_disc: 0
 use_cks_convection: 0
 

@@ -829,7 +829,7 @@ namespace ConvDiff {
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
 					  const double a			= Parameters().getParam( "alpha", 1.0 );
-					  const double P			= M_PI;//pi_factor;
+					  const double P			= 2 * M_PI;//pi_factor;
 					  const double E			= 1;//std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
 					  const double F			= 1;//std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
 					  const double S_x			= std::sin( P * x );
@@ -842,8 +842,12 @@ namespace ConvDiff {
 					  ret[0] = x * ( 1 + a );
 					  ret[1] = y * ( 1 - a );
 					  //beta = 0
-					  ret[0] = x * ( a );
-					  ret[1] = y * ( - a );
+//					  ret[0] = x * ( a );
+//					  ret[1] = y * ( - a );
+
+//					  ret[0] = ( a + v * P * P ) * S_y * C_y ;
+////					  ret[0] = a ;
+//					  ret[1] = 0;
 				  }
 
 			  private:
@@ -859,10 +863,13 @@ namespace ConvDiff {
 			const double y				= arg[1];
 			const double v				= Parameters().getParam( "viscosity", 1.0 );
 			const double F				= std::exp( -8 * std::pow( M_PI, 2 ) * time );
-			const double C1				= std::cos(2*M_PI* ( x + 0.25 ) );
-			const double S1				= std::sin(2*M_PI* ( x + 0.25 ) );
-			const double S2				= std::sin(2*M_PI* ( y + 0.5 ) );
-			const double C2				= std::cos(2*M_PI* ( y + 0.5 ) );
+			const double P = 2 * M_PI;
+			const double S_x			= std::sin( P * x );
+			const double S_y			= std::sin( P * y );
+			const double S_2x			= std::sin( 2 * P * x );
+			const double S_2y			= std::sin( 2 * P * y );
+			const double C_x			= std::cos( P * x );
+			const double C_y			= std::cos( P * y );
 
 			ret[0] = x;
 			ret[1] = -y;
@@ -896,7 +903,8 @@ namespace ConvDiff {
 
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
-					 ret=RangeType(0);
+					 VelocityEvaluate(0,0, arg, ret );
+//					 ret = RangeType(0);
 				  }
 
 			  private:
@@ -935,6 +943,8 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 ret = RangeType(0);
+					 ret[0] = arg[0];
+					 ret[1] = arg[1];
 				  }
 
 			  private:
@@ -1107,7 +1117,7 @@ namespace ConvDiff {
 					const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
 					const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
 
-					ret = ( -1 / ( 4 * v ) ) * ( C1 + C2 ) * F;
+					ret = 0;
 				}
 
 				template < class DiscreteFunctionSpace >
