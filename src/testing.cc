@@ -367,9 +367,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	RunInfo info_dummy;
 	thetaScheme.nextStep(1,info_dummy);
 	thetaScheme.oseenStep();
-	thetaScheme.nextStep(2,info_dummy);
-	thetaScheme.stokesStep();
-
 
 	Dune::L2Projection< double,
 						double,
@@ -409,6 +406,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					   gridPart_.grid(),
 					   out2 ).write();
 
+	thetaScheme.nextStep(2,info_dummy);
+	thetaScheme.stokesStep();
 	thetaScheme.nextStep(3,info_dummy);
 
 	std::cout	<< boost::format("error stokes\t%f (abs)| %f (rel)\nerror non\t%f (abs)| %f (rel)")
