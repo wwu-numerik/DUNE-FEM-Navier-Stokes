@@ -251,6 +251,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 	stab_coeff.FactorFromParams( "D12", 0 );
 	stab_coeff.FactorFromParams( "C12", 0 );
+	stab_coeff.Add( "E12", 0.5 );
 
 	typedef Dune::ConvDiff::Traits<
 			CollectiveCommunication,
@@ -342,8 +343,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 															errorFunctions.discreteVelocity() );
 
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
-
-	Dune::L2Norm< GridPartType > l2_Error( gridPart );
 
 	Logger().Info().Resume();
 	Logger().Info()
