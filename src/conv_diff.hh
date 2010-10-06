@@ -838,9 +838,16 @@ namespace ConvDiff {
 					  const double S_2y			= std::sin( 2 * P * y );
 					  const double C_x			= std::cos( P * x );
 					  const double C_y			= std::cos( P * y );
+
+					  //alpha * u part
+					  RangeType u;
+					  VelocityEvaluate( 0,0,arg,u);
+					  u*=a;
+					  ret += u;
+
 					  //beta = u
-					  ret[0] = x * ( 1 + a );
-					  ret[1] = y * ( 1 - a );
+//					  ret[0] = x * ( 1 + a );
+//					  ret[1] = y * ( 1 - a );
 					  //beta = 0
 //					  ret[0] = x * ( a );
 //					  ret[1] = y * ( - a );
@@ -848,6 +855,10 @@ namespace ConvDiff {
 //					  ret[0] = ( a + v * P * P ) * S_y * C_y ;
 ////					  ret[0] = a ;
 //					  ret[1] = 0;
+
+					  // beta = (1,0)
+					  ret[0] += 2;
+					  ret[1] += 0;
 				  }
 
 			  private:
@@ -871,8 +882,8 @@ namespace ConvDiff {
 			const double C_x			= std::cos( P * x );
 			const double C_y			= std::cos( P * y );
 
-			ret[0] = x;
-			ret[1] = -y;
+			ret[0] = 2*x;
+			ret[1] = -2*y;
 		}
 		template < class FunctionSpaceImp >
 		class Beta : public Function < FunctionSpaceImp , Beta < FunctionSpaceImp > >
@@ -905,6 +916,8 @@ namespace ConvDiff {
 				  {
 					 VelocityEvaluate(0,0, arg, ret );
 //					 ret = RangeType(0);
+					  ret[0] = 1;
+					  ret[1] = 0;
 				  }
 
 			  private:
@@ -943,8 +956,8 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 ret = RangeType(0);
-					 ret[0] = arg[0];
-					 ret[1] = arg[1];
+					 ret[0] = 2;
+					 ret[1] = 0;
 				  }
 
 			  private:
