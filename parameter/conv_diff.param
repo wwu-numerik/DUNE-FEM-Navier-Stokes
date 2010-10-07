@@ -59,10 +59,9 @@ disableSolver: 0
 reduced_oseen_solver: 1
 use_nested_cg_solver: 0
 use_full_solver: 0
-solverVerbosity: 2
+solverVerbosity: 0
 rhs_factor: 0.0
 #viscosity: 1.0e-1
-viscosity: 0.01
 rhs_cheat: 0
 add_extra_terms: 0
 scale_equations: 0
@@ -73,7 +72,8 @@ save_matrices: 0
 reynolds: 1
 do-bfg: 0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-alpha: 10.0
+viscosity:1.0
+alpha: 0.00
 use_alternate_convection_volume_disc: 0
 use_cks_convection: 0
 
