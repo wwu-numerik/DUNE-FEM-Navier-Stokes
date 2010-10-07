@@ -19,6 +19,7 @@ doc/doxygen/doxygen-tag
 doc/doxygen/doxygen.log
 doc/doxygen/doxygen.out
 doc/doxygen/html
+doc/doxygen/latex
 doc/doxygen/man
 install-sh
 ltmain.sh
