@@ -841,9 +841,9 @@ namespace ConvDiff {
 
 					  //alpha * u part
 					  RangeType u;
-//					  VelocityEvaluate( 0,0,arg,u);
-//					  u*=a;
-//					  ret += u;
+					  VelocityEvaluate( 0,0,arg,u);
+					  u*=a;
+					  ret += u;
 
 					  //beta = u
 //					  ret[0] = x * ( 1 + a );
@@ -857,7 +857,7 @@ namespace ConvDiff {
 //					  ret[1] = 0;
 
 					  // beta = (1,0)
-					  ret[0] += 0;
+					  ret[0] += 1;
 					  ret[1] += 0;
 				  }
 
