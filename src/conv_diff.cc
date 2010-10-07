@@ -84,6 +84,7 @@
 #include <dune/stuff/signals.hh>
 #include <dune/stuff/tuple.hh>
 #include <dune/stuff/error.hh>
+#include <dune/stuff/functionadapter.hh>
 
 #include "conv_diff.hh"
 
@@ -352,6 +353,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
 					<< "GD: " << GD << std::endl;
 
+	typedef Stuff::GradientSplitterFunction<	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
+												ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType >
+	        GradientSplitterFunctionType;
+	GradientSplitterFunctionType gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
+									rhs_container.velocity_gradient );
+
 	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;
 	typedef Dune::TimeAwareDataWriter<	ConvDiffTraits::TimeProviderType,
@@ -364,7 +371,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &rhs_container.convection,
 						 &convection_diff,
 						 &discrete_exactConvection,
-						 0,0,0
+						gradient_splitter[0].get(),
+	                    gradient_splitter[1].get(),
+	                    0
 						 );
 
 	DataWriterType dt( timeprovider_,
