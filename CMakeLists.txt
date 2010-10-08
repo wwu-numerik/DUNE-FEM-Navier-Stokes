@@ -147,18 +147,21 @@ LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 FILE( GLOB stuff "../dune-stuff/stuff/*.hh" )
 
 
-set_source_files_properties( ${stuff} ${navier} ${oseen} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
+set_source_files_properties( ${DUNE_HEADERS} ${stuff} ${navier} ${oseen} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
 
-ADD_EXECUTABLE(testing src/testing.cc ${header} ${stokes} ${stuff} ${navier} )
-TARGET_LINK_LIBRARIES(testing "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+set( COMMON_LIBS "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS}  "GL" ${ParaLIBS} )
+set( COMMON_HEADER ${header} ${stokes} ${stuff} ${navier} ${DUNE_HEADERS} )
 
-ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${header} ${stokes} ${stuff} ${navier} )
-TARGET_LINK_LIBRARIES(navier "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+ADD_EXECUTABLE(testing src/testing.cc ${COMMON_HEADER} )
+TARGET_LINK_LIBRARIES(testing ${COMMON_LIBS} )
 
-ADD_EXECUTABLE(oseen src/oseen.cc ${header} ${stokes} ${stuff} ${navier} )
-TARGET_LINK_LIBRARIES(oseen "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${COMMON_HEADER} )
+TARGET_LINK_LIBRARIES(navier ${COMMON_LIBS} )
 
-ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${header} ${stokes} ${stuff} ${navier} )
-TARGET_LINK_LIBRARIES(conv_diff "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS} "gr" "GL" ${ParaLIBS} )
+ADD_EXECUTABLE(oseen src/oseen.cc ${COMMON_HEADER} )
+TARGET_LINK_LIBRARIES(oseen ${COMMON_LIBS} )
+
+ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${COMMON_HEADER} )
+TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
 
 HEADERCHECK( ${header} ${ossenn} ${navier} )
