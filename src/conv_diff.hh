@@ -857,8 +857,8 @@ namespace ConvDiff {
 //					  ret[1] = 0;
 
 					  // beta = (1,0)
-					  ret[0] += 1;
-					  ret[1] += 0;
+//					  ret[0] += 1;
+//					  ret[1] += 0;
 				  }
 
 			  private:
