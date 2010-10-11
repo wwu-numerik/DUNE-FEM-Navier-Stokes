@@ -42,7 +42,8 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: unitsquare.dgf
+#dgf_file_2d: unitsquare.dgf
+dgf_file_2d: grid_2d.dgf
 dgf_file_3d: grid_3d.dgf
 
 runtype: 5
