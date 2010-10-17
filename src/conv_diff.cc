@@ -284,8 +284,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	exactSolution.project();
 
 	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
-	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
-	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
+//	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
+//	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
 
 	ConvDiffTraits::StartPassType startPass;
 	ConvDiffTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData =

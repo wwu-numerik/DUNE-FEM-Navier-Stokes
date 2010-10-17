@@ -843,7 +843,7 @@ namespace ConvDiff {
 					  RangeType u;
 					  VelocityEvaluate( 0,0,arg,u);
 					  u*=a;
-					  ret += u;
+					  ret = u;
 
 					  //beta = u
 //					  ret[0] = x * ( 1 + a );
@@ -857,8 +857,8 @@ namespace ConvDiff {
 //					  ret[1] = 0;
 
 					  // beta = (1,0)
-//					  ret[0] += 1;
-//					  ret[1] += 0;
+					  ret[0] += Parameters().getParam( "conv", 1.0 );
+					  ret[1] += 0;
 				  }
 
 			  private:
@@ -915,8 +915,8 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 VelocityEvaluate(0,0, arg, ret );
-//					 ret = RangeType(0);
-					  ret[0] = 1;
+					 ret = RangeType(0);
+					  ret[0] = Parameters().getParam( "conv", 1.0 );
 					  ret[1] = 0;
 				  }
 
@@ -956,7 +956,7 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 ret = RangeType(0);
-					 ret[0] = 1;
+					 ret[0] = Parameters().getParam( "conv", 1.0 );
 					 ret[1] = 0;
 				  }
 
