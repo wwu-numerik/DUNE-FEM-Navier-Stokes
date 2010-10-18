@@ -73,9 +73,9 @@ save_matrices: 1
 reynolds: 1
 do-bfg: 0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-absLimit: 1e-06
-inner_absLimit: 1e-06
-viscosity:0.000
+absLimit: 1e-09
+inner_absLimit: 1e-09
+viscosity:1.101
 conv: 1e-0
 alpha: 0.00
 use_alternate_convection_volume_disc: 0
