@@ -962,8 +962,8 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 ret = RangeType(0);
-					 ret[0] =  Parameters().getParam( "conv", 1.0 );
-					 ret[1] = 0;
+					 ret[0] = arg[0];
+					 ret[1] = -arg[1];
 				  }
 
 			  private:
