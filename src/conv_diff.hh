@@ -198,7 +198,7 @@ namespace ConvDiff {
 					  RangeType u;
 					  VelocityEvaluate( lambda_, 0, arg, u);
 					  //convection
-					  assert( false ); //M_2_PI == 2 / PI
+//					  assert( false ); //M_2_PI == 2 / PI
 					  ret[0] = u[0] * ( -lambda * e_lambda_x * cos ) + u[1] * ( -M_2_PI * e_lambda_x * sin );
 					  ret[1] = u[0] * ( ( lambda_square / M_2_PI ) * e_lambda_x * sin ) + u[1] * lambda * e_lambda_x * cos;
 					  //laplace
@@ -234,10 +234,10 @@ namespace ConvDiff {
 			ret[1] = (lambda/(2*M_PI)) * e_lambda_x * 	std::sin( 2 * M_PI * y );
 		}
 		template < class FunctionSpaceImp >
-		class Convection : public Function < FunctionSpaceImp , Convection< FunctionSpaceImp > >
+		class Beta : public Function < FunctionSpaceImp , Beta< FunctionSpaceImp > >
 		{
 			public:
-				typedef Convection< FunctionSpaceImp >
+				typedef Beta< FunctionSpaceImp >
 					ThisType;
 				typedef Function< FunctionSpaceImp, ThisType >
 					BaseType;
@@ -251,7 +251,7 @@ namespace ConvDiff {
 				*
 				*  doing nothing besides Base init
 				**/
-				Convection( double dummy, const FunctionSpaceImp& space,
+				Beta( double dummy, const FunctionSpaceImp& space,
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
@@ -263,7 +263,7 @@ namespace ConvDiff {
 				*
 				*  doing nothing
 				**/
-				~Convection()
+				~Beta()
 				{}
 
 				template < class IntersectionType >
@@ -286,7 +286,71 @@ namespace ConvDiff {
 				  static const int dim_ = FunctionSpaceImp::dimDomain ;
 				  const double lambda_;
 		};
+		template < class FunctionSpaceImp >
+		class ExactConvection : public Function < FunctionSpaceImp , ExactConvection< FunctionSpaceImp > >
+		{
+			public:
+				typedef ExactConvection< FunctionSpaceImp >
+					ThisType;
+				typedef Function< FunctionSpaceImp, ThisType >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
 
+				/**
+				*  \brief  constructor
+				*
+				*  doing nothing besides Base init
+				**/
+				ExactConvection( double dummy, const FunctionSpaceImp& space,
+							 const double parameter_a = M_PI /2.0 ,
+							 const double parameter_d = M_PI /4.0)
+					: BaseType( space ),
+					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+				{}
+
+				/**
+				*  \brief  destructor
+				*
+				*  doing nothing
+				**/
+				~ExactConvection()
+				{}
+
+				template < class IntersectionType >
+				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+				{
+					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					const double lambda			= lambda_;
+					const double x				= arg[0];
+					const double y				= arg[1];
+					const double e_lambda_x		= std::exp( lambda * x );
+					const double cos				= std::cos( 2 * M_PI * y );
+					const double sin				= std::sin( 2 * M_PI * y );
+					const double lambda_square	= lambda * lambda;
+					RangeType u;
+					VelocityEvaluate( lambda_, time, arg, u);
+					//convection
+//					  assert( false ); //M_2_PI == 2 / PI
+					ret[0] = u[0] * ( -lambda * e_lambda_x * cos ) + u[1] * ( -M_2_PI * e_lambda_x * sin );
+					ret[1] = u[0] * ( ( lambda_square / M_2_PI ) * e_lambda_x * sin ) + u[1] * lambda * e_lambda_x * cos;
+				}
+
+				/**
+				* \brief  evaluates the dirichlet data
+				* \param  arg
+				*         point to evaluate at
+				* \param  ret
+				*         value of dirichlet boundary data at given point
+				**/
+				inline void evaluate( const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, 0, arg, ret);}
+
+			private:
+				  static const int dim_ = FunctionSpaceImp::dimDomain ;
+				  const double lambda_;
+		};
 		/**
 		*  \brief  describes the dirichlet boundary data
 		*
@@ -475,6 +539,7 @@ namespace ConvDiff {
 	} //end namespace Oseem::TestCase2D
 
 	namespace TestCaseTaylor2D {
+
 		template < class FunctionSpaceImp >
 		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 		{
@@ -517,7 +582,8 @@ namespace ConvDiff {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
-					  const double P			= M_PI;//pi_factor;
+					  const double a			= Parameters().getParam( "alpha", 1.0 );;
+					  const double P			= 2 * M_PI;//pi_factor;
 					  const double E			= 1;//std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
 					  const double F			= 1;//std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
 					  const double S_x			= std::sin( P * x );
@@ -526,8 +592,12 @@ namespace ConvDiff {
 					  const double S_2y			= std::sin( 2 * P * y );
 					  const double C_x			= std::cos( P * x );
 					  const double C_y			= std::cos( P * y );
-					  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
-					  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
+					  RangeType u,u_a;
+					  VelocityEvaluate( 0,0,arg,u);
+					  u_a = (u * a );
+					  ret = u_a;
+					  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	;
+					  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	;
 //					  ret = RangeType(0);
 				  }
 
@@ -543,14 +613,17 @@ namespace ConvDiff {
 			const double x				= arg[0];
 			const double y				= arg[1];
 			const double v				= Parameters().getParam( "viscosity", 1.0 );
-			const double F				= std::exp( -8 * std::pow( M_PI, 2 ) * time );
-			const double C1				= std::cos(2*M_PI* ( x + 0.25 ) );
-			const double S1				= std::sin(2*M_PI* ( x + 0.25 ) );
-			const double S2				= std::sin(2*M_PI* ( y + 0.5 ) );
-			const double C2				= std::cos(2*M_PI* ( y + 0.5 ) );
+			const double F				= 1;//std::exp( -8 * std::pow( M_PI, 2 ) * time );
+			const double P			= 2 * M_PI;//pi_factor;
+			const double S_x			= std::sin( P * x );
+			const double S_y			= std::sin( P * y );
+			const double S_2x			= std::sin( 2 * P * x );
+			const double S_2y			= std::sin( 2 * P * y );
+			const double C_x			= std::cos( P * x );
+			const double C_y			= std::cos( P * y );
 
-			ret[0] = ( - 1 / v ) * C1 * S2 * F;
-			ret[1] = (  1 / v ) * S1 * C2 * F;
+			ret[0] = ( - 1 / v ) * C_x * S_y * F;
+			ret[1] = (  1 / v ) * S_x * C_y * F;
 		}
 
 		/**
@@ -615,10 +688,10 @@ namespace ConvDiff {
 				  const double lambda_;
 		};
 		template < class FunctionSpaceImp >
-		class Convection : public Function < FunctionSpaceImp , Convection< FunctionSpaceImp > >
+		class Beta : public Function < FunctionSpaceImp , Beta< FunctionSpaceImp > >
 		{
 			public:
-				typedef Convection< FunctionSpaceImp >
+				typedef Beta< FunctionSpaceImp >
 					ThisType;
 				typedef Function< FunctionSpaceImp, ThisType >
 					BaseType;
@@ -632,7 +705,7 @@ namespace ConvDiff {
 				*
 				*  doing nothing besides Base init
 				**/
-				Convection( double dummy, const FunctionSpaceImp& space,
+				Beta( double dummy, const FunctionSpaceImp& space,
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
@@ -644,7 +717,60 @@ namespace ConvDiff {
 				*
 				*  doing nothing
 				**/
-				~Convection()
+				~Beta()
+				{}
+
+				template < class IntersectionType >
+				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+				{
+					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					VelocityEvaluate( lambda_, time, arg, ret);
+				}
+
+				/**
+				* \brief  evaluates the dirichlet data
+				* \param  arg
+				*         point to evaluate at
+				* \param  ret
+				*         value of dirichlet boundary data at given point
+				**/
+				inline void evaluate( const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, 0, arg, ret);}
+
+			private:
+				  static const int dim_ = FunctionSpaceImp::dimDomain ;
+				  const double lambda_;
+		};
+		template < class FunctionSpaceImp >
+		class ExactConvection : public Function < FunctionSpaceImp , ExactConvection< FunctionSpaceImp > >
+		{
+			public:
+				typedef ExactConvection< FunctionSpaceImp >
+					ThisType;
+				typedef Function< FunctionSpaceImp, ThisType >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				/**
+				*  \brief  constructor
+				*
+				*  doing nothing besides Base init
+				**/
+				ExactConvection( double dummy, const FunctionSpaceImp& space,
+							 const double parameter_a = M_PI /2.0 ,
+							 const double parameter_d = M_PI /4.0)
+					: BaseType( space ),
+					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+				{}
+
+				/**
+				*  \brief  destructor
+				*
+				*  doing nothing
+				**/
+				~ExactConvection()
 				{}
 
 				template < class IntersectionType >
@@ -861,8 +987,9 @@ namespace ConvDiff {
 //					  ret[1] = 0;
 
 					  // beta = (1,0)
-					  ret[0] += u[0];
-					  ret[1] += -u[1];
+//					  ret[0] += u[0];
+//					  ret[1] += -u[1];
+					  ret[0] += Parameters().getParam( "conv", 1.0 );
 				  }
 
 			  private:
@@ -921,8 +1048,8 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 VelocityEvaluate(0,0, arg, ret );
-//					 ret = RangeType(0);
-//					  ret[0] = Parameters().getParam( "conv", 1.0 );
+					 ret = RangeType(0);
+					  ret[0] = Parameters().getParam( "conv", 1.0 );
 //					  ret[1] = Parameters().getParam( "conv", 1.0 );
 				  }
 
@@ -962,8 +1089,8 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 ret = RangeType(0);
-					 ret[0] = arg[0];
-					 ret[1] = -arg[1];
+					 ret[0] = Parameters().getParam( "conv", 1.0 );
+//					 ret[1] = -arg[1];
 				  }
 
 			  private:
@@ -1162,8 +1289,487 @@ namespace ConvDiff {
 
 	}//end namespace TrivialTestCase
 
+	namespace AdapterFunctionsVectorial {
+
+		static const double pi_factor =  M_PI / 2.;//controls number of vortices
+		struct Evals {
+			template < class DomainType >
+			Evals( const DomainType& arg, const double time )
+				:x(arg[0]),
+				y(arg[1]),
+	//			time_(time),
+				time_(0),
+				v(Parameters().getParam( "viscosity", 1.0 )),
+				alpha(Parameters().getParam( "alpha", 1.0 )),
+				P(pi_factor),
+				E(std::exp( -2. * std::pow( P, 2. ) * v * time_ )),
+				F(std::exp( -4. * std::pow( P, 2. ) * v * time_ )),
+				S_x(std::sin( P * x )),
+				S_y(std::sin( P * y )),
+				S_2x(std::sin( 2. * P * x )),
+				S_2y(std::sin( 2. * P * y )),
+				C_2x(std::cos( 2. * P * x )),
+				C_2y(std::cos( 2. * P * y )),
+				C_x(std::cos( P * x )),
+				C_y(std::cos( P * y ))
+			{}
+			double x;
+			double y;
+			double time_;
+			double v;
+			double alpha;
+			double P;
+			double E;
+			double F;
+			double S_x;
+			double S_y;
+			double C_2x;
+			double C_2y;
+			double S_2x;
+			double S_2y;
+			double C_x;
+			double C_y;
+		};
+
+		template < class FunctionSpaceImp >
+		class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		{
+			  public:
+				  typedef Force< FunctionSpaceImp >
+					  ThisType;
+				  typedef Dune::Function < FunctionSpaceImp ,ThisType >
+					  BaseType;
+				  typedef typename BaseType::DomainType
+					  DomainType;
+				  typedef typename BaseType::RangeType
+					  RangeType;
+
+				  /**
+				   *  \brief  constructor
+				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
+				   **/
+				  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
+					  : BaseType ( space ),
+						viscosity_( viscosity ),
+						alpha_( alpha )
+				  {}
+
+				  /**
+				   *  \brief  destructor
+				   *  doing nothing
+				   **/
+				  ~Force()
+				  {}
+
+				  /**
+				   *  \brief  evaluates the force
+				   *  \param  arg
+				   *          point to evaluate at
+				   *  \param  ret
+				   *          value of force at given point
+				   **/
+				  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+				  {
+					  Evals evals( arg, time );
+					  ret = RangeType(0);
+					  //diff
+					  RangeType laplace;
+					  VelocityLaplaceEvaluateTime( time, arg, laplace );
+					  laplace *= evals.v;
+					  ret -= laplace;
+
+
+					  //druck
+//					  ret[0] += 0.5 * evals.P * evals.F * evals.S_2x;
+//					  ret[1] += 0.5 * evals.P * evals.F * evals.S_2y;
+
+					  //conv
+					  RangeType conv;
+					  VelocityConvectionEvaluateTime( time, arg, conv );
+					  ret += conv;
+
+
+					  //zeitableitung
+					  RangeType u;
+					  VelocityEvaluate( 0, 0, time, arg, u);
+	//				  ret[0] += ( -2 * std::pow( evals.P, 2 ) * evals.v ) * u[0];
+	//				  ret[1] += ( -2 * std::pow( evals.P, 2 ) * evals.v ) * u[1];
+
+					  u *= evals.alpha;
+					  ret += u;
+
+//					  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
+				  }
+				  inline void evaluate( const DomainType& arg, RangeType& ret ) const {
+					  evaluate( 0, arg,ret);
+				  }
+
+			  private:
+				  const double viscosity_;
+				  const double alpha_;
+				  static const int dim_ = FunctionSpaceImp::dimDomain;
+		};
+
+		template < class DomainType, class RangeType >
+		void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
+		{
+			Evals evals( arg, time );
+			ret[0] = -1 *	evals.C_x * evals.S_y * evals.E;
+			ret[1] =		evals.S_x * evals.C_y * evals.E;
+		}
+
+		/**
+		*  \brief  describes the dirichlet boundary data
+		*
+		*  \tparam DirichletTraitsImp
+		*          types like functionspace, range type, etc
+		*
+		*  \todo   extensive docu with latex
+		**/
+		template < class FunctionSpaceImp >
+		class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+		{
+			public:
+				typedef DirichletData< FunctionSpaceImp >
+					ThisType;
+				typedef Dune::Function< FunctionSpaceImp, ThisType >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				/**
+				*  \brief  constructor
+				*
+				*  doing nothing besides Base init
+				**/
+				DirichletData( const FunctionSpaceImp& space,
+							 const double parameter_a = M_PI /2.0 ,
+							 const double parameter_d = M_PI /4.0)
+					: BaseType( space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				/**
+				*  \brief  destructor
+				*
+				*  doing nothing
+				**/
+				~DirichletData()
+				{}
+
+				template < class IntersectionType >
+				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+				{
+					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+				}
+
+				/**
+				* \brief  evaluates the dirichlet data
+				* \param  arg
+				*         point to evaluate at
+				* \param  ret
+				*         value of dirichlet boundary data at given point
+				**/
+				inline void evaluate( const DomainType& arg, RangeType& ret ) const {
+					VelocityEvaluate( parameter_a_, parameter_d_, 0, arg, ret);
+				}
+
+			private:
+				  static const int dim_ = FunctionSpaceImp::dimDomain ;
+				  const double parameter_a_;
+				  const double parameter_d_;
+		};
+
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef Velocity< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				/**
+				*  \brief  constructor
+				*
+				*  doing nothing besides Base init
+				**/
+				Velocity(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				/**
+				*  \brief  destructor
+				*
+				*  doing nothing
+				**/
+				~Velocity()
+				{}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+				}
+
+			   /**
+				* \brief  evaluates the dirichlet data
+				* \param  arg
+				*         point to evaluate at
+				* \param  ret
+				*         value of dirichlet boundary data at given point
+				**/
+						inline void evaluate( const DomainType& arg, RangeType& ret ) const {
+							VelocityEvaluate( parameter_a_, parameter_d_, 0, arg, ret);
+						}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+
+		template <	class FunctionSpaceImp,
+					class TimeProviderImp >
+		class Pressure : public Dune::TimeFunction <	FunctionSpaceImp ,
+												Pressure < FunctionSpaceImp,TimeProviderImp >,
+												TimeProviderImp >
+		{
+			public:
+				typedef Pressure< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+			  /**
+			   *  \brief  constructor
+			   *
+			   *  doing nothing besides Base init
+			   **/
+			  Pressure( const TimeProviderImp& timeprovider,
+						const FunctionSpaceImp& space,
+						const double parameter_a = M_PI /2.0 ,
+						const double parameter_d = M_PI /4.0)
+				  : BaseType( timeprovider, space ),
+				  parameter_a_( parameter_a ),
+				  parameter_d_( parameter_d )
+			  {}
+
+			  /**
+			   *  \brief  destructor
+			   *
+			   *  doing nothing
+			   **/
+			   ~Pressure()
+			   {}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+					Evals evals( arg, time );
+					ret[0] = -0.25 * ( evals.C_2x + evals.C_2y ) * evals.F;
+				}
+
+				/**
+				* \brief  evaluates the dirichlet data
+				* \param  arg
+				*         point to evaluate at
+				* \param  ret
+				*         value of dirichlet boundary data at given point
+				**/
+	//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+
+
+		template <	class FunctionSpaceImp,
+					class TimeProviderImp >
+		class PressureGradient : public Dune::TimeFunction <	FunctionSpaceImp ,
+												PressureGradient < FunctionSpaceImp,TimeProviderImp >,
+												TimeProviderImp >
+		{
+			public:
+				typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+			  /**
+			   *  \brief  constructor
+			   *
+			   *  doing nothing besides Base init
+			   **/
+			  PressureGradient( const TimeProviderImp& timeprovider,
+						const FunctionSpaceImp& space,
+						const double parameter_a = M_PI /2.0 ,
+						const double parameter_d = M_PI /4.0)
+				  : BaseType( timeprovider, space ),
+				  parameter_a_( parameter_a ),
+				  parameter_d_( parameter_d )
+			  {}
+
+			  /**
+			   *  \brief  destructor
+			   *
+			   *  doing nothing
+			   **/
+			   ~PressureGradient()
+			   {}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					Evals evals( arg, time );
+					ret[0] = 0.5 * evals.P * evals.F * evals.S_2x;
+					ret[1] = 0.5 * evals.P * evals.F * evals.S_2y;
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+
+		template < class DomainType, class RangeType >
+		void VelocityLaplaceEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
+		{
+			Evals evals( arg, time );
+			ret[0] =   2 * evals.C_x * evals.E * evals.P * evals.S_y * evals.P ;
+			ret[1] = - 2 * evals.C_y * evals.E * evals.P * evals.S_x * evals.P ;
+		}
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				/**
+				*  \brief  constructor
+				*
+				*  doing nothing besides Base init
+				**/
+				VelocityLaplace(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				/**
+				*  \brief  destructor
+				*
+				*  doing nothing
+				**/
+				~VelocityLaplace()
+				{}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+	//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					VelocityLaplaceEvaluateTime( time, arg, ret );
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+		template < class DomainType, class RangeType >
+		void VelocityConvectionEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
+		{
+			Evals evals( arg, time );
+			RangeType u;
+			VelocityEvaluate( 0,0,time, arg, u);
+			ret[0]  = u[0] * evals.P * evals.S_x * evals.S_y;
+			ret[0] -= u[1] * evals.P * evals.C_x * evals.C_y;
+
+			ret[1]  = u[0] * evals.P * evals.C_x * evals.C_y;
+			ret[1] -= u[1] * evals.P * evals.S_x * evals.S_y;
+
+	//		ret[0] =  E * E *P * C_x * S_x * ( C_y * C_y - S_y * S_y );//eigentlich falsch
+	//		ret[1] = - E * E *P * S_y * C_y * ( S_x * S_x - C_x * C_x );
+		}
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				/**
+				*  \brief  constructor
+				*
+				*  doing nothing besides Base init
+				**/
+				VelocityConvection(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				/**
+				*  \brief  destructor
+				*
+				*  doing nothing
+				**/
+				~VelocityConvection()
+				{}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					VelocityConvectionEvaluateTime( time, arg, ret );
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+	}//end namespace AdapterFunctionsVectorial
 #ifndef CONVDIFF_DATA_NAMESPACE
-	#define CONVDIFF_DATA_NAMESPACE ConvDiff::TrivialTestCase
+	#define CONVDIFF_DATA_NAMESPACE ConvDiff::AdapterFunctionsVectorial
 #endif
 
 	template <	class CommunicatorImp,
@@ -1203,9 +1809,11 @@ namespace ConvDiff {
 		typedef CONVDIFF_DATA_NAMESPACE::Velocity< typename OseenModelTraits::VelocityFunctionSpaceType,
 								  TimeProviderType >
 			ExactVelocityType;
-		typedef CONVDIFF_DATA_NAMESPACE::Beta< typename OseenModelTraits::VelocityFunctionSpaceType >
+		typedef CONVDIFF_DATA_NAMESPACE::Velocity< typename OseenModelTraits::VelocityFunctionSpaceType ,
+									TimeProviderType >
 			ConvectionType;
-		typedef CONVDIFF_DATA_NAMESPACE::ExactConvection< typename OseenModelTraits::VelocityFunctionSpaceType >
+		typedef CONVDIFF_DATA_NAMESPACE::VelocityConvection< typename OseenModelTraits::VelocityFunctionSpaceType ,
+										TimeProviderType >
 			ExactConvectionType;
 		typedef Dune::NavierStokes::ExactSolution<ThisType>
 			ExactSolutionType;

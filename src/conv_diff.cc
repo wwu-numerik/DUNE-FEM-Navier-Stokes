@@ -305,7 +305,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						alpha );
 	currentFunctions.assign( exactSolution );
 
-	ConvDiffTraits::ConvectionType convection( viscosity, continousVelocitySpace );
+	ConvDiffTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convection", currentFunctions.discreteVelocity().space() );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_exactConvection( "exact_convection", currentFunctions.discreteVelocity().space() );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType convection_diff( "convection_diff", currentFunctions.discreteVelocity().space() );
@@ -326,7 +326,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							true );
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
-	ConvDiffTraits::ExactConvectionType exactConvection( viscosity, continousVelocitySpace );
+	ConvDiffTraits::ExactConvectionType exactConvection( timeprovider_, continousVelocitySpace );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ExactConvectionType,
