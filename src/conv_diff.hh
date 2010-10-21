@@ -842,9 +842,13 @@ namespace ConvDiff {
 					  //alpha * u part
 					  RangeType u;
 					  VelocityEvaluate( 0,0,arg,u);
-					  u*=a;
-					  ret += u;
+					  RangeType u_a = u;
+					  u_a *= a;
+					  ret = u_a;
 
+					  //laplace
+//					  ret[0] -= viscosity_ * 2;
+//					  ret[1] += viscosity_ * 2;
 					  //beta = u
 //					  ret[0] = x * ( 1 + a );
 //					  ret[1] = y * ( 1 - a );
@@ -857,8 +861,8 @@ namespace ConvDiff {
 //					  ret[1] = 0;
 
 					  // beta = (1,0)
-//					  ret[0] += 1;
-//					  ret[1] += 0;
+					  ret[0] += u[0];
+					  ret[1] += -u[1];
 				  }
 
 			  private:
@@ -882,6 +886,8 @@ namespace ConvDiff {
 			const double C_x			= std::cos( P * x );
 			const double C_y			= std::cos( P * y );
 
+//			ret[0] = 4;
+//			ret[1] = 0;
 			ret[0] = x;
 			ret[1] = -y;
 		}
@@ -916,8 +922,8 @@ namespace ConvDiff {
 				  {
 					 VelocityEvaluate(0,0, arg, ret );
 //					 ret = RangeType(0);
-					  ret[0] = 1;
-					  ret[1] = 0;
+//					  ret[0] = Parameters().getParam( "conv", 1.0 );
+//					  ret[1] = Parameters().getParam( "conv", 1.0 );
 				  }
 
 			  private:
@@ -956,7 +962,7 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 ret = RangeType(0);
-					 ret[0] = 1;
+					 ret[0] =  Parameters().getParam( "conv", 1.0 );
 					 ret[1] = 0;
 				  }
 

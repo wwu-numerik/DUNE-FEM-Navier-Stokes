@@ -69,11 +69,14 @@ scale_equations: 0
 silent_stokes: 0
 #laplace_scale: 10
 stab_coeff_visc_scale: 1
-save_matrices: 0
+save_matrices: 1
 reynolds: 1
 do-bfg: 0
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-viscosity:1.0
+absLimit: 1e-09
+inner_absLimit: 1e-09
+viscosity:1.101
+conv: 1e-0
 alpha: 0.00
 use_alternate_convection_volume_disc: 0
 use_cks_convection: 0
@@ -85,8 +88,7 @@ use_cks_convection: 0
 #pretty much ineffective
 relLimit: 1e-08
 
-absLimit: 1e-12
-inner_absLimit: 1e-12
+
 
 #reconstruct u at the ned of alt_solver instead of continually updating it
 use_velocity_reconstruct: 0
