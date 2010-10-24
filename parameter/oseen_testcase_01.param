@@ -43,13 +43,14 @@ visualisationOutputDir: data/visualisation
 use_grape: 0
 
 #
-dgf_file_2d: oseen_testcase_01.dgf
+#dgf_file_2d: oseen_testcase_01.dgf
+dgf_file_2d: grid_2d.dgf
 dgf_file_3d: grid_3d.dgf
 
 runtype: 5
 
 #in runtype 0 refine maxref + 1 - minref times
-minref: 3
+minref: 1
 maxref: 0
 D11: 1e+00
 C11: 1e-01
@@ -60,16 +61,16 @@ disableSolver: 0
 reduced_oseen_solver: 0
 use_nested_cg_solver: 0
 use_full_solver: 0
-viscosity: 01e-1
+viscosity: 01e-2
 stab_coeff_visc_scale: 0
 save_matrices: 1
 reynolds: 10
 do-bfg: 1
 # if alpha != 0.0, isGeneralize() has to return true in DiscreteStokesModelDefault
-alpha: 100.0
+alpha: 0.0
 use_alternate_convection_volume_disc: 0
 use_alternate_vonctetion_volume_disc: 1
-solverVerbosity: 4
+solverVerbosity: 1
 use_cks_convection: 0
 
 #*********** end runtype specific parameters **************************************************
