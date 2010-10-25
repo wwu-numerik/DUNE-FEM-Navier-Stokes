@@ -326,36 +326,16 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							true );
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
-
+	ConvDiffTraits::ExactConvectionType exactConvection( timeprovider_, continousVelocitySpace );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ExactConvectionType,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(exactConvection, discrete_exactConvection);
 
-	typedef Stuff::L2Error<GridPartType>
-			L2ErrorType;
-	L2ErrorType l2Error( gridPart );
-	L2ErrorType::Errors errors_convection = l2Error.get( rhs_container.convection,
-															discrete_exactConvection,
-															convection_diff );
-	L2ErrorType::Errors errors_velocity	 = l2Error.get( nextFunctions.discreteVelocity(),
-															exactSolution.discreteVelocity(),
-															errorFunctions.discreteVelocity() );
-
-	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
-
-	Logger().Info().Resume();
-	Logger().Info()
-//			<< "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
-					<< errors_convection.str()
-					<< errors_velocity.str()
-//					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
-					<< "GD: " << GD << std::endl;
-
 	typedef Stuff::GradientSplitterFunction<	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
 												ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType >
-	        GradientSplitterFunctionType;
+			GradientSplitterFunctionType;
 	GradientSplitterFunctionType gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
 									rhs_container.velocity_gradient );
 
@@ -375,8 +355,35 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(velocityGradientX, discrete_velocityGradientX);
 
+	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType discrete_velocityGradient( "velocityGradient", sigma_space );
+	ConvDiffTraits::OseenModelTraits::SigmaFunctionSpaceType cont_sigma_space;
+	ConvDiffTraits::VelocityGradientType velocityGradient( timeprovider_, cont_sigma_space );
+	Dune::BetterL2Projection
+		::project(0.0,velocityGradient, discrete_velocityGradient);
 
-	ConvDiffTraits::VelocityGradientType discrete_velocityGradient( "velocityGradient", sigma_space );
+	typedef Stuff::L2Error<GridPartType>
+			L2ErrorType;
+	L2ErrorType l2Error( gridPart );
+	L2ErrorType::Errors errors_convection = l2Error.get( rhs_container.convection,
+															discrete_exactConvection,
+															convection_diff );
+	L2ErrorType::Errors errors_velocity	 = l2Error.get( nextFunctions.discreteVelocity(),
+															exactSolution.discreteVelocity(),
+															errorFunctions.discreteVelocity() );
+
+	L2ErrorType::Errors errors_gradient = l2Error.get(	rhs_container.velocity_gradient,
+														discrete_velocityGradient );
+	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
+
+	Logger().Info().Resume();
+	Logger().Info()
+//			<< "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
+					<< errors_convection.str()
+					<< errors_velocity.str()
+					<< errors_gradient.str()
+//					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
+					<< "GD: " << GD << std::endl;
+
 	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;
 	typedef Dune::TimeAwareDataWriter<	ConvDiffTraits::TimeProviderType,
