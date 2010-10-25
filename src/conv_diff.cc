@@ -326,7 +326,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							true );
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
-	ConvDiffTraits::ExactConvectionType exactConvection( timeprovider_, continousVelocitySpace );
+
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ExactConvectionType,
@@ -359,6 +359,24 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	GradientSplitterFunctionType gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
 									rhs_container.velocity_gradient );
 
+	ConvDiffTraits::VelocityGradientYType velocityGradientY( timeprovider_, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientY( "velocityGradientY", currentFunctions.discreteVelocity().space() );
+	Dune::L2Projection< double,
+						double,
+						ConvDiffTraits::VelocityGradientYType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(velocityGradientY, discrete_velocityGradientY);
+
+	ConvDiffTraits::VelocityGradientXType velocityGradientX( timeprovider_, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientX( "velocityGradientX", currentFunctions.discreteVelocity().space() );
+	Dune::L2Projection< double,
+						double,
+						ConvDiffTraits::VelocityGradientXType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(velocityGradientX, discrete_velocityGradientX);
+
+
+	ConvDiffTraits::VelocityGradientType discrete_velocityGradient( "velocityGradient", sigma_space );
 	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;
 	typedef Dune::TimeAwareDataWriter<	ConvDiffTraits::TimeProviderType,
@@ -369,11 +387,11 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &exactSolution.discreteVelocity(),
 						 &errorFunctions.discreteVelocity(),
 						 &rhs_container.convection,
-						 &convection_diff,
 						 &discrete_exactConvection,
 						gradient_splitter[0].get(),
 	                    gradient_splitter[1].get(),
-	                    0
+	                    &discrete_velocityGradientX,
+	                    &discrete_velocityGradientY
 						 );
 
 	DataWriterType dt( timeprovider_,
