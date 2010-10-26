@@ -305,6 +305,11 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						alpha );
 	currentFunctions.assign( exactSolution );
 
+	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
+	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType discrete_velocityGradient( "velocityGradient", sigma_space );
+	ConvDiffTraits::OseenModelTraits::SigmaFunctionSpaceType cont_sigma_space;
+	ConvDiffTraits::VelocityGradientType velocityGradient( timeprovider_, cont_sigma_space );
+
 	ConvDiffTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convection", currentFunctions.discreteVelocity().space() );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_exactConvection( "exact_convection", currentFunctions.discreteVelocity().space() );
@@ -315,7 +320,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
-	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
 	ConvDiffTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
 	ConvDiffTraits::OseenPassType oseenPass( startPass,
@@ -324,7 +328,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							functionSpaceWrapper,
 							discrete_convection,
 							true );
-	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
+	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, velocityGradient );
 
 	ConvDiffTraits::ExactConvectionType exactConvection( timeprovider_, continousVelocitySpace );
 	Dune::L2Projection< double,
@@ -355,11 +359,11 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(velocityGradientX, discrete_velocityGradientX);
 
-	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType discrete_velocityGradient( "velocityGradient", sigma_space );
-	ConvDiffTraits::OseenModelTraits::SigmaFunctionSpaceType cont_sigma_space;
-	ConvDiffTraits::VelocityGradientType velocityGradient( timeprovider_, cont_sigma_space );
 	Dune::BetterL2Projection
 		::project(0.0,velocityGradient, discrete_velocityGradient);
+
+	GradientSplitterFunctionType exact_gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
+									discrete_velocityGradient );
 
 	typedef Stuff::L2Error<GridPartType>
 			L2ErrorType;
@@ -397,8 +401,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &discrete_exactConvection,
 						gradient_splitter[0].get(),
 	                    gradient_splitter[1].get(),
-	                    &discrete_velocityGradientX,
-	                    &discrete_velocityGradientY
+						exact_gradient_splitter[0].get(),
+	                    exact_gradient_splitter[1].get()
+//	                    &discrete_velocityGradientX,
+//	                    &discrete_velocityGradientY
 						 );
 
 	DataWriterType dt( timeprovider_,
