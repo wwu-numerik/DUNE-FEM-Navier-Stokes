@@ -1969,6 +1969,10 @@ namespace ConvDiff {
 		typedef CONVDIFF_DATA_NAMESPACE::VelocityGradient< typename OseenModelTraits::SigmaFunctionSpaceType ,
 										TimeProviderType >
 			VelocityGradientType;
+		typedef CONVDIFF_DATA_NAMESPACE::VelocityLaplace< typename OseenModelTraits::VelocityFunctionSpaceType ,
+										TimeProviderType >
+			VelocityLaplaceType;
+
 
 		typedef Dune::NavierStokes::ExactSolution<ThisType>
 			ExactSolutionType;

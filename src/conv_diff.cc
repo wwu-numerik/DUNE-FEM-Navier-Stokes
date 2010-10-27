@@ -365,6 +365,14 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	GradientSplitterFunctionType exact_gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
 									discrete_velocityGradient );
 
+	ConvDiffTraits::VelocityLaplaceType velocityLaplace( timeprovider_, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityLaplace( "exact_laplace", currentFunctions.discreteVelocity().space() );
+	Dune::L2Projection< double,
+						double,
+						ConvDiffTraits::VelocityLaplaceType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(velocityLaplace, discrete_velocityLaplace);
+
 	typedef Stuff::L2Error<GridPartType>
 			L2ErrorType;
 	L2ErrorType l2Error( gridPart );
@@ -377,6 +385,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	L2ErrorType::Errors errors_gradient = l2Error.get(	rhs_container.velocity_gradient,
 														discrete_velocityGradient );
+	L2ErrorType::Errors errors_laplace = l2Error.get(	rhs_container.velocity_laplace,
+														discrete_velocityLaplace );
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 	Logger().Info().Resume();
@@ -385,6 +395,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					<< errors_convection.str()
 					<< errors_velocity.str()
 					<< errors_gradient.str()
+					<< errors_laplace.str()
 //					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
 					<< "GD: " << GD << std::endl;
 
@@ -403,14 +414,28 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	                    gradient_splitter[1].get(),
 						exact_gradient_splitter[0].get(),
 	                    exact_gradient_splitter[1].get()
-//	                    &discrete_velocityGradientX,
-//	                    &discrete_velocityGradientY
 						 );
 
 	DataWriterType dt( timeprovider_,
 					   gridPart.grid(),
 					   out );
 	dt.write();
+
+	OutputTupleType out2( &discrete_velocityLaplace,
+						 &rhs_container.velocity_laplace,
+						 0,
+						 0,
+						 0,
+						0,
+						0,
+						0,
+						0
+						 );
+
+	DataWriterType dt2( timeprovider_,
+					   gridPart.grid(),
+					   out2 );
+	dt2.write();
 
 	return runInfoVector;
 }
