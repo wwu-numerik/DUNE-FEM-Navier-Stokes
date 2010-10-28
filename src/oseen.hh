@@ -197,9 +197,9 @@ namespace Oseen {
 					  RangeType u;
 					  VelocityEvaluate( lambda_, 0, arg, u);
 					  //convection
-					  assert( false ); //M_2_PI == 2 / PI
-					  ret[0] = u[0] * ( -lambda * e_lambda_x * cos ) + u[1] * ( -M_2_PI * e_lambda_x * sin );
-					  ret[1] = u[0] * ( ( lambda_square / M_2_PI ) * e_lambda_x * sin ) + u[1] * lambda * e_lambda_x * cos;
+//					  assert( false ); //M_2_PI == 2 / PI
+					  ret[0] = u[0] * ( -lambda * e_lambda_x * cos ) + u[1] * ( -2 * M_PI * e_lambda_x * sin );
+					  ret[1] = u[0] * ( ( lambda_square / (2 * M_PI)) * e_lambda_x * sin ) + u[1] * lambda * e_lambda_x * cos;
 					  //laplace
 					  ret[0] -= viscosity_ * ( - lambda_square * e_lambda_x * cos );
 					  ret[1] -= viscosity_ * ( - lambda * e_lambda_x * sin );
@@ -836,8 +836,8 @@ namespace Oseen {
 					  const double S_2y			= std::sin( 2 * P * y );
 					  const double C_x			= std::cos( P * x );
 					  const double C_y			= std::cos( P * y );
-					  ret[0] = 0;
-					  ret[1] = -1;
+					  ret[0] = x-1;
+					  ret[1] = y;
 				  }
 
 			  private:
@@ -858,8 +858,8 @@ namespace Oseen {
 			const double S2				= std::sin(2*M_PI* ( y + 0.5 ) );
 			const double C2				= std::cos(2*M_PI* ( y + 0.5 ) );
 
-			ret[0] = x;
-			ret[1] = -y;
+			ret[0] = 1;
+			ret[1] = 1;
 		}
 		template < class FunctionSpaceImp >
 		class Convection : public Function < FunctionSpaceImp , Convection < FunctionSpaceImp > >
@@ -1103,7 +1103,7 @@ namespace Oseen {
 	}//end namespace TrivialTestCase
 
 #ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE Oseen::TestCase2D
+	#define OSEEN_DATA_NAMESPACE Oseen::TrivialTestCase
 #endif
 
 	template <	class CommunicatorImp,

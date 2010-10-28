@@ -305,7 +305,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						alpha );
 	currentFunctions.assign( exactSolution );
 
-	ConvDiffTraits::ConvectionType convection( viscosity, continousVelocitySpace );
+	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
+	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType discrete_velocityGradient( "velocityGradient", sigma_space );
+	ConvDiffTraits::OseenModelTraits::SigmaFunctionSpaceType cont_sigma_space;
+	ConvDiffTraits::VelocityGradientType velocityGradient( timeprovider_, cont_sigma_space );
+
+	ConvDiffTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convection", currentFunctions.discreteVelocity().space() );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_exactConvection( "exact_convection", currentFunctions.discreteVelocity().space() );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType convection_diff( "convection_diff", currentFunctions.discreteVelocity().space() );
@@ -315,7 +320,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
-	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
 	ConvDiffTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
 	ConvDiffTraits::OseenPassType oseenPass( startPass,
@@ -324,14 +328,50 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							functionSpaceWrapper,
 							discrete_convection,
 							true );
-	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
+	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, velocityGradient );
 
-	ConvDiffTraits::ExactConvectionType exactConvection( viscosity, continousVelocitySpace );
+	ConvDiffTraits::ExactConvectionType exactConvection( timeprovider_, continousVelocitySpace );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ExactConvectionType,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(exactConvection, discrete_exactConvection);
+
+	typedef Stuff::GradientSplitterFunction<	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
+												ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType >
+			GradientSplitterFunctionType;
+	GradientSplitterFunctionType gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
+									rhs_container.velocity_gradient );
+
+	ConvDiffTraits::VelocityGradientYType velocityGradientY( timeprovider_, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientY( "velocityGradientY", currentFunctions.discreteVelocity().space() );
+	Dune::L2Projection< double,
+						double,
+						ConvDiffTraits::VelocityGradientYType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(velocityGradientY, discrete_velocityGradientY);
+
+	ConvDiffTraits::VelocityGradientXType velocityGradientX( timeprovider_, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientX( "velocityGradientX", currentFunctions.discreteVelocity().space() );
+	Dune::L2Projection< double,
+						double,
+						ConvDiffTraits::VelocityGradientXType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(velocityGradientX, discrete_velocityGradientX);
+
+	Dune::BetterL2Projection
+		::project(0.0,velocityGradient, discrete_velocityGradient);
+
+	GradientSplitterFunctionType exact_gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
+									discrete_velocityGradient );
+
+	ConvDiffTraits::VelocityLaplaceType velocityLaplace( timeprovider_, continousVelocitySpace );
+	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityLaplace( "exact_laplace", currentFunctions.discreteVelocity().space() );
+	Dune::L2Projection< double,
+						double,
+						ConvDiffTraits::VelocityLaplaceType,
+						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+		()(velocityLaplace, discrete_velocityLaplace);
 
 	typedef Stuff::L2Error<GridPartType>
 			L2ErrorType;
@@ -343,6 +383,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 															exactSolution.discreteVelocity(),
 															errorFunctions.discreteVelocity() );
 
+	L2ErrorType::Errors errors_gradient = l2Error.get(	rhs_container.velocity_gradient,
+														discrete_velocityGradient );
+	L2ErrorType::Errors errors_laplace = l2Error.get(	rhs_container.velocity_laplace,
+														discrete_velocityLaplace );
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 	Logger().Info().Resume();
@@ -350,14 +394,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //			<< "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
 					<< errors_convection.str()
 					<< errors_velocity.str()
+					<< errors_gradient.str()
+					<< errors_laplace.str()
 //					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
 					<< "GD: " << GD << std::endl;
-
-	typedef Stuff::GradientSplitterFunction<	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
-												ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType >
-	        GradientSplitterFunctionType;
-	GradientSplitterFunctionType gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
-									rhs_container.velocity_gradient );
 
 	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;
@@ -369,17 +409,33 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &exactSolution.discreteVelocity(),
 						 &errorFunctions.discreteVelocity(),
 						 &rhs_container.convection,
-						 &convection_diff,
 						 &discrete_exactConvection,
 						gradient_splitter[0].get(),
 	                    gradient_splitter[1].get(),
-	                    0
+						exact_gradient_splitter[0].get(),
+	                    exact_gradient_splitter[1].get()
 						 );
 
 	DataWriterType dt( timeprovider_,
 					   gridPart.grid(),
 					   out );
 	dt.write();
+
+	OutputTupleType out2( &discrete_velocityLaplace,
+						 &rhs_container.velocity_laplace,
+						 0,
+						 0,
+						 0,
+						0,
+						0,
+						0,
+						0
+						 );
+
+	DataWriterType dt2( timeprovider_,
+					   gridPart.grid(),
+					   out2 );
+	dt2.write();
 
 	return runInfoVector;
 }
