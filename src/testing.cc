@@ -101,7 +101,7 @@
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
-
+#include <dune/stuff/error.hh>
 #include <boost/format.hpp>
 
 #ifndef COMMIT
@@ -253,7 +253,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
-
+	typedef Stuff::L2Error<GridPartType>
+			L2ErrorType;
+	L2ErrorType l2Error( gridPart_ );
 	// model traits
 	typedef Dune::NavierStokes::ThetaSchemeTraits<
 					CollectiveCommunication,
@@ -340,6 +342,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	diffs -= pass_laplace;
 //	diffs -= thetaScheme.rhsDatacontainer().velocity_laplace;
 
+	L2ErrorType::Errors errors_pressure_gradient = l2Error.get(	thetaScheme.rhsDatacontainer().pressure_gradient,
+														pressure_gradient_discrete );
+	std::cout << errors_pressure_gradient.str();
 
 	typedef Dune::Tuple<	const DiscreteVelocityFunctionType*,
 							const DiscreteVelocityFunctionType*,
@@ -410,8 +415,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	thetaScheme.stokesStep();
 	thetaScheme.nextStep(3,info_dummy);
 
-	std::cout	<< boost::format("error stokes\t%f (abs)| %f (rel)\nerror non\t%f (abs)| %f (rel)")
-								% error1 % error1_rel % error2 % error2_rel << std::endl;
+	std::cout	<< boost::format("error stokes\t%f (abs)| %f (rel)\nerror non\t%f (abs)| %f (rel)\n")
+								% error1 % error1_rel % error2 % error2_rel
+				   << errors_pressure_gradient.str() << std::endl;
+
 	Stuff::printFunctionMinMax( std::cout, velocity_laplace_discrete );
 	Stuff::printFunctionMinMax( std::cout, velocity_convection_discrete );
 	Stuff::printFunctionMinMax( std::cout, pressure_gradient_discrete );
