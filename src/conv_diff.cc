@@ -328,7 +328,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							functionSpaceWrapper,
 							discrete_convection,
 							true );
-	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, velocityGradient );
+	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, &velocityGradient );
 
 	ConvDiffTraits::ExactConvectionType exactConvection( timeprovider_, continousVelocitySpace );
 	Dune::L2Projection< double,

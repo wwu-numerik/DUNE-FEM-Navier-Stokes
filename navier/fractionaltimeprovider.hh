@@ -16,7 +16,7 @@ namespace Dune {
 						BaseType;
 
 				public:
-					using BaseType ::  CollectiveCommunicationType;
+					using typename BaseType :: CollectiveCommunicationType;
 					using BaseType :: time;
 					using BaseType :: timeStep;
 					using BaseType :: deltaT;

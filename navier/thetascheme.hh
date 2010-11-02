@@ -165,10 +165,10 @@ namespace Dune {
 				mutable typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
+				ExactSolutionType exactSolution_;
 				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
-				ExactSolutionType exactSolution_;
 				DataWriterType1 dataWriter1_;
 				DataWriterType2 dataWriter2_;
 				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
@@ -527,7 +527,7 @@ namespace Dune {
 																	  rhsDatacontainer_ );
 					nonlinearForce *= scale_factor;
 					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
-					for( unsigned int i = 0; i<Parameters().getParam("oseen_iterations",int(1)); ++i )
+					for( unsigned int i = 0; i<Parameters().getParam("oseen_iterations",(unsigned int)(1)); ++i )
 					{
 						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
 						setUpdateFunctions();

@@ -181,8 +181,7 @@ int main( int argc, char** argv )
 		// ensures maxref>=minref
 		const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
 		profiler().Reset( maxref - minref + 1 );
-		RunInfoVectorMap rf;
-		for ( unsigned int ref = minref;
+		for ( int ref = minref;
 			  ref <= maxref;
 			  ++ref )
 		{
