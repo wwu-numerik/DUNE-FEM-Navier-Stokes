@@ -448,7 +448,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	thetaScheme.nextStep(2,info_dummy);
 //***************** END OSEEN STEP ----------------------- BEGIN LAST STOKES STEP *************************************** /
 	thetaScheme.stokesStep();
-	thetaScheme.nextStep(3,info_dummy);
 
 	errors_pressure_gradient = l2Error.get(	thetaScheme.rhsDatacontainer().pressure_gradient,
 														pressure_gradient_discrete );
@@ -473,10 +472,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	DataWriterType( timeprovider_,
 					   gridPart_.grid(),
 					   out3 ).write();
-
-	Stuff::printFunctionMinMax( std::cout, velocity_laplace_discrete );
-	Stuff::printFunctionMinMax( std::cout, velocity_convection_discrete );
-	Stuff::printFunctionMinMax( std::cout, pressure_gradient_discrete );
+	thetaScheme.nextStep(3,info_dummy);
 
 	return runInfoVector;
 }
