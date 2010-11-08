@@ -367,7 +367,10 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 														pressure_gradient_discrete );
 	L2ErrorType::Errors errors_velocity_gradient = l2Error.get(	thetaScheme.rhsDatacontainer().velocity_gradient,
 														velocity_gradient_discrete );
+	L2ErrorType::Errors errors_velocity_laplace = l2Error.get(	thetaScheme.rhsDatacontainer().velocity_laplace,
+														velocity_laplace_discrete );
 	std::cout << errors_pressure_gradient.str()
+			  << errors_velocity_laplace.str()
 			  << errors_velocity_gradient.str();
 
 	typedef Dune::Tuple<	const DiscreteVelocityFunctionType*,
@@ -385,22 +388,25 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 										GridPartType::GridType,
 										OutputTupleType >
 		DataWriterType;
-	GradientSplitterFunctionType velocity_gradient_splitter(	exactSolution_.discreteVelocity().space(),
-									thetaScheme.rhsDatacontainer().velocity_gradient );
-	OutputTupleType out(
-						 &pressure_gradient_discrete,
-						 &(thetaScheme.rhsDatacontainer().velocity_laplace),
-						 &velocity_laplace_discrete,
-						&(thetaScheme.rhsDatacontainer().pressure_gradient),
-						 &pressure_gradient_discrete,
-						velocity_gradient_splitter[0].get(),
-						velocity_gradient_splitter[1].get(),
-						exact_gradient_splitter[0].get(),
-						exact_gradient_splitter[1].get()
-						);
-	DataWriterType( timeprovider_,
-					   gridPart_.grid(),
-					   out ).write();
+
+	{
+		GradientSplitterFunctionType velocity_gradient_splitter(	exactSolution_.discreteVelocity().space(),
+										thetaScheme.rhsDatacontainer().velocity_gradient );
+		OutputTupleType out(
+							 &pressure_gradient_discrete,
+							 &(thetaScheme.rhsDatacontainer().velocity_laplace),
+							 &velocity_laplace_discrete,
+							&(thetaScheme.rhsDatacontainer().pressure_gradient),
+							 &pressure_gradient_discrete,
+							velocity_gradient_splitter[0].get(),
+							velocity_gradient_splitter[1].get(),
+							exact_gradient_splitter[0].get(),
+							exact_gradient_splitter[1].get()
+							);
+		DataWriterType( timeprovider_,
+						   gridPart_.grid(),
+						   out ).write();
+	}
 
 	RunInfo info_dummy;
 	thetaScheme.nextStep(1,info_dummy);
@@ -431,19 +437,22 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //	const double error1_rel = error1 / l2_Error.norm(rhs_stokes);
 //	const double error2_rel = error2 / l2_Error.norm(rhs_oseen);
 
-
-	OutputTupleType out2(	&pass_convection,
-							&pass_laplace,
-							&velocity_convection_discrete,
-						 velocity_gradient_splitter[0].get(),
-						 velocity_gradient_splitter[1].get(),
-						 exact_gradient_splitter[0].get(),
-						 exact_gradient_splitter[1].get(),
-						 0,
-						 0 );
-	DataWriterType( timeprovider_,
-					   gridPart_.grid(),
-					   out2 ).write();
+	{
+		GradientSplitterFunctionType velocity_gradient_splitter(	exactSolution_.discreteVelocity().space(),
+										thetaScheme.rhsDatacontainer().velocity_gradient );
+		OutputTupleType out2(	&(thetaScheme.rhsDatacontainer().convection),
+								&(thetaScheme.rhsDatacontainer().velocity_laplace),
+								&velocity_laplace_discrete,
+								&velocity_convection_discrete,
+								velocity_gradient_splitter[0].get(),
+								velocity_gradient_splitter[1].get(),
+								exact_gradient_splitter[0].get(),
+								exact_gradient_splitter[1].get(),
+								0 );
+		DataWriterType( timeprovider_,
+						   gridPart_.grid(),
+						   out2 ).write();
+	}
 
 	thetaScheme.nextStep(2,info_dummy);
 //***************** END OSEEN STEP ----------------------- BEGIN LAST STOKES STEP *************************************** /
@@ -458,20 +467,23 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //	std::cout	<< boost::format("error stokes\t%f (abs)| %f (rel)\nerror non\t%f (abs)| %f (rel)\n")
 //								% error1 % error1_rel % error2 % error2_rel;
 
+	{
+		GradientSplitterFunctionType velocity_gradient_splitter(	exactSolution_.discreteVelocity().space(),
+										thetaScheme.rhsDatacontainer().velocity_gradient );
+		OutputTupleType out3(	&(thetaScheme.rhsDatacontainer().velocity_laplace),
+								&velocity_laplace_discrete,
+								&(thetaScheme.rhsDatacontainer().pressure_gradient),
+								&pressure_gradient_discrete,
+								velocity_gradient_splitter[0].get(),
+								velocity_gradient_splitter[1].get(),
+								exact_gradient_splitter[0].get(),
+								exact_gradient_splitter[1].get(),
+								0 );
+		DataWriterType(	timeprovider_,
+						gridPart_.grid(),
+						out3 ).write();
+	}
 
-	OutputTupleType out3(
-						 &pressure_gradient_discrete,
-						 &rhs_stokes,
-						 &velocity_laplace_discrete,
-						&(thetaScheme.rhsDatacontainer().pressure_gradient),
-						 &pressure_gradient_discrete,
-				velocity_gradient_splitter[0].get(),
-				velocity_gradient_splitter[1].get(),
-				exact_gradient_splitter[0].get(),
-				exact_gradient_splitter[1].get());
-	DataWriterType( timeprovider_,
-					   gridPart_.grid(),
-					   out3 ).write();
 	thetaScheme.nextStep(3,info_dummy);
 
 	return runInfoVector;
