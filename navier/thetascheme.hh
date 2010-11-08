@@ -528,7 +528,9 @@ namespace Dune {
 																	  rhsDatacontainer_ );
 					nonlinearForce *= scale_factor;
 					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
-					for( unsigned int i = 0; i<Parameters().getParam("oseen_iterations",(unsigned int)(1)); ++i )
+					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
+					assert( oseen_iterations > 0 );
+					for( unsigned int i = 0; i<oseen_iterations; ++i )
 					{
 						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
 						setUpdateFunctions();
