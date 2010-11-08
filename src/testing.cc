@@ -389,7 +389,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 									thetaScheme.rhsDatacontainer().velocity_gradient );
 	OutputTupleType out(
 						 &pressure_gradient_discrete,
-						 &rhs_stokes,
+						 &(thetaScheme.rhsDatacontainer().velocity_laplace),
 						 &velocity_laplace_discrete,
 						&(thetaScheme.rhsDatacontainer().pressure_gradient),
 						 &pressure_gradient_discrete,
