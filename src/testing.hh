@@ -1271,10 +1271,12 @@ namespace AdapterFunctionsVisco {
 	template <class DomainType, class RangeType >
 	void PressureGradientEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
+		//ret[0] = 1 - std::pow( evals.x + evals.y);
 		Evals evals( arg, time );
-		const double p_fac = M_PI / (4 * std::pow( evals.v, 2 ) );
-		ret[0] += p_fac * evals.P * evals.F * evals.S_2x;
-		ret[1] += p_fac * evals.P * evals.F * evals.S_2y;
+		ret = RangeType(0);
+//		ret[0] += evals.y;
+//		ret[1] += evals.x;
+
 	}
 
 	template <	class FunctionSpaceImp,
@@ -1368,11 +1370,15 @@ namespace AdapterFunctionsVisco {
 				  Evals evals( arg, time );
 				  ret = RangeType(0);
 				  //diff
-				  RangeType laplace;
-				  VelocityLaplaceEvaluateTime( time, arg, laplace );
-				  laplace *= evals.v;
-				  ret -= laplace;
+//				  RangeType laplace;
+//				  VelocityLaplaceEvaluateTime( time, arg, laplace );
+//				  laplace *= evals.v;
+//				  ret -= laplace;
 
+//				  //u
+//				  RangeType u;
+//				  VelocityEvaluate( 0,0,time, arg, u);
+//				  ret += u;
 
 				  //druck
 				  RangeType pressure_gradient;
@@ -1386,12 +1392,12 @@ namespace AdapterFunctionsVisco {
 
 
 				  //zeitableitung
-				  RangeType u;
-				  VelocityEvaluate( 0, 0, time, arg, u);
-				  ret[0] += ( -8 * std::pow( M_PI, 2 ) ) * u[0];
-				  ret[1] += ( -8 * std::pow( M_PI, 2 ) ) * u[1];
+//				  RangeType u;
+//				  VelocityEvaluate( 0, 0, time, arg, u);
+//				  ret[0] += ( -8 * std::pow( M_PI, 2 ) ) * u[0];
+//				  ret[1] += ( -8 * std::pow( M_PI, 2 ) ) * u[1];
 
-				  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
+//				  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
 			  }
 			  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
@@ -1405,8 +1411,10 @@ namespace AdapterFunctionsVisco {
 	void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
 	{
 		Evals evals( arg, time );
-		ret[0] = -1 *	evals.C_x * evals.S_y * evals.E / evals.v;
-		ret[1] =		evals.S_x * evals.C_y * evals.E / evals.v;
+		ret[0] = evals.x;
+		ret[1] = -evals.y;
+		ret[0] = 1;
+		ret[1] = 0;
 	}
 
 	/**
@@ -1571,8 +1579,8 @@ namespace AdapterFunctionsVisco {
 			{
 				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 				Evals evals( arg, time );
-				const double p_fac = -1 / ( 4 * std::pow( evals.v, 2 ) );
-				ret[0] = -0.25 * ( evals.C_2x + evals.C_2y ) * evals.F;
+				ret[0] = evals.x *evals.y;
+				ret[0] = 0;
 			}
 
 			/**
@@ -1594,9 +1602,8 @@ namespace AdapterFunctionsVisco {
 	void VelocityLaplaceEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
 		Evals evals( arg, time );
-		const double c_fac = evals.E * 8 * M_PI /  evals.v;
-		ret[0] =   c_fac * evals.S_y * evals.C_x ;
-		ret[1] = - c_fac * evals.S_x * evals.C_y ;
+		ret[0] = 0 ;
+		ret[1] = 0 ;
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
 	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
@@ -1648,10 +1655,9 @@ namespace AdapterFunctionsVisco {
 	void VelocityConvectionEvaluateTime( const double time, const DomainType& arg, RangeType& ret )
 	{
 		Evals evals( arg, time );
-		assert( false ); //M_2_PI == 2 / PI
-		const double c_fac = evals.E * evals.E * M_2_PI / std::pow( evals.v, 2 );
-		ret[0] = - c_fac * evals.S_x * evals.C_x ;
-		ret[1] = - c_fac * evals.S_y * evals.C_y ;
+		//beta = (1,0)
+		ret[0] = 0;
+		ret[1] = 0;
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
 	class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
@@ -1691,6 +1697,53 @@ namespace AdapterFunctionsVisco {
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
 				VelocityConvectionEvaluateTime( time, arg, ret );
+			}
+
+		private:
+			static const int dim_ = FunctionSpaceImp::dimDomain ;
+			const double parameter_a_;
+			const double parameter_d_;
+	};
+
+	template < class FunctionSpaceImp, class TimeProviderImp >
+	class VelocityGradient : public Dune::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	{
+		public:
+			typedef VelocityGradient< FunctionSpaceImp, TimeProviderImp >
+				ThisType;
+			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				BaseType;
+			typedef typename BaseType::DomainType
+				DomainType;
+			typedef typename BaseType::RangeType
+				RangeType;
+
+			/**
+			*  \brief  constructor
+			*
+			*  doing nothing besides Base init
+			**/
+			VelocityGradient(	const TimeProviderImp& timeprovider,
+						const FunctionSpaceImp& space,
+						const double parameter_a = M_PI /2.0 ,
+						const double parameter_d = M_PI /4.0)
+				: BaseType( timeprovider, space ),
+				parameter_a_( parameter_a ),
+				parameter_d_( parameter_d )
+			{}
+
+			/**
+			*  \brief  destructor
+			*
+			*  doing nothing
+			**/
+			~VelocityGradient()
+			{}
+
+			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+			{
+				ret = RangeType(0);
+
 			}
 
 		private:

@@ -365,7 +365,7 @@ namespace Dune {
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
 						Dune::BetterL2Projection
 							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
-//						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
 					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
@@ -517,6 +517,7 @@ namespace Dune {
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
 						Dune::BetterL2Projection
 							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
