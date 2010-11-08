@@ -149,7 +149,7 @@ FILE( GLOB stuff "../dune-stuff/stuff/*.hh" )
 
 set_source_files_properties( ${DUNE_HEADERS} ${stuff} ${navier} ${oseen} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
 
-set( COMMON_LIBS "common" "fem" "grid" ${BLAS_LIB} "alugrid" ${UGLIBS}  "GL" ${ParaLIBS} )
+set( COMMON_LIBS "fem" "grid" "common" ${BLAS_LIB} "alugrid" ${UGLIBS}  "GL" ${ParaLIBS} )
 set( COMMON_HEADER ${header} ${stokes} ${stuff} ${navier} ${DUNE_HEADERS} )
 
 ADD_EXECUTABLE(testing src/testing.cc ${COMMON_HEADER} )
