@@ -1226,6 +1226,60 @@ namespace AdapterFunctionsVectorial {
 			const double parameter_a_;
 			const double parameter_d_;
 	};
+	template < class FunctionSpaceImp, class TimeProviderImp >
+	class VelocityGradient : public Dune::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	{
+		public:
+			typedef VelocityGradient< FunctionSpaceImp, TimeProviderImp >
+				ThisType;
+			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				BaseType;
+			typedef typename BaseType::DomainType
+				DomainType;
+			typedef typename BaseType::RangeType
+				RangeType;
+
+			/**
+			*  \brief  constructor
+			*
+			*  doing nothing besides Base init
+			**/
+			VelocityGradient(	const TimeProviderImp& timeprovider,
+						const FunctionSpaceImp& space,
+						const double parameter_a = M_PI /2.0 ,
+						const double parameter_d = M_PI /4.0)
+				: BaseType( timeprovider, space ),
+				parameter_a_( parameter_a ),
+				parameter_d_( parameter_d )
+			{}
+
+			/**
+			*  \brief  destructor
+			*
+			*  doing nothing
+			**/
+			~VelocityGradient()
+			{}
+
+			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+			{
+				ret = RangeType(0);
+				Evals evals( arg, time );
+				//velo eval
+//				ret[0] = -1 *	evals.C_x * evals.S_y * evals.E;
+//				ret[1] =		evals.S_x * evals.C_y * evals.E;
+				ret(0,0) =  evals.P * evals.S_x * evals.S_y * evals.E ;
+				ret(0,1) = -evals.P * evals.C_x * evals.C_y * evals.E ;
+				ret(1,0) =  evals.P * evals.C_x * evals.C_y * evals.E ;
+				ret(1,1) = -evals.P * evals.S_x * evals.S_y * evals.E ;
+
+			}
+
+		private:
+			static const int dim_ = FunctionSpaceImp::dimDomain ;
+			const double parameter_a_;
+			const double parameter_d_;
+	};
 }//end namespace AdapterFunctionsVectorial
 
 namespace AdapterFunctionsVisco {
