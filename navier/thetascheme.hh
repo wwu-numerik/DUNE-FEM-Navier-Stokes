@@ -12,6 +12,7 @@
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/tuple.hh>
 #include <dune/stuff/customprojection.hh>
+#include <dune/stuff/error.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
 #include <boost/scoped_ptr.hpp>
@@ -348,23 +349,37 @@ namespace Dune {
 
 					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
 					if ( Parameters().getParam( "rhs_cheat", false ) ) {
-						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
-							VelocityFunctionSpaceType;
-						VelocityFunctionSpaceType continousVelocitySpace_;
+//						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+//							VelocityFunctionSpaceType;
+//						VelocityFunctionSpaceType continousVelocitySpace_;
 
-						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
-																typename Traits::TimeProviderType >
-							VelocityConvection;
-						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
-							::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
-						// ----
-						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
-																					typename Traits::TimeProviderType >
-								VelocityLaplace;
-						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection
-							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+//						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+//																typename Traits::TimeProviderType >
+//							VelocityConvection;
+//						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
+//						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+//							::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
+////						// ----
+//						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+//																					typename Traits::TimeProviderType >
+//								VelocityLaplace;
+//						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+//						Dune::BetterL2Projection
+//							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+//						typedef Stuff::L2Error<typename Traits::GridPartType>
+//								L2ErrorType;
+//						L2ErrorType l2Error( gridPart_ );
+//						typename L2ErrorType::Errors errors_convection = l2Error.get(	exactSolution_.discreteVelocity() ,
+//																			currentFunctions_.discreteVelocity() );
+//						std::cerr << "BLAH " << errors_convection.str();
+
+//						DiscreteVelocityFunctionType de = currentFunctions_.discreteVelocity();
+//						Dune::L2Projection< double,
+//												double,
+//												DiscreteVelocityFunctionType,
+//												DiscreteVelocityFunctionType >
+//								()(de, currentFunctions_.discreteVelocity() );
+
 						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
@@ -500,24 +515,24 @@ namespace Dune {
 
 					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
 					if ( Parameters().getParam( "rhs_cheat", false ) ) {
-						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
-							VelocityFunctionSpaceType;
-						VelocityFunctionSpaceType continousVelocitySpace_;
+//						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+//							VelocityFunctionSpaceType;
+//						VelocityFunctionSpaceType continousVelocitySpace_;
 
-						typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
-																typename Traits::TimeProviderType >
-							PressureGradient;
-						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
-							::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
-						// ----
-						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
-																					typename Traits::TimeProviderType >
-								VelocityLaplace;
-						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection
-							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
-						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+//						typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+//																typename Traits::TimeProviderType >
+//							PressureGradient;
+//						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
+//						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+//							::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
+//						// ----
+//						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+//																					typename Traits::TimeProviderType >
+//								VelocityLaplace;
+//						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+//						Dune::BetterL2Projection
+//							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+//						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
 					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
