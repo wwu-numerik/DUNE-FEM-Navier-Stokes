@@ -24,14 +24,15 @@ namespace Dune {
 															AnalyticalForceType,
 															DiscreteVelocityFunctionType >
 						ThisType;
-					typedef DiscreteVelocityFunctionType
-						BaseType;
 					const TimeProviderType& timeProvider_;
 					const AnalyticalForceType& force_;
 					const double beta_re_qoutient_;
 					const double quasi_stokes_alpha_;
 
 				public:
+					typedef DiscreteVelocityFunctionType
+						BaseType;
+
 					//! this sginature is used in the first stokes where we have analytical data to derive from
 					ForceAdapterFunction(const TimeProviderType& timeProvider,
 												   const DiscreteVelocityFunctionType& velocity,
