@@ -167,7 +167,7 @@ namespace Dune {
 				mutable typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
 				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
 				ExactSolutionType exactSolution_;
-				typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
+				mutable typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
 				DataWriterType1 dataWriter1_;
@@ -347,38 +347,50 @@ namespace Dune {
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 
-					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
-					if ( Parameters().getParam( "rhs_cheat", false ) ) {
-//						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
-//							VelocityFunctionSpaceType;
-//						VelocityFunctionSpaceType continousVelocitySpace_;
+					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
+							ptr_stokesForce_vanilla ( first_stokes_step
+												? new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled )
+												: new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled,
+																										  rhsDatacontainer_ )
+											);
 
-//						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
-//																typename Traits::TimeProviderType >
-//							VelocityConvection;
-//						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
+					typedef Stuff::L2Error<typename Traits::GridPartType>
+							L2ErrorType;
+					L2ErrorType l2Error( gridPart_ );
+
+					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
+					const bool do_cheat = Parameters().getParam( "rhs_cheat", false ) && !first_stokes_step ;
+//					if ( do_cheat ) //do cheat rhs assembly unconditionally, below we'll choose according to do_cheat which rhs to put into the model
+					{
+						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+							VelocityFunctionSpaceType;
+						VelocityFunctionSpaceType continousVelocitySpace_;
+						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+																typename Traits::TimeProviderType >
+							VelocityConvection;
+						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
 //						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
 //							::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
-////						// ----
-//						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
-//																					typename Traits::TimeProviderType >
-//								VelocityLaplace;
-//						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-//						Dune::BetterL2Projection
+//						// ----
+						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+																					typename Traits::TimeProviderType >
+								VelocityLaplace;
+						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+//						Dune::BetterL2Projection //this seems currently inconsequential to the produced error
 //							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
-//						typedef Stuff::L2Error<typename Traits::GridPartType>
-//								L2ErrorType;
-//						L2ErrorType l2Error( gridPart_ );
-//						typename L2ErrorType::Errors errors_convection = l2Error.get(	exactSolution_.discreteVelocity() ,
-//																			currentFunctions_.discreteVelocity() );
-//						std::cerr << "BLAH " << errors_convection.str();
 
-//						DiscreteVelocityFunctionType de = currentFunctions_.discreteVelocity();
-//						Dune::L2Projection< double,
-//												double,
-//												DiscreteVelocityFunctionType,
-//												DiscreteVelocityFunctionType >
-//								()(de, currentFunctions_.discreteVelocity() );
+//						typename L2ErrorType::Errors errors_convection = l2Error.get(	exactSolution_.discreteVelocity() ,
+//																			currentFunctions_.discreteVelocity(),
+//																			dummyFunctions_.discreteVelocity() );
+//						std::cerr << "BLAH " << errors_convection.str();
 
 						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
@@ -398,7 +410,13 @@ namespace Dune {
 																										  rhsDatacontainer_ )
 											);
 					*ptr_stokesForce *= scale_factor;
-					rhsFunctions_.discreteVelocity().assign( *ptr_stokesForce );
+					*ptr_stokesForce_vanilla *= scale_factor;
+					rhsFunctions_.discreteVelocity().assign( do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla );
+
+					typename L2ErrorType::Errors errors_rhs = l2Error.get(	static_cast<typename Traits::StokesAnalyticalForceAdapterType::BaseType>(*ptr_stokesForce),
+																		static_cast<typename Traits::StokesAnalyticalForceAdapterType::BaseType>(*ptr_stokesForce_vanilla),
+																		dummyFunctions_.discreteVelocity() );
+					std::cerr << "RHS " << errors_rhs.str();
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
@@ -426,7 +444,7 @@ namespace Dune {
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
-										*ptr_stokesForce,
+										do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla,
 										stokesDirichletData,
 										stokes_viscosity ,
 										stokes_alpha, scale_factor, scale_factor );
@@ -437,8 +455,14 @@ namespace Dune {
 											functionSpaceWrapper_,
 											currentFunctions_.discreteVelocity(),
 											false );
+					typename Traits::StokesModelTraits::SigmaFunctionSpaceType
+							continousVelocityGradientSpace_;
+					typedef TESTING_NS::VelocityGradient<	typename Traits::StokesModelTraits::SigmaFunctionSpaceType,
+															typename Traits::TimeProviderType >
+						VelocityGradient;
+					VelocityGradient velocity_gradient( timeprovider_, continousVelocityGradientSpace_ );
 
-					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
+					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_, &velocity_gradient );
 					setUpdateFunctions();
 					RunInfo info;
 					stokesPass.getRuninfo( info );
