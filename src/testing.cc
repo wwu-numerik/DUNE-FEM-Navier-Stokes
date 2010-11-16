@@ -200,6 +200,7 @@ int main( int argc, char** argv )
 		{
 			singleRun( mpicomm, ref );
 			profiler().NextRun();
+			std::cout << "\n-------------------------------------------------------------\n";
 		}
 
 		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
