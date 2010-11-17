@@ -462,7 +462,7 @@ namespace Dune {
 						VelocityGradient;
 					VelocityGradient velocity_gradient( timeprovider_, continousVelocityGradientSpace_ );
 
-					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_, &velocity_gradient );
+					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 					setUpdateFunctions();
 					RunInfo info;
 					stokesPass.getRuninfo( info );
@@ -509,9 +509,9 @@ namespace Dune {
 						//stokes step B
 						RunInfo info;
 						info = stokesStep();
+						profiler().StopTiming( "Timestep" );
 						nextStep( 3, info );
 
-						profiler().StopTiming( "Timestep" );
 						runInfoVector.push_back( info );
 					}
 					return runInfoVector;
