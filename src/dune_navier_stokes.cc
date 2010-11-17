@@ -203,7 +203,7 @@ int main( int argc, char** argv )
 			profiler().NextRun();
 		}
 
-		profiler().Output( mpicomm, rf );
+		profiler().OutputMap( mpicomm, rf );
 
 		Stuff::TimeSeriesOutput out( rf );
 		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
