@@ -164,4 +164,4 @@ TARGET_LINK_LIBRARIES(oseen ${COMMON_LIBS} )
 ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
 
-HEADERCHECK( ${header} ${ossenn} ${navier} )
+HEADERCHECK( ${header} ${oseen} ${navier} )
