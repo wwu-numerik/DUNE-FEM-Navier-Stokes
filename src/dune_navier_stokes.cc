@@ -188,9 +188,10 @@ int main( int argc, char** argv )
 						);
 
 		int err = 0;
-		const int minref = Parameters().getParam( "minref", 0 );
+		const unsigned int minref = Parameters().getParam( "minref", 0 );
 		RunInfoVectorMap rf;
 		if ( Parameters().getParam( "runtype", 5 ) == 6 ) {
+			Logger().Info() << "Time refine runs\n";
 			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
@@ -209,9 +210,9 @@ int main( int argc, char** argv )
 		}
 		else {
 			// ensures maxref>=minref
-			const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
+			const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
 			profiler().Reset( maxref - minref + 1 );
-
+			Logger().Info() << "Grid refine runs\n";
 			for ( unsigned int ref = minref;
 				  ref <= maxref;
 				  ++ref )
@@ -220,9 +221,8 @@ int main( int argc, char** argv )
 				rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
 			}
-			profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in the other runmode
 		}
-
+//			profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
 
 		Stuff::TimeSeriesOutput out( rf );
 		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
