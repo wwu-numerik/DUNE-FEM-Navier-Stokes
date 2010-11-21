@@ -220,9 +220,9 @@ int main( int argc, char** argv )
 				rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
 			}
+			profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in the other runmode
 		}
 
-//		profiler().OutputMap( mpicomm, rf );
 
 		Stuff::TimeSeriesOutput out( rf );
 		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
