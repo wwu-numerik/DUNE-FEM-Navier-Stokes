@@ -188,22 +188,41 @@ int main( int argc, char** argv )
 						);
 
 		int err = 0;
-
 		const int minref = Parameters().getParam( "minref", 0 );
-		// ensures maxref>=minref
-		const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
-		profiler().Reset( maxref - minref + 1 );
 		RunInfoVectorMap rf;
-		for ( unsigned int ref = minref;
-			  ref <= maxref;
-			  ++ref )
-		{
-			rf[ref] = singleRun( mpicomm, ref );
-			rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
-			profiler().NextRun();
+		if ( Parameters().getParam( "runtype", 5 ) == 6 ) {
+			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+			profiler().Reset( dt_steps - 1 );
+			int current_step = 0;
+			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1 );
+				  dt_steps > current_step;
+				  ++current_step )
+			{
+				rf[current_step] = singleRun( mpicomm, minref );
+				assert( rf.size() );
+				rf[current_step].at(0).refine_level = minref;//just in case the key changes from ref to sth else
+				profiler().NextRun();
+				dt /= 2.0;
+				Parameters().setParam( "fem.timeprovider.dt", dt );
+			}
+
+		}
+		else {
+			// ensures maxref>=minref
+			const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
+			profiler().Reset( maxref - minref + 1 );
+
+			for ( unsigned int ref = minref;
+				  ref <= maxref;
+				  ++ref )
+			{
+				rf[ref] = singleRun( mpicomm, ref );
+				rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
+				profiler().NextRun();
+			}
 		}
 
-		profiler().OutputMap( mpicomm, rf );
+//		profiler().OutputMap( mpicomm, rf );
 
 		Stuff::TimeSeriesOutput out( rf );
 		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
