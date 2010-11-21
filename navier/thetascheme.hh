@@ -514,6 +514,7 @@ namespace Dune {
 
 						runInfoVector.push_back( info );
 					}
+					assert( runInfoVector.size() > 0 );
 					return runInfoVector;
 				}
 

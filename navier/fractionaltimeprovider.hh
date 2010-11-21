@@ -65,7 +65,8 @@ namespace Dune {
 					{
 						dt_ = Parameter :: getValidValue( "fem.timeprovider.dt",
 														 (double)0.1,
-														 ValidateGreater<double>(0.0) );
+														 //assure  dt is in (0,endTime_ - startTime_]
+														 ValidateInterval<double,false,true>( 0.0, endTime_ - startTime_) );
 						init( dt_ );
 					}
 
