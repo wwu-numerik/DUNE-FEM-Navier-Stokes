@@ -2,6 +2,7 @@
 #define TESTDATA_HH
 
 #include <dune/stuff/timefunction.hh>
+#include <dune/stuff/timefunction.hh>
 
 namespace Dune {
 	namespace NavierStokes {
@@ -123,7 +124,7 @@ namespace Dune {
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 					{
-						Dune::CompileTimeChecker< ( dim_ == 3 ) > DirichletData_Unsuitable_WorldDim;
+						dune_static_assert( dim_ == 3 , "DirichletData_Unsuitable_WorldDim" );
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
@@ -179,7 +180,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-						Dune::CompileTimeChecker< ( dim_ == 3 ) > DirichletData_Unsuitable_WorldDim;
+						dune_static_assert( dim_ == 3 , "DirichletData_Unsuitable_WorldDim");
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
@@ -238,7 +239,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-						Dune::CompileTimeChecker< ( dim_ == 3 ) > Pressure_Unsuitable_WorldDim;
+						dune_static_assert( dim_ == 3 , "Pressure_Unsuitable_WorldDim");
 						const double x			= arg[0];
 						const double y			= arg[1];
 						const double z			= arg[2];
@@ -420,7 +421,7 @@ namespace Dune {
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 					{
-						Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+						dune_static_assert( dim_ == 2  , "DirichletData_Unsuitable_WorldDim");
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
@@ -476,7 +477,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-						Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+						dune_static_assert( dim_ == 2  , "DirichletData_Unsuitable_WorldDim");
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
@@ -535,7 +536,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-						Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+						dune_static_assert( dim_ == 2 , "Pressure_Unsuitable_WorldDim");
 						const double x				= arg[0];
 						const double y				= arg[1];
 						const double v				= Parameters().getParam( "viscosity", 1.0 );
@@ -601,7 +602,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-						Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+						dune_static_assert( dim_ == 2  , "Pressure_Unsuitable_WorldDim");
 						const double x				= arg[0];
 						const double y				= arg[1];
 						const double v				= Parameters().getParam( "viscosity", 1.0 );
@@ -667,7 +668,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-		//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+		//				dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 
 						const double x			= arg[0];
 						const double y			= arg[1];
@@ -728,7 +729,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-		//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+		//				dune_static_assert( dim_ == 2  , "DirichletData_Unsuitable_WorldDim");
 						const double x			= arg[0];
 						const double y			= arg[1];
 						const double v			= Parameters().getParam( "viscosity", 1.0 );
@@ -850,7 +851,7 @@ namespace Dune {
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& intersection) const
 					{
-							Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+							dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 							const int id = intersection.boundaryId();
 							const double y = arg[1];
 							const double f = -4 * ( y - 0.5) * ( y + 0.5) ;
@@ -925,7 +926,7 @@ namespace Dune {
 
 							void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 							{
-									Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+									dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 									ret = RangeType( 0.0 );
 							}
 
