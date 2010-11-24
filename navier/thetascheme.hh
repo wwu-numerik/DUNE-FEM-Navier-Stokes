@@ -23,16 +23,17 @@
 namespace Dune {
 	namespace NavierStokes {
 	//! for each step keep a set of theta values and one value for dt
+	// thetas_[stepnumber][theta_subscript_index]
 	template < int numberOfSteps >
 	struct ThetaSchemeDescription {
 		typedef ThetaSchemeDescription< numberOfSteps >
 			ThisType;
 		static const int numberOfSteps_ = numberOfSteps;
-		typedef Dune::array<double,numberOfSteps>
+		typedef Dune::array< double, 4 >
 			ThetaValueArray;
-		typedef Dune::array<ThetaValueArray,4>
+		typedef Dune::array< ThetaValueArray, numberOfSteps >
 			ThetaArray;
-		typedef Dune::array<double,numberOfSteps>
+		typedef Dune::array< double, numberOfSteps >
 			TimestepArray;
 		ThetaArray thetas_;
 		TimestepArray step_sizes_;
@@ -48,7 +49,8 @@ namespace Dune {
 		static ThisType crank_nicholson( double delta_t )
 		{
 			dune_static_assert( numberOfSteps_ == 1, "Crank Nicholson is a one step scheme" );
-			ThetaValueArray c = { 0.5f };
+			ThetaValueArray c;
+			Stuff::fill_entirely( c, 0.5f );
 			ThetaArray a;
 			Stuff::fill_entirely( a, c );
 			return ThisType ( a, delta_t );
@@ -56,8 +58,9 @@ namespace Dune {
 		static ThisType forward_euler( double delta_t )
 		{
 			dune_static_assert( numberOfSteps_ == 1, "Forward Euler is a one step scheme" );
-			ThetaValueArray c = { 0.5f };
-			ThetaArray a = { 1.0 ,  0.0 ,  0.0 ,  0.0  }  ;
+			ThetaValueArray c = { 1.0 ,  0.0 ,  0.0 ,  1.0f  }  ;
+			ThetaArray a;
+			Stuff::fill_entirely( a, c );
 			return ThisType ( a, delta_t );
 		}
 	};
@@ -549,26 +552,29 @@ namespace Dune {
 
 					for( ;timeprovider_.time() < timeprovider_.endTime(); )
 					{
-						RunInfo info_dummy;
 						profiler().StartTiming( "Timestep" );
 						//stokes step A
-						stokesStep();
-						nextStep( 1, info_dummy );
-
-						//Nonlinear step
-						oseenStep();
-						nextStep( 2, info_dummy );
-
-						//stokes step B
-						RunInfo info;
-						info = stokesStep();
+						RunInfo info = full_timestep();
 						profiler().StopTiming( "Timestep" );
-						nextStep( 3, info );
-
+						nextStep( 1, info );
 						runInfoVector.push_back( info );
 					}
 					assert( runInfoVector.size() > 0 );
 					return runInfoVector;
+				}
+
+				void full_timestep()
+				{
+					for ( unsigned i=0; i < Traits::substep_count; ++i )
+					{
+						const double dt = theta_params_.step_sizes_[i];
+						substep( dt, theta_params_.thetas_[i] );
+					}
+				}
+
+				void substep( const double dt, const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
+				{
+
 				}
 
 				void oseenStep()
