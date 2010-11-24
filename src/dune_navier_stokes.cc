@@ -279,14 +279,21 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					NS::DirichletData,
 					NS::Pressure,
 					NS::Velocity,
+					1,//number of substeps
 					gridDim,
 					polOrder,
 					VELOCITY_POLORDER,
 					PRESSURE_POLORDER >
 		ThetaSchemeTraitsType;
 
+	ThetaSchemeTraitsType::ThetaSchemeDescriptionType theta_params
+	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::crank_nicholson( 0.1f );
+	ThetaSchemeTraitsType::ThetaSchemeDescriptionType theta_params2
+	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::forward_euler( 0.1f );
+
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
-			thetaScheme( gridPart );/*,
+			thetaScheme( gridPart,
+	                    theta_params);/*,
 						 1 - std::pow( 2.0, -1/2.0 ),
 						 mpicomm,
 						 1,

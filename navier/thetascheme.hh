@@ -13,18 +13,62 @@
 #include <dune/stuff/tuple.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/stuff/error.hh>
+#include <dune/stuff/misc.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
 #include <boost/scoped_ptr.hpp>
+#include <dune/common/fixedarray.hh>
+#include <algorithm>
 
 namespace Dune {
 	namespace NavierStokes {
+	//! for each step keep a set of theta values and one value for dt
+	template < int numberOfSteps >
+	struct ThetaSchemeDescription {
+		typedef ThetaSchemeDescription< numberOfSteps >
+			ThisType;
+		static const int numberOfSteps_ = numberOfSteps;
+		typedef Dune::array<double,numberOfSteps>
+			ThetaValueArray;
+		typedef Dune::array<ThetaValueArray,4>
+			ThetaArray;
+		typedef Dune::array<double,numberOfSteps>
+			TimestepArray;
+		ThetaArray thetas_;
+		TimestepArray step_sizes_;
+
+		ThetaSchemeDescription(){}
+
+		ThetaSchemeDescription( ThetaArray a, double dt )
+		    : thetas_( a )
+		{
+			Stuff::fill_entirely( step_sizes_, dt );
+		}
+
+		static ThisType crank_nicholson( double delta_t )
+		{
+			dune_static_assert( numberOfSteps_ == 1, "Crank Nicholson is a one step scheme" );
+			ThetaValueArray c = { 0.5f };
+			ThetaArray a;
+			Stuff::fill_entirely( a, c );
+			return ThisType ( a, delta_t );
+		}
+		static ThisType forward_euler( double delta_t )
+		{
+			dune_static_assert( numberOfSteps_ == 1, "Forward Euler is a one step scheme" );
+			ThetaValueArray c = { 0.5f };
+			ThetaArray a = { 1.0 ,  0.0 ,  0.0 ,  0.0  }  ;
+			return ThisType ( a, delta_t );
+		}
+	};
+
 		template <	class CommunicatorImp,
 					class GridPartImp,
 					template < class > class AnalyticalForceImp,
 					template < class > class AnalyticalDirichletDataImp,
 					template < class,class > class ExactPressureImp,
 					template < class,class > class ExactVelocityImp,
+					int subStepCount,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		struct ThetaSchemeTraits {
 			typedef ThetaSchemeTraits<CommunicatorImp,
@@ -33,12 +77,17 @@ namespace Dune {
 										AnalyticalDirichletDataImp,
 										ExactPressureImp,
 										ExactVelocityImp,
+										subStepCount,
 										gridDim, sigmaOrder, velocityOrder , pressureOrder >
 				ThisType;
 			typedef GridPartImp
 				GridPartType;
 			typedef FractionalTimeProvider<CommunicatorImp>
 				TimeProviderType;
+
+			static const int substep_count = subStepCount;
+			typedef ThetaSchemeDescription< subStepCount >
+				ThetaSchemeDescriptionType;
 
 			typedef StokesStep::DiscreteStokesModelTraits<
 						TimeProviderType,
@@ -142,6 +191,7 @@ namespace Dune {
 					DiscretePressureFunctionType;
 
 				mutable typename Traits::GridPartType gridPart_;
+				const typename Traits::ThetaSchemeDescriptionType& theta_params_;
 		public:
 				const double theta_;
 				const double operator_weight_alpha_;
@@ -175,6 +225,7 @@ namespace Dune {
 				const typename Traits::StokesPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
 				mutable typename Traits::StokesPassType::RhsDatacontainer rhsDatacontainer_;
 
+
 			public:
 				const double viscosity_;
 				const double d_t_;
@@ -184,12 +235,14 @@ namespace Dune {
 
 			public:
 				ThetaScheme( typename Traits::GridPartType gridPart,
+							 const typename Traits::ThetaSchemeDescriptionType& theta_params,
 							 const double theta				= Defaults().theta,
 							 CommunicatorType comm			= Dune::MPIManager::helper().getCommunicator(),
 							 double operator_weight_alpha	= Defaults().operator_weight_alpha,
 							 double operator_weight_beta	= Defaults().operator_weight_beta
 						)
 					: gridPart_( gridPart ),
+					theta_params_( theta_params ),
 					theta_(theta),
 					operator_weight_alpha_( operator_weight_alpha ),
 					operator_weight_beta_( operator_weight_beta ),
