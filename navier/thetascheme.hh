@@ -139,14 +139,15 @@ namespace Dune {
 			typedef ExactSolution<ThisType>
 				ExactSolutionType;
 
-			typedef NonlinearStep::ForceAdapterFunction<	TimeProviderType,
-															AnalyticalForceType,
-															typename DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
-				NonlinearForceAdapterFunctionType;
+			typedef OseenStep::ForceAdapterFunction<	TimeProviderType,
+														AnalyticalForceType,
+														typename DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
+														typename ThetaSchemeDescriptionType::ThetaValueArray >
+				OseenForceAdapterFunctionType;
 			typedef NonlinearStep::DiscreteStokesModelTraits<
 						TimeProviderType,
 						GridPartType,
-						NonlinearForceAdapterFunctionType,
+						OseenForceAdapterFunctionType,
 						typename ExactSolutionType::DiscreteVelocityFunctionType,
 						AnalyticalDirichletDataImp,
 						gridDim,
@@ -194,7 +195,7 @@ namespace Dune {
 					DiscretePressureFunctionType;
 
 				mutable typename Traits::GridPartType gridPart_;
-				const typename Traits::ThetaSchemeDescriptionType& theta_params_;
+				const typename Traits::ThetaSchemeDescriptionType& scheme_params_;
 		public:
 				const double theta_;
 				const double operator_weight_alpha_;
@@ -238,14 +239,14 @@ namespace Dune {
 
 			public:
 				ThetaScheme( typename Traits::GridPartType gridPart,
-							 const typename Traits::ThetaSchemeDescriptionType& theta_params,
+							 const typename Traits::ThetaSchemeDescriptionType& scheme_params,
 							 const double theta				= Defaults().theta,
 							 CommunicatorType comm			= Dune::MPIManager::helper().getCommunicator(),
 							 double operator_weight_alpha	= Defaults().operator_weight_alpha,
 							 double operator_weight_beta	= Defaults().operator_weight_beta
 						)
 					: gridPart_( gridPart ),
-					theta_params_( theta_params ),
+					scheme_params_( scheme_params ),
 					theta_(theta),
 					operator_weight_alpha_( operator_weight_alpha ),
 					operator_weight_beta_( operator_weight_beta ),
@@ -563,83 +564,117 @@ namespace Dune {
 					return runInfoVector;
 				}
 
-				void full_timestep()
+				RunInfo full_timestep()
 				{
-					for ( unsigned i=0; i < Traits::substep_count; ++i )
+					RunInfo info;
+					for ( int i=0; i < Traits::substep_count; ++i )
 					{
-						const double dt = theta_params_.step_sizes_[i];
-						substep( dt, theta_params_.thetas_[i] );
+						const double dt = scheme_params_.step_sizes_[i];
+						substep( dt, scheme_params_.thetas_[i] );
 					}
+					return info;
 				}
 
 				void substep( const double dt, const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
 				{
-
-				}
-
-				void oseenStep()
-				{
-					const bool scale_equations = Parameters().getParam( "scale_equations", false );
-					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
-					double oseen_alpha, oseen_viscosity,scale_factor;
-					const double oseen_alpha_unscaled = 1 / delta_t_factor;
-					if ( scale_equations ) {
-						oseen_alpha = 1;
-						scale_factor = delta_t_factor;
-						oseen_viscosity = beta_qout_re_ * scale_factor;
-					}
-					else {
-						oseen_alpha = oseen_alpha_unscaled;
-						oseen_viscosity = beta_qout_re_;
-						scale_factor = 1;
-					}
-
+					//build rhs
+					const bool first_step = timeprovider_.timeStep() <= 1;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 
-					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
-					if ( Parameters().getParam( "rhs_cheat", false ) ) {
-						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
-							VelocityFunctionSpaceType;
-						VelocityFunctionSpaceType continousVelocitySpace_;
+					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
+							ptr_oseenForce( first_step
+												? new typename Traits::OseenForceAdapterFunctionType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  reynolds_,
+																										  scheme_params_.thetas_ )
+												: new typename Traits::OseenForceAdapterFunctionType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  reynolds_,
+																										  scheme_params_.thetas_,
+																										  rhsDatacontainer_ )
+											);
 
-						typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
-																typename Traits::TimeProviderType >
-							PressureGradient;
-						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
-							::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
-						// ----
-						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
-																					typename Traits::TimeProviderType >
-								VelocityLaplace;
-						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection
-							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
-						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
-					}// END CHEAT
 
-					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
-																	  currentFunctions_.discreteVelocity(),
-																	  force,
-																	  operator_weight_alpha_ / reynolds_,
-																	  oseen_alpha_unscaled,
-																	  rhsDatacontainer_ );
-					nonlinearForce *= scale_factor;
-					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
+
+
 					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
 					assert( oseen_iterations > 0 );
 					for( unsigned int i = 0; i<oseen_iterations; ++i )
 					{
-						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
+//						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
 						setUpdateFunctions();
 						currentFunctions_.assign( nextFunctions_ );
 					}
-					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
-					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
+
+
 				}
 
-				void oseenStepSingle(	const typename Traits::NonlinearForceAdapterFunctionType& nonlinearForce,
+//				void oseenStep()
+//				{
+//					const bool scale_equations = Parameters().getParam( "scale_equations", false );
+//					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
+//					double oseen_alpha, oseen_viscosity,scale_factor;
+//					const double oseen_alpha_unscaled = 1 / delta_t_factor;
+//					if ( scale_equations ) {
+//						oseen_alpha = 1;
+//						scale_factor = delta_t_factor;
+//						oseen_viscosity = beta_qout_re_ * scale_factor;
+//					}
+//					else {
+//						oseen_alpha = oseen_alpha_unscaled;
+//						oseen_viscosity = beta_qout_re_;
+//						scale_factor = 1;
+//					}
+
+//					const typename Traits::AnalyticalForceType force ( viscosity_,
+//																 currentFunctions_.discreteVelocity().space() );
+
+//					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
+//					if ( Parameters().getParam( "rhs_cheat", false ) ) {
+//						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+//							VelocityFunctionSpaceType;
+//						VelocityFunctionSpaceType continousVelocitySpace_;
+
+//						typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+//																typename Traits::TimeProviderType >
+//							PressureGradient;
+//						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
+//						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+//							::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
+//						// ----
+//						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+//																					typename Traits::TimeProviderType >
+//								VelocityLaplace;
+//						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+//						Dune::BetterL2Projection
+//							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+//						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+//					}// END CHEAT
+
+//					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
+//																	  currentFunctions_.discreteVelocity(),
+//																	  force,
+//																	  operator_weight_alpha_ / reynolds_,
+//																	  oseen_alpha_unscaled,
+//																	  rhsDatacontainer_ );
+//					nonlinearForce *= scale_factor;
+//					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
+//					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
+//					assert( oseen_iterations > 0 );
+//					for( unsigned int i = 0; i<oseen_iterations; ++i )
+//					{
+//						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
+//						setUpdateFunctions();
+//						currentFunctions_.assign( nextFunctions_ );
+//					}
+//					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
+//					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
+//				}
+
+				void oseenStepSingle(	const typename Traits::OseenForceAdapterFunctionType& nonlinearForce,
 										const double oseen_viscosity,
 										const double oseen_alpha,
 										const double scale_factor )

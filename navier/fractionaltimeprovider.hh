@@ -106,6 +106,17 @@ namespace Dune {
 							++currentStepType_;
 					}
 
+					//! \note this needs to return the difference for a fullstep!
+					double deltaT() const {
+						return dt_;
+					}
+
+					//! \note this needs to return the difference for a substep!
+					double sub_deltaT() const {
+						assert( false );
+						return dt_;
+					}
+
 					const double alpha ()		const { return theta_alpha_;}
 					const double beta ()		const { return theta_beta_; }
 					const double startTime()	const { return startTime_;	}
