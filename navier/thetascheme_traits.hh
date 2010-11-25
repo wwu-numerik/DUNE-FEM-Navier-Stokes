@@ -63,7 +63,7 @@ namespace Dune {
 					int subStepCount,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		struct ThetaSchemeTraits {
-			typedef ThetaSchemeTraits<CommunicatorImp,
+			typedef ThetaSchemeTraits<	CommunicatorImp,
 										GridPartImp,
 										AnalyticalForceImp,
 										AnalyticalDirichletDataImp,
@@ -75,12 +75,12 @@ namespace Dune {
 
 			typedef GridPartImp
 				GridPartType;
-			typedef FractionalTimeProvider<CommunicatorImp>
-				TimeProviderType;
 
 			static const int substep_count = subStepCount;
 			typedef ThetaSchemeDescription< subStepCount >
 				ThetaSchemeDescriptionType;
+			typedef FractionalTimeProvider< ThetaSchemeDescriptionType, CommunicatorImp>
+				TimeProviderType;
 
 			typedef NonlinearStep::DiscreteStokesModelTraits<
 						TimeProviderType,

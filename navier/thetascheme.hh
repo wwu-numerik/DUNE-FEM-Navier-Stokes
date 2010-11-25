@@ -52,22 +52,6 @@ namespace Dune {
 
 				mutable typename Traits::GridPartType gridPart_;
 				const typename Traits::ThetaSchemeDescriptionType& scheme_params_;
-		public:
-				const double theta_;
-				const double operator_weight_alpha_;
-				const double operator_weight_beta_;
-
-				//! used cause we cannot use function calls and whatnot to define static constants
-				struct Defaults {
-					Defaults()
-						: theta ( 1 - std::pow( 2.0, -1/2.0 ) ),
-						operator_weight_alpha ( ( 1-2*theta ) / ( 1-theta ) ),
-						operator_weight_beta ( 1 - operator_weight_alpha )
-					{}
-					const double theta;
-					const double operator_weight_alpha;
-					const double operator_weight_beta;
-				};
 
 		protected:
 				CommunicatorType& communicator_;
@@ -90,24 +74,17 @@ namespace Dune {
 				const double viscosity_;
 				const double d_t_;
 				const double reynolds_;
-				const double beta_qout_re_;
 				double current_max_gridwidth_;
 
 			public:
 				ThetaScheme( typename Traits::GridPartType gridPart,
 							 const typename Traits::ThetaSchemeDescriptionType& scheme_params,
-							 const double theta				= Defaults().theta,
-							 CommunicatorType comm			= Dune::MPIManager::helper().getCommunicator(),
-							 double operator_weight_alpha	= Defaults().operator_weight_alpha,
-							 double operator_weight_beta	= Defaults().operator_weight_beta
+							 CommunicatorType comm			= Dune::MPIManager::helper().getCommunicator()
 						)
 					: gridPart_( gridPart ),
 					scheme_params_( scheme_params ),
-					theta_(theta),
-					operator_weight_alpha_( operator_weight_alpha ),
-					operator_weight_beta_( operator_weight_beta ),
 					communicator_( comm ),
-					timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, communicator_ ),
+					timeprovider_( scheme_params_, communicator_ ),
 					functionSpaceWrapper_( gridPart_ ),
 					currentFunctions_(  "current_",
 										functionSpaceWrapper_,
@@ -149,7 +126,6 @@ namespace Dune {
 					viscosity_( Parameters().getParam( "viscosity", 1.0 ) ),
 					d_t_( timeprovider_.deltaT() ),
 					reynolds_( 1.0 / viscosity_ ),
-					beta_qout_re_( operator_weight_beta_ / reynolds_ ),
 					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
 				{}
 
