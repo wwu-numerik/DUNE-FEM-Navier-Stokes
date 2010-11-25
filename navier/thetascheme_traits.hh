@@ -8,19 +8,20 @@
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/testdata.hh>
 #include <dune/stuff/functions.hh>
+#include <dune/stuff/misc.hh>
 
 namespace Dune {
 	namespace NavierStokes {
 		//! for each step keep a set of theta values and one value for dt
 		// thetas_[stepnumber][theta_subscript_index]
-		template < int numberOfSteps >
+		template < int numberOfSteps = 1 >
 		struct ThetaSchemeDescription {
 			typedef ThetaSchemeDescription< numberOfSteps >
 				ThisType;
 			static const int numberOfSteps_ = numberOfSteps;
 			typedef Dune::array< double, 4 >
 				ThetaValueArray;
-			typedef Dune::array< ThetaValueArray, numberOfSteps >
+			typedef Stuff::wraparound_array< ThetaValueArray, numberOfSteps >
 				ThetaArray;
 			typedef Dune::array< double, numberOfSteps >
 				TimestepArray;
@@ -29,28 +30,48 @@ namespace Dune {
 
 			ThetaSchemeDescription(){}
 
-			ThetaSchemeDescription( ThetaArray a, double dt )
+			ThetaSchemeDescription( const ThetaArray& a, const TimestepArray& s )
+				:thetas_( a ), step_sizes_( s )
+			{}
+
+			ThetaSchemeDescription( const ThetaArray& a, double dt )
 				: thetas_( a )
 			{
 				Stuff::fill_entirely( step_sizes_, dt );
 			}
 
-			static ThisType crank_nicholson( double delta_t )
+			static ThetaSchemeDescription<1> crank_nicholson( double delta_t )
 			{
-				dune_static_assert( numberOfSteps_ == 1, "Crank Nicholson is a one step scheme" );
 				ThetaValueArray c;
 				Stuff::fill_entirely( c, 0.5f );
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
 				return ThisType ( a, delta_t );
 			}
-			static ThisType forward_euler( double delta_t )
+			static ThetaSchemeDescription<1> forward_euler( double delta_t )
 			{
-				dune_static_assert( numberOfSteps_ == 1, "Forward Euler is a one step scheme" );
 				ThetaValueArray c = { 1.0 ,  0.0 ,  0.0 ,  1.0f  }  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThisType ( a, delta_t );
+				return ThetaSchemeDescription<1> ( a, delta_t );
+			}
+			static ThetaSchemeDescription<3> fs0( double delta_t )
+			{
+				const double theta			= 1 - (std::sqrt(2)/2.0f);
+				const double theta_squigly	= 1 - ( 2 * theta );
+				const double tau			= theta_squigly / ( 1 - theta );
+				const double eta			= 1 - tau;
+				typedef ThetaSchemeDescription<3>
+					ReturnType;
+				ReturnType::ThetaValueArray step_one	= { tau * theta, eta * theta, eta * theta, tau * theta };
+				ReturnType::ThetaValueArray step_two	= { eta * theta_squigly, tau * theta_squigly, tau * theta_squigly, eta * theta_squigly };
+				ReturnType::ThetaValueArray step_three	= { tau * theta, eta * theta, eta * theta, tau * theta };
+				ReturnType::ThetaArray a;
+				a[0] = step_one;
+				a[1] = step_two;
+				a[2] = step_three;
+				ReturnType::TimestepArray c = { theta * delta_t, theta_squigly * delta_t, theta * delta_t };
+				return ThisType ( a, c );
 			}
 		};
 

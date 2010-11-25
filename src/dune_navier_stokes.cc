@@ -286,10 +286,12 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					PRESSURE_POLORDER >
 		ThetaSchemeTraitsType;
 
+	const double dt_ = Dune::Parameter :: getValue( "fem.timeprovider.dt",
+	                                                                     (double)0.1 );
 	ThetaSchemeTraitsType::ThetaSchemeDescriptionType theta_params
-	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::crank_nicholson( 0.1f );
-	ThetaSchemeTraitsType::ThetaSchemeDescriptionType theta_params2
-	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::forward_euler( 0.1f );
+	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::crank_nicholson( dt_ );
+//	ThetaSchemeTraitsType::ThetaSchemeDescriptionType theta_params
+//	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::fs0( dt_ );
 
 	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
 			thetaScheme( gridPart,

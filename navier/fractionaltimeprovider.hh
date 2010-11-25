@@ -57,8 +57,7 @@ namespace Dune {
 					//! equivalent of t_{k+1}
 					const double subTime( ) const
 					{
-						assert( current_substep_ > -1 );
-						double current = time();
+						double current = BaseType::time();
 						for ( int i = 0; i < current_substep_; ++i )
 							current += theta_scheme_parameter_.step_sizes_[i];
 						return current;
@@ -72,7 +71,6 @@ namespace Dune {
 
 					const double time () const
 					{
-						assert( false );
 						return subTime();
 					}
 

@@ -242,7 +242,7 @@ namespace Dune {
 						//stokes step A
 						RunInfo info = full_timestep();
 						profiler().StopTiming( "Timestep" );
-						nextStep( 1, info );
+//						nextStep( 1, info );
 						runInfoVector.push_back( info );
 					}
 					assert( runInfoVector.size() > 0 );
@@ -256,7 +256,13 @@ namespace Dune {
 					{
 						const double dt_k = scheme_params_.step_sizes_[i];
 						substep( dt_k, scheme_params_.thetas_[i] );
+						Logger().Info() << boost::format("current time (substep %d ): %f\n") % i % timeprovider_.subTime();
+						timeprovider_.nextFractional();
 					}
+					std::vector<double> error_vector;
+					error_vector.push_back( -1 );
+					error_vector.push_back( -1 );
+					info.L2Errors		= error_vector;
 					return info;
 				}
 
