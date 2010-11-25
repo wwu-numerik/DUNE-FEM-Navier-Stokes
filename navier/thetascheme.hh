@@ -588,12 +588,12 @@ namespace Dune {
 																										  currentFunctions_.discreteVelocity(),
 																										  force,
 																										  reynolds_,
-																										  scheme_params_.thetas_ )
+																										  theta_values )
 												: new typename Traits::OseenForceAdapterFunctionType ( timeprovider_,
 																										  currentFunctions_.discreteVelocity(),
 																										  force,
 																										  reynolds_,
-																										  scheme_params_.thetas_,
+																										  theta_values,
 																										  rhsDatacontainer_ )
 											);
 

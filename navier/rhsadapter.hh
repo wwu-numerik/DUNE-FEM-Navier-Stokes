@@ -287,7 +287,7 @@ namespace Dune {
 					Dune::BetterL2Projection
 						::project( timeProvider_.previousSubTime(), velocity_laplace, velocity_laplace_discrete );
 
-					AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete, theta_values_ );
+					AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete );
 				}
 
 				//! this signature is used in all other stokes steps where we get the data from the previous step's discretisation
@@ -296,8 +296,8 @@ namespace Dune {
 										const DiscreteVelocityFunctionType& velocity,
 										const AnalyticalForceType& force,
 										const double reynolds,
-										const RhsContainerType& rhs_container,
 										const ThetaValuesType& theta_values,
+										const RhsContainerType& rhs_container,
 										int polOrd = -1 )
 					: BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 					timeProvider_( timeProvider ),
@@ -335,7 +335,7 @@ namespace Dune {
 					*this += tmp;// this = f + beta_re_qoutient * laplace
 
 					tmp.assign( convection );
-					tmp *= ( theta_values_[1] * dt_n )
+					tmp *= ( theta_values_[1] * dt_n );
 					*this -= tmp;
 
 					*this += velocity;
