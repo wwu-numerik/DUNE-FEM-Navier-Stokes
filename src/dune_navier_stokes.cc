@@ -56,9 +56,9 @@
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
 
-#define NS Dune::NavierStokes::TESTCASE
+//#define NS Dune::NavierStokes::TESTCASE
 //#define NS Testing::AdapterFunctionsVisco
-//#define NS Testing::AdapterFunctionsVectorial
+#define NS Testing::AdapterFunctionsVectorial
 #define TESTING_NS NS
 #include "testing.hh"
 #include <dune/navier/testdata.hh>
@@ -251,6 +251,77 @@ int main( int argc, char** argv )
 #endif
 }
 
+template < class GridPartType, class CollectiveCommunicationType >
+class ThetaschemeRunner {
+	private:
+		typedef Dune::NavierStokes::ThetaSchemeTraits<
+						CollectiveCommunicationType,
+						GridPartType,
+						NS::Force,
+						NS::DirichletData,
+						NS::Pressure,
+						NS::Velocity,
+						1,//number of substeps
+						GridType::dimensionworld,
+						POLORDER,
+						VELOCITY_POLORDER,
+						PRESSURE_POLORDER >
+			OneStepThetaSchemeTraitsType;
+		typedef Dune::NavierStokes::ThetaScheme<OneStepThetaSchemeTraitsType>
+			OneStepThetaSchemeType;
+		typedef typename OneStepThetaSchemeTraitsType::ThetaSchemeDescriptionType
+			OneStepThetaSchemeDescriptionType;
+		typedef Dune::NavierStokes::ThetaSchemeTraits<
+						CollectiveCommunicationType,
+						GridPartType,
+						NS::Force,
+						NS::DirichletData,
+						NS::Pressure,
+						NS::Velocity,
+						3,//number of substeps
+						GridType::dimensionworld,
+						POLORDER,
+						VELOCITY_POLORDER,
+						PRESSURE_POLORDER >
+			ThreeStepThetaSchemeTraitsType;
+		typedef Dune::NavierStokes::ThetaScheme<ThreeStepThetaSchemeTraitsType>
+			ThreeStepThetaSchemeType;
+		typedef typename ThreeStepThetaSchemeTraitsType::ThetaSchemeDescriptionType
+			ThreeStepThetaSchemeDescriptionType;
+	public:
+		ThetaschemeRunner( const GridPartType& grid_part, CollectiveCommunicationType& comm )
+			:grid_part_(grid_part),
+			comm_(comm)
+		{}
+
+		RunInfoVector run(const int scheme_type)
+		{
+			const double dt_ = Dune::Parameter :: getValue( "fem.timeprovider.dt",
+			                                                                     (double)0.1 );
+			switch ( scheme_type ) {
+				case 1: return OneStepThetaSchemeType(grid_part_,
+				                                      OneStepThetaSchemeDescriptionType::forward_euler( dt_ ) )
+									.run();
+				case 3: return OneStepThetaSchemeType(grid_part_,
+													  OneStepThetaSchemeDescriptionType::crank_nicholson( dt_ ) )
+									.run();
+				default: Logger().Info() << "Using default value for theta scheme type\n";
+				case 4: return ThreeStepThetaSchemeType(grid_part_,
+				                                      ThreeStepThetaSchemeDescriptionType::fs0( dt_ ) )
+									.run();
+			}
+		}
+
+		RunInfoVector run(){
+			const int scheme_type = Parameters().getParam( "scheme_type", 1, true );
+			return run( scheme_type );
+		}
+
+	private:
+		const GridPartType& grid_part_;
+		CollectiveCommunicationType& comm_;
+};
+
 RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
@@ -272,36 +343,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
-	// model traits
-	typedef Dune::NavierStokes::ThetaSchemeTraits<
-					CollectiveCommunication,
-					GridPartType,
-					NS::Force,
-					NS::DirichletData,
-					NS::Pressure,
-					NS::Velocity,
-					1,//number of substeps
-					gridDim,
-					polOrder,
-					VELOCITY_POLORDER,
-					PRESSURE_POLORDER >
-		ThetaSchemeTraitsType;
-
-	const double dt_ = Dune::Parameter :: getValue( "fem.timeprovider.dt",
-	                                                                     (double)0.1 );
-	ThetaSchemeTraitsType::ThetaSchemeDescriptionType theta_params
-	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::crank_nicholson( dt_ );
-//	ThetaSchemeTraitsType::ThetaSchemeDescriptionType theta_params
-//	        = ThetaSchemeTraitsType::ThetaSchemeDescriptionType::fs0( dt_ );
-
-	Dune::NavierStokes::ThetaScheme<ThetaSchemeTraitsType>
-			thetaScheme( gridPart,
-	                    theta_params);/*,
-						 1 - std::pow( 2.0, -1/2.0 ),
-						 mpicomm,
-						 1,
-						 0);*/
-	return thetaScheme.run();
+	return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run();
 }
 
 void eocCheck( const RunInfoVector& runInfos )
