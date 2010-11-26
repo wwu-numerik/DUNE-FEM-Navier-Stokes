@@ -1114,15 +1114,6 @@ namespace Dune {
 					  static const int dim_ = FunctionSpaceImp::dimDomain;
 			};
 
-
-			/**
-			*  \brief  describes the dirichlet boundary data
-			*
-			*  \tparam DirichletTraitsImp
-			*          types like functionspace, range type, etc
-			*
-			*  \todo   extensive docu with latex
-			**/
 			template < class FunctionSpaceImp >
 			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
@@ -1279,8 +1270,7 @@ namespace Dune {
 
 					void evaluateTime( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 					{
-						double viscosity = Parameters().getParam( "viscosity", 1.0 );
-						ret = 1/viscosity*arg[0] + 1;
+						ret = 0;
 					}
 
 					/**
@@ -1297,7 +1287,97 @@ namespace Dune {
 					const double parameter_a_;
 					const double parameter_d_;
 			};
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
 
+					/**
+					*  \brief  constructor
+					*
+					*  doing nothing besides Base init
+					**/
+					VelocityLaplace(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					/**
+					*  \brief  destructor
+					*
+					*  doing nothing
+					**/
+					~VelocityLaplace()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+		//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+						ret = RangeType(0);
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					/**
+					*  \brief  constructor
+					*
+					*  doing nothing besides Base init
+					**/
+					VelocityConvection(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					/**
+					*  \brief  destructor
+					*
+					*  doing nothing
+					**/
+					~VelocityConvection()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+						ret = RangeType(0);
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
 		}//end namespace TrivialTestCase
 
 		namespace GreenTaylor {
