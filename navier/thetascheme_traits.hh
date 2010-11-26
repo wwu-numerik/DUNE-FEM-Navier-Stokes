@@ -14,7 +14,7 @@ namespace Dune {
 	namespace NavierStokes {
 		//! for each step keep a set of theta values and one value for dt
 		// thetas_[stepnumber][theta_subscript_index]
-		template < int numberOfSteps = 1 >
+		template < int numberOfSteps >
 		struct ThetaSchemeDescription {
 			typedef ThetaSchemeDescription< numberOfSteps >
 				ThisType;
@@ -72,7 +72,10 @@ namespace Dune {
 				a[0] = step_one;
 				a[1] = step_two;
 				a[2] = step_three;
-				ReturnType::TimestepArray c = { theta * delta_t, theta_squigly * delta_t, theta * delta_t };
+				ReturnType::TimestepArray c;
+				c[0] = theta * delta_t;
+				c[1] = theta_squigly * delta_t;
+				c[2] = theta * delta_t;
 				return ThisType ( a, c );
 			}
 		};

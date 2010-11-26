@@ -127,7 +127,9 @@ namespace Dune {
 					d_t_( timeprovider_.deltaT() ),
 					reynolds_( 1.0 / viscosity_ ),
 					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
-				{}
+				{
+//					Logger().Info() << scheme_params_;
+				}
 
 				void nextStep( const int step, RunInfo& info )
 				{
@@ -242,9 +244,7 @@ namespace Dune {
 
 					for( ;timeprovider_.time() < timeprovider_.endTime(); )
 					{
-						profiler().StartTiming( "Timestep" );
 						RunInfo info = full_timestep();
-						profiler().StopTiming( "Timestep" );
 						runInfoVector.push_back( info );
 					}
 					assert( runInfoVector.size() > 0 );
@@ -256,8 +256,10 @@ namespace Dune {
 					RunInfo info;
 					for ( int i=0; i < Traits::substep_count; ++i )
 					{
+						profiler().StartTiming( "Timestep" );
 						const double dt_k = scheme_params_.step_sizes_[i];
 						substep( dt_k, scheme_params_.thetas_[i] );
+						profiler().StopTiming( "Timestep" );
 						nextStep( i, info );
 					}
 					return info;
