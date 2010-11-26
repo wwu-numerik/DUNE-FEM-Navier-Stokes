@@ -108,7 +108,7 @@ namespace AdapterFunctions {
 			template < class IntersectionType >
 			void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
 
@@ -164,7 +164,7 @@ namespace AdapterFunctions {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				const double x				= arg[0];
 				const double y				= arg[1];
 
@@ -218,7 +218,7 @@ namespace AdapterFunctions {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+//				dune_static_assert( ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 				const double x			= arg[0];
 				const double y			= arg[1];
 
@@ -271,7 +271,7 @@ namespace AdapterFunctions {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+//				dune_static_assert( ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 				const double x			= arg[0];
 				const double y			= arg[1];
 
@@ -322,7 +322,7 @@ namespace AdapterFunctions {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				const double x				= arg[0];
 				const double y				= arg[1];
 
@@ -373,7 +373,7 @@ namespace AdapterFunctions {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > VelocityConvection_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "VelocityConvection_Unsuitable_WorldDim");
 				const double x				= arg[0];
 				const double y				= arg[1];
 				const double u_1 = x*x + y;
@@ -428,9 +428,27 @@ namespace AdapterFunctionsScalar {
 			   *  \param  ret
 			   *          value of force at given point
 			   **/
-			  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
+			  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 			  {
-				  ret = RangeType(0);
+				  const double viscosity = Parameters().getParam( "viscosity", 1.0 );
+				  const double x			= arg[0];
+				  const double y			= arg[1];
+				  //conv
+				  ret[0] = 2 * x * y;
+				  ret[1] = y * y;
+				  ret *= std::pow( time, 5.0f );
+
+				  //laplace
+				  ret[0] -= viscosity * 2 * std::pow( time, 3.0f );
+//				  ret[1] -= 0;
+
+				  //press grad
+				  ret[0] += time;
+				  ret[1] += 1;
+
+				  //time diff
+				  ret[0] += std::pow( arg[0], 3.0) * 2 * time * time;
+				  ret[1] += time * time;
 			  }
 			  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
 
@@ -439,6 +457,12 @@ namespace AdapterFunctionsScalar {
 			  const double alpha_;
 			  static const int dim_ = FunctionSpaceImp::dimDomain;
 	};
+	template < class DomainType, class RangeType >
+	void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
+	{
+		ret[0] = std::pow( time, 3.0f ) * arg[1];
+		ret[1] = std::pow( time, 2.0f ) * arg[0];
+	}
 
 	/**
 	*  \brief  describes the dirichlet boundary data
@@ -485,7 +509,7 @@ namespace AdapterFunctionsScalar {
 			template < class IntersectionType >
 			void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
 
@@ -541,10 +565,7 @@ namespace AdapterFunctionsScalar {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 1 ) > DirichletData_Unsuitable_WorldDim;
-				const double x				= arg[0];
-
-				ret[0] = std::sin( x );
+				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
 
 		private:
@@ -593,11 +614,11 @@ namespace AdapterFunctionsScalar {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 1 ) > Pressure_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "Pressure_Unsuitable_WorldDim");
 				const double x			= arg[0];
 				const double y			= arg[1];
 
-				ret[0] = std::sin( x );
+				ret[0] = ( time * arg[0] + arg[1] ) - ( ( time + 1 ) /2.0f );
 			}
 
 		private:
@@ -646,12 +667,12 @@ namespace AdapterFunctionsScalar {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+//				dune_static_assert( ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 //				const double x			= arg[0];
 //				const double y			= arg[1];
 
-//				ret[0] = std::cos( x );
-				ret[1] = 0;
+				ret[0] = time;
+				ret[1] = 1;
 			}
 
 		private:
@@ -697,11 +718,9 @@ namespace AdapterFunctionsScalar {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 1 ) > DirichletData_Unsuitable_WorldDim;
-				const double x				= arg[0];
-//				const double y				= arg[1];
-				ret[0] =  - std::sin( x );
-//				ret[1] = 2;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
+				ret[0] = 2 * std::pow( time, 3.0f );
+				ret[1] = 0;
 			}
 
 		private:
@@ -747,13 +766,12 @@ namespace AdapterFunctionsScalar {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 1 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				const double x				= arg[0];
 				const double y				= arg[1];
-				const double u_1 = x*x + y;
-				const double u_2 = y*y + x;
-				ret[0] = u_1 * 2 * x	+ u_2;
-				ret[1] = u_1			+ u_2 * 2 * y;
+				ret[0] = 2 * x * y;
+				ret[1] = y * y;
+				ret *= std::pow( time, 5.0f );
 			}
 
 		private:
@@ -761,7 +779,7 @@ namespace AdapterFunctionsScalar {
 			const double parameter_a_;
 			const double parameter_d_;
 	};
-}//end namespace TestCase2D
+}//end namespace AdapterFunctionsScalar
 
 namespace AdapterFunctionsVectorial {
 
@@ -930,7 +948,7 @@ namespace AdapterFunctionsVectorial {
 			template < class IntersectionType >
 			void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
 
@@ -986,7 +1004,7 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
 
@@ -1045,7 +1063,7 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "Pressure_Unsuitable_WorldDim");
 				Evals evals( arg, time );
 				ret[0] = -0.25 * ( evals.C_2x + evals.C_2y ) * evals.F;
 			}
@@ -1161,7 +1179,7 @@ namespace AdapterFunctionsVectorial {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+//				dune_static_assert( ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 				VelocityLaplaceEvaluateTime( time, arg, ret );
 			}
 
@@ -1516,7 +1534,7 @@ namespace AdapterFunctionsVisco {
 			template < class IntersectionType >
 			void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
 
@@ -1572,7 +1590,7 @@ namespace AdapterFunctionsVisco {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 			}
 
@@ -1631,7 +1649,7 @@ namespace AdapterFunctionsVisco {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-				Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+				dune_static_assert( ( dim_ == 2 ), "Pressure_Unsuitable_WorldDim");
 				Evals evals( arg, time );
 				ret[0] = evals.x *evals.y;
 				ret[0] = 0;
@@ -1696,7 +1714,7 @@ namespace AdapterFunctionsVisco {
 
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 			{
-//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+//				dune_static_assert( ( dim_ == 2 ), "DirichletData_Unsuitable_WorldDim");
 				VelocityLaplaceEvaluateTime( time, arg, ret );
 			}
 
