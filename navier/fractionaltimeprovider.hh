@@ -2,7 +2,7 @@
 #define FRACTIONALTIMEPROVIDER_HH
 
 #include <dune/fem/solver/timeprovider.hh>
-
+#include <dune/stuff/misc.hh>
 
 namespace Dune {
 	namespace NavierStokes {
@@ -66,7 +66,8 @@ namespace Dune {
 					//! equivalent of t_{k}
 					const double previousSubTime( ) const
 					{
-						return subTime() - theta_scheme_parameter_.step_sizes_[current_substep_-1];
+						const double t = subTime() - theta_scheme_parameter_.step_sizes_[current_substep_];
+						return Stuff::clamp( t, double(0.0), t);
 					}
 
 					const double time () const
@@ -101,12 +102,15 @@ namespace Dune {
 
 					int timeStep () const
 					{
-						return -1;
+						const int ret = timeStep_ * substep_count_ + current_substep_ + 1;
+						assert( ret >= 0 );
+						return ret;
 					}
 
 				protected:
 					void next ( const double timeStep )
 					{
+						assert( timeStep > 0 );
 						current_substep_ = 0;
 						BaseType::next( timeStep );
 					}
