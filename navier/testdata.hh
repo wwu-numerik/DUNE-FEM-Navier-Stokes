@@ -1103,8 +1103,8 @@ namespace Dune {
 					   **/
 					  inline void evaluate( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 					  {
-						  ret[0] = -666;
-						  ret[1] = -666;
+						  ret[0] = 0;
+						  ret[1] = 0;
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
 
@@ -1151,12 +1151,8 @@ namespace Dune {
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& intersection ) const
 					{
-						ret = RangeType( 0 );
-						const int boundary_id = intersection.boundaryId();
-						if ( boundary_id == 3 || boundary_id == 1 ) {
-							ret[0] = 1;
-							ret[1] = 0;
-						}
+						ret[0] = 1;
+						ret[1] = 0;
 					}
 
 					/**
