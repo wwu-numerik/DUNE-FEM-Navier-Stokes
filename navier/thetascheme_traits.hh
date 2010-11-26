@@ -40,6 +40,8 @@ namespace Dune {
 				Stuff::fill_entirely( step_sizes_, dt );
 			}
 
+
+
 			static ThetaSchemeDescription<1> crank_nicholson( double delta_t )
 			{
 				ThetaValueArray c;
@@ -74,6 +76,20 @@ namespace Dune {
 				return ThisType ( a, c );
 			}
 		};
+
+		template <class Stream, int N>
+	    inline Stream& operator<< (Stream& s, ThetaSchemeDescription<N> desc )
+	    {
+			s << boost::format("%d-step theta-scheme description:\n") % N;
+			boost::format line( "dt_k: %e\ttheta1: %e\ttheta2: %e\ttheta3: %e\ttheta4: %e\n");
+			for ( int i = 0; i < N; ++i ) {
+				s << line % desc.step_sizes_[i]	 % desc.thetas_[i][0]
+												 % desc.thetas_[i][1]
+												 % desc.thetas_[i][2]
+												 % desc.thetas_[i][3];
+			}
+	        return s;
+	    }
 
 		template <	class CommunicatorImp,
 					class GridPartImp,
