@@ -307,7 +307,7 @@ namespace Dune {
 											theta_values[0] * dt_n / reynolds_, /*viscosity*/
 											1.0f, /*alpha*/
 											dt_k,/*pressure_gradient_scale_factor*/
-											1.0f /*convection_scale_factor*/
+											theta_values[0] * dt_n /*convection_scale_factor*/
 						                   );
 						typename Traits::OseenPassType oseenPass( stokesStartPass,
 												oseenModel,
