@@ -21,9 +21,9 @@ namespace Dune {
 			static const int numberOfSteps_ = numberOfSteps;
 			typedef Dune::array< double, 4 >
 				ThetaValueArray;
-			typedef Stuff::wraparound_array< ThetaValueArray, numberOfSteps >
+			typedef Dune::array< ThetaValueArray, numberOfSteps >
 				ThetaArray;
-			typedef Dune::array< double, numberOfSteps >
+			typedef Stuff::wraparound_array< double, numberOfSteps >
 				TimestepArray;
 			ThetaArray thetas_;
 			TimestepArray step_sizes_;

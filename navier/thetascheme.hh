@@ -173,7 +173,8 @@ namespace Dune {
 					}
 					//end error calc
 
-					if (step == 3) {
+					const bool last_substep = ( step == ( Traits::ThetaSchemeDescriptionType::numberOfSteps_ -1) );
+					if ( last_substep ) {
 						typedef Dune::StabilizationCoefficients::ValueType
 							Pair;
 						Dune::StabilizationCoefficients stabil_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
@@ -205,9 +206,12 @@ namespace Dune {
 						info.problemIdentifier = TESTCASE_NAME;
 					}
 
-					Logger().Info() << boost::format("current time (substep %d ): %f\n") % step % timeprovider_.subTime();
+					Logger().Info() << boost::format("current time (substep %d ): %f (%f)\n")
+										   % step
+										   % timeprovider_.subTime()
+										   % timeprovider_.previousSubTime();
 
-					if ( step == 3 || !Parameters().getParam( "write_fulltimestep_only", false ) )
+					if ( last_substep || !Parameters().getParam( "write_fulltimestep_only", false ) )
 						writeData();
 					timeprovider_.nextFractional();
 				}
@@ -227,7 +231,7 @@ namespace Dune {
 					currentFunctions_.assign( exactSolution_ );
 					nextFunctions_.assign( exactSolution_ );
 					writeData();
-					//set current time to t_0 + theta
+					//set current time to t_0 + dt_k
 					timeprovider_.nextFractional();
 				}
 
@@ -239,10 +243,8 @@ namespace Dune {
 					for( ;timeprovider_.time() < timeprovider_.endTime(); )
 					{
 						profiler().StartTiming( "Timestep" );
-						//stokes step A
 						RunInfo info = full_timestep();
 						profiler().StopTiming( "Timestep" );
-//						nextStep( 1, info );
 						runInfoVector.push_back( info );
 					}
 					assert( runInfoVector.size() > 0 );
@@ -256,13 +258,8 @@ namespace Dune {
 					{
 						const double dt_k = scheme_params_.step_sizes_[i];
 						substep( dt_k, scheme_params_.thetas_[i] );
-						Logger().Info() << boost::format("current time (substep %d ): %f\n") % i % timeprovider_.subTime();
-						timeprovider_.nextFractional();
+						nextStep( i, info );
 					}
-					std::vector<double> error_vector;
-					error_vector.push_back( -1 );
-					error_vector.push_back( -1 );
-					info.L2Errors		= error_vector;
 					return info;
 				}
 
@@ -289,6 +286,7 @@ namespace Dune {
 																										theta_values,
 																										rhsDatacontainer_ )
 											);
+					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::AnalyticalDirichletDataType oseenDirichletData =
 							Traits::OseenModelTraits::AnalyticalDirichletDataTraitsImplementation
@@ -317,7 +315,6 @@ namespace Dune {
 												true /*do_oseen_disc*/ );
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 
-						setUpdateFunctions();
 						currentFunctions_.assign( nextFunctions_ );
 					}
 				}
@@ -360,12 +357,6 @@ namespace Dune {
 						VelocityFunctionSpaceType;
 					VelocityFunctionSpaceType continousVelocitySpace_;
 
-					typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
-															typename Traits::TimeProviderType >
-						PressureGradient;
-					PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
-					Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
-						::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
 					// ----
 					typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
 																				typename Traits::TimeProviderType >
