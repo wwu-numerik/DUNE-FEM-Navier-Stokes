@@ -156,6 +156,7 @@ namespace Dune {
 								const DiscreteVelocityFunctionType& velocity_laplace )
 				{
 					const double dt_n = timeProvider_.deltaT();
+					this->clear();
 
 					DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
 					Dune::BetterL2Projection
