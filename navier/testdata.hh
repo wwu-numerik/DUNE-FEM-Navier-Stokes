@@ -1324,7 +1324,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-		//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+		//				dune_static_assert( dim_ == 2, "DirichletData_Unsuitable_WorldDim");
 						ret = RangeType(0);
 					}
 
