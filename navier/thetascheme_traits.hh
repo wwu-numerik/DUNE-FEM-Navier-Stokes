@@ -84,12 +84,13 @@ namespace Dune {
 	    inline Stream& operator<< (Stream& s, ThetaSchemeDescription<N> desc )
 	    {
 			s << boost::format("%d-step theta-scheme description:\n") % N;
-			boost::format line( "dt_k: %e\ttheta1: %e\ttheta2: %e\ttheta3: %e\ttheta4: %e\n");
 			for ( int i = 0; i < N; ++i ) {
-				s << line % desc.step_sizes_[i]	 % desc.thetas_[i][0]
-												 % desc.thetas_[i][1]
-												 % desc.thetas_[i][2]
-												 % desc.thetas_[i][3];
+				s << boost::format ( "dt_k: %e\ttheta1: %e\ttheta2: %e\ttheta3: %e\ttheta4: %e\n")//ideally this could be re-used, but that result in exception 'too-few-args"..
+							% desc.step_sizes_[i]
+							% desc.thetas_[i][0]
+							% desc.thetas_[i][1]
+							% desc.thetas_[i][2]
+							% desc.thetas_[i][3];
 			}
 	        return s;
 	    }

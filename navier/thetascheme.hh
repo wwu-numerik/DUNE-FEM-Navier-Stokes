@@ -128,7 +128,7 @@ namespace Dune {
 					reynolds_( 1.0 / viscosity_ ),
 					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
 				{
-//					Logger().Info() << scheme_params_;
+					Logger().Info() << scheme_params_;
 				}
 
 				void nextStep( const int step, RunInfo& info )
