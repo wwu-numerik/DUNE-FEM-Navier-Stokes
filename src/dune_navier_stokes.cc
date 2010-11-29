@@ -56,10 +56,10 @@
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
 
-//#define NS Dune::NavierStokes::TESTCASE
+#define NS Dune::NavierStokes::TestCase2D
 //#define NS Testing::AdapterFunctionsVisco
 //#define NS Testing::AdapterFunctionsVectorial
-#define NS Testing::AdapterFunctionsScalar
+//#define NS Testing::AdapterFunctionsScalar
 #define TESTING_NS NS
 #include "testing.hh"
 #include <dune/navier/testdata.hh>
