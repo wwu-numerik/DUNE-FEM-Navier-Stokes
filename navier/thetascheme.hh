@@ -69,6 +69,10 @@ namespace Dune {
 				const typename Traits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
 				mutable typename Traits::OseenPassType::RhsDatacontainer rhsDatacontainer_;
 
+				typedef Stuff::L2Error< typename Traits::GridPartType >
+					L2ErrorType;
+				L2ErrorType l2Error_;
+
 
 			public:
 				const double viscosity_;
@@ -123,6 +127,7 @@ namespace Dune {
 								),
 					sigma_space_( gridPart_ ),
 					rhsDatacontainer_( currentFunctions_.discreteVelocity().space(), sigma_space_ ),
+					l2Error_( gridPart ),
 					viscosity_( Parameters().getParam( "viscosity", 1.0 ) ),
 					d_t_( timeprovider_.deltaT() ),
 					reynolds_( 1.0 / viscosity_ ),
@@ -298,8 +303,17 @@ namespace Dune {
 					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
 					assert( oseen_iterations > 0 );
 					const double dt_n = timeprovider_.deltaT();
-					for( unsigned int i = 0; i<oseen_iterations; ++i )
+					typename L2ErrorType::Errors old_error_velocity
+							= l2Error_.get( currentFunctions().discreteVelocity(), exactSolution_.discreteVelocity() );
+					typename L2ErrorType::Errors old_error_pressure
+							= l2Error_.get( currentFunctions().discretePressure(), exactSolution_.discretePressure() );
+					double velocity_error_reduction = 1.0;
+					double pressure_error_reduction = 1.0;
+					unsigned int i = 0;
+					do
 					{
+						const double last_velocity_error_reduction = velocity_error_reduction;
+						const double last_pressure_error_reduction = pressure_error_reduction;
 						typename Traits::OseenModelType
 								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
 											*ptr_oseenForce,
@@ -317,8 +331,34 @@ namespace Dune {
 												true /*do_oseen_disc*/ );
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 
+						typename L2ErrorType::Errors new_error_velocity
+								= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_.discreteVelocity() );
+						typename L2ErrorType::Errors new_error_pressure
+								= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_.discretePressure() );
+						velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
+						pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
+						Logger().Info() << boost::format("Oseen iteration %d, pressure error reduction %e, velocity error reduction %e\n")
+										   % i % pressure_error_reduction % velocity_error_reduction;
+						if ( ( ( pressure_error_reduction < 1.0 )
+							  && ( velocity_error_reduction < 1.0 ) ) )
+						{
+							Logger().Info() << "Oseen iteration increased error, aborting..\n";
+							break;
+						}
 						currentFunctions_.assign( nextFunctions_ );
-					}
+						if ( ( pressure_error_reduction > 10.0 )
+								|| ( velocity_error_reduction > 10.0 ) )
+						{
+							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting..\n";
+							break;
+						}
+						if ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
+								&& ( last_velocity_error_reduction != velocity_error_reduction ) ) )
+						{
+							Logger().Info() << "Oseen iteration reduced no error, aborting..\n";
+							break;
+						}
+					} while ( i++ < oseen_iterations ) ;
 				}
 
 				void setUpdateFunctions() const
