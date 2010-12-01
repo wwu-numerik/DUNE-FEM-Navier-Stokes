@@ -27,15 +27,18 @@ namespace Dune {
 				TimestepArray;
 			ThetaArray thetas_;
 			TimestepArray step_sizes_;
+			std::string algo_id;
 
-			ThetaSchemeDescription(){}
-
-			ThetaSchemeDescription( const ThetaArray& a, const TimestepArray& s )
-				:thetas_( a ), step_sizes_( s )
+			ThetaSchemeDescription()
+				:algo_id( "N.A." )
 			{}
 
-			ThetaSchemeDescription( const ThetaArray& a, double dt )
-				: thetas_( a )
+			ThetaSchemeDescription( const ThetaArray& a, const TimestepArray& s, std::string id )
+				:thetas_( a ), step_sizes_( s ), algo_id( id )
+			{}
+
+			ThetaSchemeDescription( const ThetaArray& a, double dt, std::string id )
+				: thetas_( a ), algo_id( id )
 			{
 				Stuff::fill_entirely( step_sizes_, dt );
 			}
@@ -48,21 +51,21 @@ namespace Dune {
 				Stuff::fill_entirely( c, 0.5f );
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThisType ( a, delta_t );
+				return ThisType ( a, delta_t, "CN" );
 			}
 			static ThetaSchemeDescription<1> forward_euler( double delta_t )
 			{
 				ThetaValueArray c = { 0.0f ,  1.0f ,  1.0f ,  0.0f  }  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThetaSchemeDescription<1> ( a, delta_t );
+				return ThetaSchemeDescription<1> ( a, delta_t, "FWE" );
 			}
 			static ThetaSchemeDescription<1> backward_euler( double delta_t )
 			{
 				ThetaValueArray c = { 1.0f ,  0.0f ,  0.0f ,  1.0f  }  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThetaSchemeDescription<1> ( a, delta_t );
+				return ThetaSchemeDescription<1> ( a, delta_t, "BEW" );
 			}
 			static ThetaSchemeDescription<3> fs0( double delta_t )
 			{
@@ -83,7 +86,7 @@ namespace Dune {
 				c[0] = theta * delta_t;
 				c[1] = theta_squigly * delta_t;
 				c[2] = theta * delta_t;
-				return ThisType ( a, c );
+				return ReturnType ( a, c, "FS0" );
 			}
 			static ThetaSchemeDescription<3> fs1( double delta_t )
 			{
@@ -104,7 +107,7 @@ namespace Dune {
 				c[0] = theta * delta_t;
 				c[1] = theta_squigly * delta_t;
 				c[2] = theta * delta_t;
-				return ThisType ( a, c );
+				return ReturnType ( a, c, "FS1" );
 			}
 		};
 

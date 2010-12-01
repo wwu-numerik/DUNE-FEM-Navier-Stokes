@@ -210,7 +210,8 @@ namespace Dune {
 						info.inner_solver_accuracy	= Parameters().getParam( "inner_absLimit", 1e-4 );
 						info.bfg_tau				= Parameters().getParam( "bfg-tau", 0.1 );
 
-						info.problemIdentifier = TESTCASE_NAME;
+						info.problemIdentifier	= TESTCASE_NAME;
+						info.algo_id			= scheme_params_.algo_id;
 					}
 
 					Logger().Info() << boost::format("current time (substep %d ): %f (%f)\n")
@@ -249,7 +250,10 @@ namespace Dune {
 
 					for( ;timeprovider_.time() < timeprovider_.endTime(); )
 					{
+						profiler().StartTiming( "Timestep" );
 						RunInfo info = full_timestep();
+						profiler().StopTiming( "Timestep" );
+						nextStep( Traits::substep_count -1 , info );
 						runInfoVector.push_back( info );
 					}
 					assert( runInfoVector.size() > 0 );
@@ -261,10 +265,8 @@ namespace Dune {
 					RunInfo info;
 					for ( int i=0; i < Traits::substep_count; ++i )
 					{
-						profiler().StartTiming( "Timestep" );
 						const double dt_k = scheme_params_.step_sizes_[i];
 						substep( dt_k, scheme_params_.thetas_[i] );
-						profiler().StopTiming( "Timestep" );
 						nextStep( i, info );
 					}
 					return info;
