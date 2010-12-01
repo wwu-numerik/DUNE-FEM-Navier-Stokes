@@ -4,13 +4,7 @@
  *  \brief  brief
  **/
 
-#ifdef HAVE_CONFIG_H
-	#include "config.h"
-#endif
-
-#ifdef NDEBUG
-	#define DNDEBUG
-#endif
+#include "cmake_config.h"
 
 #include <cstdio>
 #if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)
@@ -24,19 +18,6 @@
 
 #if defined(UGGRID) && defined(DEBUG)
 	#warning ("UGGRID in debug mode is likely to produce a segfault")
-#endif
-
-#if ! defined(POLORDER)
-	#define POLORDER 0
-	#warning ("using default polorder 0 for all spaces")
-#endif
-
-#if ! defined(PRESSURE_POLORDER)
-	#define PRESSURE_POLORDER POLORDER
-#endif
-
-#if ! defined(VELOCITY_POLORDER)
-	#define VELOCITY_POLORDER POLORDER
 #endif
 
 #if ! defined(TESTCASE)

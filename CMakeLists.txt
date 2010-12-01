@@ -86,9 +86,9 @@ SET( GRAPE_PATH
 	"/share/dune/Modules/modules_x86_64/grape" CACHE STRING
 	"GRAPE_PATH" )
 
-SET( CXX_FLAGS
-	-Wall -O3 -fomit-frame-pointer -funroll-loops -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME CACHE STRING
-	"")
+SET( CUSTOM_FLAGS
+	"-Wall -O3 -fomit-frame-pointer -funroll-loops -fno-strict-aliasing -std=c++0x -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE LIST
+	"CUSTOM FLAGS")
 
 SET( ENABLE_PARALELL
 	0 CACHE BOOL
@@ -98,8 +98,9 @@ SET ( METIS_DIR
 	"/share/dune/Modules/modules_x86_64/ParMetis-3.1.1" CACHE STRING
 	"metis toplevel directory" )
 
+CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h )
 #needs to come first to include correct config.h
-INCLUDE_DIR( ${dune-navier-stokes_SOURCE_DIR} )
+INCLUDE_DIR( ${dune-navier-stokes_BINARY_DIR} ${dune-navier-stokes_SOURCE_DIR} )
 
 IF( ${GRIDTYPE} STREQUAL "UGGRID" )
 	ADD_CXX_FLAGS( -I${UGGRID_BASE_PATH}/include -DENABLE_UG )
@@ -107,11 +108,8 @@ IF( ${GRIDTYPE} STREQUAL "UGGRID" )
 	SET( UGLIBS "ugS3" "ugS2" "devS")
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
 
-ADD_CXX_FLAGS(-DHAVE_CONFIG_H -DTESTCASE=${TESTCASE} -DOSEEN_DATA_NAMESPACE=${OSEEN_DATA_NAMESPACE}  )
-ADD_CXX_FLAGS(-D${GRIDTYPE} -DGRIDDIM=${GRIDDIM} -DCOMMIT="${COMMIT}" -DDIRICHLET_DATA=${DIRICHLET_DATA} )
-ADD_CXX_FLAGS(-DPOLORDER=${POLORDER} -DPRESSURE_POLORDER=${PRESSUREPOLORDER} -DVELOCITY_POLORDER=${VELOCITYPOLORDER} )
-ADD_CXX_FLAGS(-DINNER_CG_SOLVERTYPE=${INNER_CG_SOLVERTYPE} -DOUTER_CG_SOLVERTYPE=${OUTER_CG_SOLVERTYPE} )
-ADD_CXX_FLAGS( -I${GRAPE_PATH} -std=c++0x  -fno-strict-aliasing
+ADD_CXX_FLAGS( ${CUSTOM_FLAGS} )
+ADD_CXX_FLAGS( -I${GRAPE_PATH} 
 	-I${ALUGRID_BASE_PATH}/include
 	-I${ALUGRID_BASE_PATH}/include/serial 
 	-I${ALUGRID_BASE_PATH}/include/duneinterface -DENABLE_ALUGRID )
@@ -127,14 +125,6 @@ ENDIF ( ENABLE_PARALELL )
 ADD_DUNE_MODULES( common istl grid fem stuff stokes )
 
 LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" "${GRAPE_PATH}" ${CCGNU_LIBRARY_DIRS} )
-ADD_CXX_FLAGS( ${CXX_FLAGS} )
-
-#----------------------------------------------------------------------------------------------------
-# Source listing
-#----------------------------------------------------------------------------------------------------
-SET(dune-navier-stokesSrc
-	src/dune_navier_stokes.cc
-)
 
 FILE( GLOB header "src/*.hh" )
 FILE( GLOB_RECURSE navier "navier/*.hh" )
@@ -143,18 +133,15 @@ FILE( GLOB_RECURSE stokes "../dune-stokes/stokes/*.hh" )
 FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
-FILE( GLOB stuff "../dune-stuff/stuff/*.hh" )
-
-
-set_source_files_properties( ${DUNE_HEADERS} ${stuff} ${navier} ${oseen} ${stokes} ${header} PROPERTIES HEADER_FILE_ONLY 1 )
 
 set( COMMON_LIBS "fem" "grid" "common" ${BLAS_LIB} "alugrid" ${UGLIBS}  "GL" ${ParaLIBS} ${CCGNU_LIBRARIES} )
 set( COMMON_HEADER ${header} ${stokes} ${stuff} ${navier} ${DUNE_HEADERS} )
+set_source_files_properties( ${COMMON_HEADER} PROPERTIES HEADER_FILE_ONLY 1 )
 
 ADD_EXECUTABLE(testing src/testing.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(testing ${COMMON_LIBS} )
 
-ADD_EXECUTABLE(navier ${dune-navier-stokesSrc} ${COMMON_HEADER} )
+ADD_EXECUTABLE(navier src/dune_navier_stokes.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(navier ${COMMON_LIBS} )
 
 ADD_EXECUTABLE(oseen src/oseen.cc ${COMMON_HEADER} )
