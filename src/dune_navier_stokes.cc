@@ -186,7 +186,7 @@ int main( int argc, char** argv )
 				assert( rf.size() );
 				rf[current_step].at(0).refine_level = minref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
-				dt /= 2.0;
+				dt /= 2.0f;
 				Parameters().setParam( "fem.timeprovider.dt", dt );
 			}
 
@@ -278,8 +278,7 @@ class ThetaschemeRunner {
 
 		RunInfoVector run(const int scheme_type)
 		{
-			const double dt_ = Dune::Parameter :: getValue( "fem.timeprovider.dt",
-			                                                                     (double)0.1 );
+			const double dt_ = Parameters().getParam( "fem.timeprovider.dt", double(0.1) );
 			switch ( scheme_type ) {
 				case 1: return OneStepThetaSchemeType(grid_part_,
 				                                      OneStepThetaSchemeDescriptionType::forward_euler( dt_ ) )
