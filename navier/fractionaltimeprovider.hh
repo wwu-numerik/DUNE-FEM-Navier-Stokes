@@ -2,13 +2,13 @@
 #define FRACTIONALTIMEPROVIDER_HH
 
 #include <dune/fem/solver/timeprovider.hh>
-
+#include <dune/stuff/misc.hh>
 
 namespace Dune {
 	namespace NavierStokes {
 
 
-		template< class CommProvider = DefaultCollectiveCommunicationType >
+		template< class SchemeParameterType, class CommProvider = DefaultCollectiveCommunicationType >
 		class FractionalTimeProvider : public TimeProvider < CommProvider > {
 					typedef FractionalTimeProvider< CommProvider >
 						ThisType;
@@ -20,15 +20,6 @@ namespace Dune {
 					using BaseType :: time;
 					using BaseType :: timeStep;
 					using BaseType :: deltaT;
-					typedef BaseType
-						SubStepTimeproviderType;
-
-					typedef int
-							StepType;
-					static const StepType initStep			= -1;
-					static const StepType StokesStepA		= 0;
-					static const StepType NonlinearStepID	= 1;
-					static const StepType StokesStepB		= 2;
 
 				protected:
 					using BaseType :: comm_;
@@ -38,30 +29,23 @@ namespace Dune {
 					using BaseType :: dtUpperBound_;
 					using BaseType :: valid_;
 					using BaseType :: timeStep_;
+					static const int substep_count_  = SchemeParameterType::numberOfSteps_;
 					const double startTime_;
 					const double endTime_;
-					const double theta_;
-					const double theta_alpha_;
-					const double theta_beta_;
-					StepType currentStepType_;
-					SubStepTimeproviderType* subProvider_;
+					const SchemeParameterType& theta_scheme_parameter_;
+					int current_substep_;
 
 				public:
 					FractionalTimeProvider (
-								   const double theta,
-								   const double theta_alpha,
-								   const double theta_beta,
+								   const SchemeParameterType& theta_scheme_parameter,
 								   const CommProvider &comm )
 						: BaseType( comm ),
 						startTime_ ( Parameter :: getValue( "fem.timeprovider.starttime", //this is somewhat duplicated in empty basetype ctor
 															   (double)0.0 ) ),
 						endTime_ ( Parameter :: getValue( "fem.timeprovider.endtime",
 															   (double)1.0 ) ),
-						theta_( theta ),
-						theta_alpha_( theta_alpha ),
-						theta_beta_( theta_beta ),
-						currentStepType_( initStep ),
-						subProvider_( 0 )
+						theta_scheme_parameter_( theta_scheme_parameter ),
+						current_substep_( -1 )
 					{
 						dt_ = Parameter :: getValidValue( "fem.timeprovider.dt",
 														 (double)0.1,
@@ -70,23 +54,20 @@ namespace Dune {
 						init( dt_ );
 					}
 
+					//! equivalent of t_{k+1}
 					const double subTime( ) const
 					{
-						switch ( currentStepType_ ) {
-							default: return BaseType::time();
-							case StokesStepA: return BaseType::time() + deltaT() * theta_ ;
-							case NonlinearStepID: return BaseType::time()+ deltaT() * (1 - theta_);
-							case StokesStepB: return BaseType::time()+ deltaT();
-						}
+						double current = BaseType::time();
+						for ( int i = 0; i < current_substep_; ++i )
+							current += theta_scheme_parameter_.step_sizes_[i];
+						return current;
 					}
+
+					//! equivalent of t_{k}
 					const double previousSubTime( ) const
 					{
-						switch ( currentStepType_ ) {
-							default: DUNE_THROW( Dune::InvalidStateException, "invalid timeprovider state in previousSubtime call" );
-							case StokesStepA: return BaseType::time()  ;
-							case NonlinearStepID: return BaseType::time() + deltaT() * theta_;
-							case StokesStepB: return BaseType::time() + deltaT() * (1 - theta_);
-						}
+						const double t = subTime() - theta_scheme_parameter_.step_sizes_[current_substep_];
+						return Stuff::clamp( t, double(0.0), t);
 					}
 
 					const double time () const
@@ -96,44 +77,41 @@ namespace Dune {
 
 					void nextFractional()
 					{
-						if ( currentStepType_ == initStep ) {
-							currentStepType_ = StokesStepA;
+						if ( current_substep_ == -1 ) {
+							current_substep_ = 0;
 						}
-						else if ( currentStepType_ == StokesStepB ) {
+						else if ( current_substep_ == substep_count_  -1 ) {
 							next( deltaT() );
 						}
 						else
-							++currentStepType_;
+							++current_substep_;
 					}
 
-					const double alpha ()		const { return theta_alpha_;}
-					const double beta ()		const { return theta_beta_; }
+					//! return t_{n+1} - t_{n}
+					double deltaT() const {
+						return dt_;
+					}
+
+					//! return t_{k+1} - t_{k}
+					double sub_deltaT() const {
+						return theta_scheme_parameter_.step_sizes_[current_substep_];
+					}
+
 					const double startTime()	const { return startTime_;	}
 					const double endTime()		const { return endTime_;	}
 
-//					SubStepTimeproviderType& subStepTimeprovider( const double =0.0 )
-//					{
-//						delete subProvider_;
-//						subProvider_ = new SubStepTimeproviderType(subTime(),BaseType::comm_);
-//						const double stepsize = ( 1 - 2 * theta_ ) * deltaT();
-//						subProvider_->init( stepsize );
-//						return *subProvider_;
-//					}
-
 					int timeStep () const
 					{
-						return timeStep_ * 3 + currentStepType_ + 1;
-					}
-
-					const StepType stepType () const
-					{
-						return currentStepType_;
+						const int ret = timeStep_ * substep_count_ + current_substep_ + 1;
+						assert( ret >= 0 );
+						return ret;
 					}
 
 				protected:
 					void next ( const double timeStep )
 					{
-						currentStepType_ = StokesStepA;
+						assert( timeStep > 0 );
+						current_substep_ = 0;
 						BaseType::next( timeStep );
 					}
 

@@ -269,7 +269,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -322,7 +322,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					const double lambda			= lambda_;
 					const double x				= arg[0];
 					const double y				= arg[1];
@@ -395,7 +395,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -449,7 +449,7 @@ namespace ConvDiff {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -670,7 +670,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -723,7 +723,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -776,7 +776,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -830,7 +830,7 @@ namespace ConvDiff {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -1144,7 +1144,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -1198,7 +1198,7 @@ namespace ConvDiff {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
 
@@ -1463,7 +1463,7 @@ namespace ConvDiff {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 				}
 
@@ -1521,7 +1521,7 @@ namespace ConvDiff {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+					dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 				}
 
@@ -1698,7 +1698,7 @@ namespace ConvDiff {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-	//				Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+	//				dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 					VelocityLaplaceEvaluateTime( time, arg, ret );
 				}
 
