@@ -248,13 +248,14 @@ namespace Dune {
 					RunInfoTimeMap runInfoMap;
 					Init();
 
-					for( ;timeprovider_.time() < timeprovider_.endTime(); )
+					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
 						profiler().StartTiming( "Timestep" );
 						RunInfo info = full_timestep();
 						profiler().StopTiming( "Timestep" );
+						const double real_time = timeprovider_.subTime();
 						nextStep( Traits::substep_count -1 , info );
-						runInfoMap[timeprovider_.time()] = info;
+						runInfoMap[real_time] = info;
 					}
 					assert( runInfoMap.size() > 0 );
 					return runInfoMap;

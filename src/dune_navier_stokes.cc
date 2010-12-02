@@ -196,7 +196,6 @@ int main( int argc, char** argv )
 			}
 			case 7: {
 				Logger().Info() << "Scheme runs\n";
-				const int dt_steps = Parameters().getParam( "dt_steps", 3 );
 				profiler().Reset( 4 );
 				for ( int current_scheme = 2;
 					  current_scheme < 6;
