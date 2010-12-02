@@ -116,7 +116,8 @@ typedef std::vector<std::string>
 **/
 RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor  );
-
+RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
+					int refine_level_factor, const int scheme_type  );
 //! output alert for neg. EOC
 //void eocCheck( const RunInfoVector& runInfos );
 
@@ -173,39 +174,59 @@ int main( int argc, char** argv )
 		int err = 0;
 		const unsigned int minref = Parameters().getParam( "minref", 0 );
 		RunInfoTimeMapMap rf;
-		if ( Parameters().getParam( "runtype", 5 ) == 6 ) {
-			Logger().Info() << "Time refine runs\n";
-			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
-			profiler().Reset( dt_steps - 1 );
-			int current_step = 0;
-			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1 );
-				  dt_steps > current_step;
-				  ++current_step )
-			{
-				rf[current_step] = singleRun( mpicomm, minref );
-				assert( rf.size() );
-				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
-				profiler().NextRun();
-				dt /= 2.0f;
-				Parameters().setParam( "fem.timeprovider.dt", dt );
+		const int runtype = Parameters().getParam( "runtype", 5 );
+		switch( runtype ) {
+			case 6: {
+				Logger().Info() << "Time refine runs\n";
+				const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+				profiler().Reset( dt_steps - 1 );
+				int current_step = 0;
+				for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1 );
+					  dt_steps > current_step;
+					  ++current_step )
+				{
+					rf[current_step] = singleRun( mpicomm, minref );
+					assert( rf.size() );
+					rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
+					profiler().NextRun();
+					dt /= 2.0f;
+					Parameters().setParam( "fem.timeprovider.dt", dt );
+				}
+				break;
 			}
-
-		}
-		else {
-			// ensures maxref>=minref
-			const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
-			profiler().Reset( maxref - minref + 1 );
-			Logger().Info() << "Grid refine runs\n";
-			for ( unsigned int ref = minref;
-				  ref <= maxref;
-				  ++ref )
-			{
-				rf[ref] = singleRun( mpicomm, ref );
-				rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
-				profiler().NextRun();
+			case 7: {
+				Logger().Info() << "Scheme runs\n";
+				const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+				profiler().Reset( 4 );
+				for ( int current_scheme = 2;
+					  current_scheme < 6;
+					  ++current_scheme )
+				{
+					rf[current_scheme] = singleRun( mpicomm, minref, current_scheme );
+					assert( rf.size() );
+					rf[current_scheme].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
+					profiler().NextRun();
+				}
+				break;
+			}
+			case 5:
+			default: {
+				// ensures maxref>=minref
+				const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
+				profiler().Reset( maxref - minref + 1 );
+				Logger().Info() << "Grid refine runs\n";
+				for ( unsigned int ref = minref;
+					  ref <= maxref;
+					  ++ref )
+				{
+					rf[ref] = singleRun( mpicomm, ref );
+					rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
+					profiler().NextRun();
+				}
+				break;
 			}
 		}
-//		profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
+	//	profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
 
 		Stuff::TimeSeriesOutput out( rf );
 		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
@@ -213,7 +234,6 @@ int main( int argc, char** argv )
 		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
 		return err;
 	}
-
 
 #ifdef NDEBUG
   catch (Dune::Exception &e){
@@ -331,6 +351,30 @@ RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
 	return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run();
+}
+
+RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
+					int refine_level_factor, const int scheme_type )
+{
+	profiler().StartTiming( "SingleRun" );
+	Logging::LogStream& infoStream = Logger().Info();
+	Logging::LogStream& debugStream = Logger().Dbg();
+
+	infoStream << "\n- initialising grid" << std::endl;
+	const int gridDim = GridType::dimensionworld;
+	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
+	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
+	gridPtr->globalRefine( refine_level );
+	typedef Dune::AdaptiveLeafGridPart< GridType >
+		GridPartType;
+	GridPartType gridPart( *gridPtr );
+
+	const int polOrder = POLORDER;
+	debugStream << "  - polOrder: " << polOrder << std::endl;
+	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
+	infoStream << "  - max grid width: " << grid_width << std::endl;
+
+	return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run( scheme_type );
 }
 
 //void eocCheck( const RunInfoVector& runInfos )
