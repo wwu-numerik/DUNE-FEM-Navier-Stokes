@@ -114,11 +114,11 @@ typedef std::vector<std::string>
 			the set of coefficients to be used in the run. Default is used in all run types but StabRun().
 
 **/
-RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor  );
 
 //! output alert for neg. EOC
-void eocCheck( const RunInfoVector& runInfos );
+//void eocCheck( const RunInfoVector& runInfos );
 
 /**
  *  \brief  main function
@@ -172,7 +172,7 @@ int main( int argc, char** argv )
 
 		int err = 0;
 		const unsigned int minref = Parameters().getParam( "minref", 0 );
-		RunInfoVectorMap rf;
+		RunInfoTimeMapMap rf;
 		if ( Parameters().getParam( "runtype", 5 ) == 6 ) {
 			Logger().Info() << "Time refine runs\n";
 			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
@@ -184,7 +184,7 @@ int main( int argc, char** argv )
 			{
 				rf[current_step] = singleRun( mpicomm, minref );
 				assert( rf.size() );
-				rf[current_step].at(0).refine_level = minref;//just in case the key changes from ref to sth else
+				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
 				dt /= 2.0f;
 				Parameters().setParam( "fem.timeprovider.dt", dt );
@@ -201,11 +201,11 @@ int main( int argc, char** argv )
 				  ++ref )
 			{
 				rf[ref] = singleRun( mpicomm, ref );
-				rf[ref].at(0).refine_level = ref;//just in case the key changes from ref to sth else
+				rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
 			}
 		}
-//			profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
+//		profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
 
 		Stuff::TimeSeriesOutput out( rf );
 		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
@@ -276,7 +276,7 @@ class ThetaschemeRunner {
 			comm_(comm)
 		{}
 
-		RunInfoVector run(const int scheme_type)
+		RunInfoTimeMap run(const int scheme_type)
 		{
 			const double dt_ = Parameters().getParam( "fem.timeprovider.dt", double(0.1) );
 			switch ( scheme_type ) {
@@ -299,7 +299,7 @@ class ThetaschemeRunner {
 			}
 		}
 
-		RunInfoVector run(){
+		RunInfoTimeMap run(){
 			const int scheme_type = Parameters().getParam( "scheme_type", 1, true );
 			return run( scheme_type );
 		}
@@ -309,7 +309,7 @@ class ThetaschemeRunner {
 		CollectiveCommunicationType& comm_;
 };
 
-RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
@@ -333,23 +333,23 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run();
 }
 
-void eocCheck( const RunInfoVector& runInfos )
-{
-	bool ups = false;
-	RunInfoVector::const_iterator it = runInfos.begin();
-	RunInfo last = *it;
-	++it;
-	for ( ; it != runInfos.end(); ++it ) {
-		ups = ( last.L2Errors[0] < it->L2Errors[0]
-			|| last.L2Errors[1] < it->L2Errors[1] );
-		last = *it;
-	}
-	if ( ups ) {
-		Logger().Err() 	<< 	"----------------------------------------------------------\n"
-						<<	"-                                                        -\n"
-						<<	"-                  negative EOC                          -\n"
-						<<	"-                                                        -\n"
-						<< 	"----------------------------------------------------------\n"
-						<< std::endl;
-	}
-}
+//void eocCheck( const RunInfoVector& runInfos )
+//{
+//	bool ups = false;
+//	RunInfoVector::const_iterator it = runInfos.begin();
+//	RunInfo last = *it;
+//	++it;
+//	for ( ; it != runInfos.end(); ++it ) {
+//		ups = ( last.L2Errors[0] < it->L2Errors[0]
+//			|| last.L2Errors[1] < it->L2Errors[1] );
+//		last = *it;
+//	}
+//	if ( ups ) {
+//		Logger().Err() 	<< 	"----------------------------------------------------------\n"
+//						<<	"-                                                        -\n"
+//						<<	"-                  negative EOC                          -\n"
+//						<<	"-                                                        -\n"
+//						<< 	"----------------------------------------------------------\n"
+//						<< std::endl;
+//	}
+//}

@@ -243,9 +243,9 @@ namespace Dune {
 					timeprovider_.nextFractional();
 				}
 
-				RunInfoVector run()
+				RunInfoTimeMap run()
 				{
-					RunInfoVector runInfoVector;
+					RunInfoTimeMap runInfoMap;
 					Init();
 
 					for( ;timeprovider_.time() < timeprovider_.endTime(); )
@@ -254,10 +254,10 @@ namespace Dune {
 						RunInfo info = full_timestep();
 						profiler().StopTiming( "Timestep" );
 						nextStep( Traits::substep_count -1 , info );
-						runInfoVector.push_back( info );
+						runInfoMap[timeprovider_.time()] = info;
 					}
-					assert( runInfoVector.size() > 0 );
-					return runInfoVector;
+					assert( runInfoMap.size() > 0 );
+					return runInfoMap;
 				}
 
 				RunInfo full_timestep()
@@ -267,7 +267,9 @@ namespace Dune {
 					{
 						const double dt_k = scheme_params_.step_sizes_[i];
 						substep( dt_k, scheme_params_.thetas_[i] );
-						nextStep( i, info );
+						if ( i != Traits::substep_count - 1 )
+							//the last step increase is done after one call level up
+							nextStep( i, info );
 					}
 					return info;
 				}
