@@ -355,7 +355,7 @@ namespace Dune {
 							break;
 						}
 						if ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
-								&& ( last_velocity_error_reduction != velocity_error_reduction ) ) )
+								|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
 						{
 							Logger().Info() << "Oseen iteration reduced no error, aborting..\n";
 							break;
