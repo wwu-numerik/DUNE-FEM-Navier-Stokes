@@ -190,7 +190,7 @@ namespace Dune {
 						info.grid_width		= current_max_gridwidth_;
 						info.run_time		= profiler().GetTiming( "Timestep" );
 						info.delta_t		= timeprovider_.deltaT();
-						info.current_time	= timeprovider_.time();
+						info.current_time	= timeprovider_.subTime();
 						info.viscosity		= viscosity_;
 						info.reynolds		= reynolds_;
 
