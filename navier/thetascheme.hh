@@ -212,6 +212,7 @@ namespace Dune {
 
 						info.problemIdentifier	= TESTCASE_NAME;
 						info.algo_id			= scheme_params_.algo_id;
+						info.extra_info			= (boost::format("%s on %s") % COMMIT % std::getenv("HOSTNAME") ).str();
 					}
 
 					Logger().Info() << boost::format("current time (substep %d ): %f (%f)\n")
