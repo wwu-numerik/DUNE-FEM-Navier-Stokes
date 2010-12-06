@@ -189,7 +189,7 @@ int main( int argc, char** argv )
 					assert( rf.size() );
 					rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
 					profiler().NextRun();
-					dt /= 2.0f;
+					dt /= 10.0f;
 					Parameters().setParam( "fem.timeprovider.dt", dt );
 				}
 				break;
