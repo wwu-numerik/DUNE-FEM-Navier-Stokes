@@ -82,10 +82,6 @@ SET( UGGRID_BASE_PATH
 	"/share/dune/Modules/modules_x86_64/ug" CACHE STRING
 	"UGGRID_BASE_PATH" )
 
-SET( GRAPE_PATH
-	"/share/dune/Modules/modules_x86_64/grape" CACHE STRING
-	"GRAPE_PATH" )
-
 SET( CUSTOM_FLAGS
 	"-Wall -O3 -fomit-frame-pointer -funroll-loops -fno-strict-aliasing -std=c++0x -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE LIST
 	"CUSTOM FLAGS")
@@ -109,7 +105,7 @@ IF( ${GRIDTYPE} STREQUAL "UGGRID" )
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
 
 ADD_CXX_FLAGS( ${CUSTOM_FLAGS} )
-ADD_CXX_FLAGS( -I${GRAPE_PATH} 
+ADD_CXX_FLAGS( 
 	-I${ALUGRID_BASE_PATH}/include
 	-I${ALUGRID_BASE_PATH}/include/serial 
 	-I${ALUGRID_BASE_PATH}/include/duneinterface -DENABLE_ALUGRID )
@@ -124,7 +120,7 @@ ENDIF ( ENABLE_PARALELL )
 
 ADD_DUNE_MODULES( common istl grid fem stuff stokes )
 
-LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" "${GRAPE_PATH}" ${CCGNU_LIBRARY_DIRS} )
+LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" ${CCGNU_LIBRARY_DIRS} )
 
 FILE( GLOB header "src/*.hh" )
 FILE( GLOB_RECURSE navier "navier/*.hh" )
@@ -134,7 +130,7 @@ FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 
-set( COMMON_LIBS "fem" "grid" "common" ${BLAS_LIB} "alugrid" ${UGLIBS}  "GL" ${ParaLIBS} ${CCGNU_LIBRARIES} )
+set( COMMON_LIBS "fem" "grid" "common" ${BLAS_LIB} "alugrid" ${UGLIBS} ${ParaLIBS} ${CCGNU_LIBRARIES} )
 set( COMMON_HEADER ${header} ${stokes} ${stuff} ${navier} ${DUNE_HEADERS} )
 set_source_files_properties( ${COMMON_HEADER} PROPERTIES HEADER_FILE_ONLY 1 )
 

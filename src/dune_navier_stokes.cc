@@ -31,8 +31,6 @@
 	#define OLD_DUNE_GRID_VERSION
 #endif
 
-#define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
-
 #if (GRIDDIM==3)
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
@@ -154,11 +152,7 @@ int main( int argc, char** argv )
 			std::cerr << std::endl;
 			return 2;
 		}
-		#if USE_GRPAE_VISUALISATION
-		if ( !strcmp( argv[1], "-d" ) || !strcmp( argv[1], "-r" ) ) {
-			return display( argc, argv );
-		}
-		#endif
+
 		if ( !(  Parameters().ReadCommandLine( argc, argv ) ) ) {
 			return 1;
 		}
