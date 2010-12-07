@@ -170,6 +170,24 @@ int main( int argc, char** argv )
 		RunInfoTimeMapMap rf;
 		const int runtype = Parameters().getParam( "runtype", 5 );
 		switch( runtype ) {
+			case 8: {
+				Logger().Info() << "Reynolds runs\n";
+				const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+				profiler().Reset( dt_steps - 1 );
+				int current_step = 0;
+				for ( double viscosity = Parameters().getParam( "viscosity", 0.1 );
+					  dt_steps > current_step;
+					  ++current_step )
+				{
+					rf[current_step] = singleRun( mpicomm, minref );
+					assert( rf.size() );
+					rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
+					profiler().NextRun();
+					viscosity /= 10.0f;
+					Parameters().setParam( "viscosity", viscosity );
+				}
+				break;
+			}
 			case 6: {
 				Logger().Info() << "Time refine runs\n";
 				const int dt_steps = Parameters().getParam( "dt_steps", 3 );
