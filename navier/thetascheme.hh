@@ -3,6 +3,8 @@
 
 #include <dune/navier/exactsolution.hh>
 #include <dune/fem/misc/mpimanager.hh>
+#include <dune/fem/misc/l2norm.hh>
+#include <dune/fem/misc/h1norm.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/tuple.hh>
 #include <dune/stuff/customprojection.hh>
@@ -153,6 +155,7 @@ namespace Dune {
 						double meanPressure_discrete = Stuff::integralAndVolume( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() ).first;
 
 						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
+						Dune::H1Norm< typename Traits::GridPartType > h1_Error( gridPart_ );
 
 						if ( Parameters().getParam( "error_scaling", false ) ) {
 								const double scale		= 1 / std::sqrt( viscosity_ );
@@ -162,21 +165,29 @@ namespace Dune {
 
 						const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
 						const double l2_error_velocity_				= l2_Error.norm( errorFunctions_.discreteVelocity() );
+						const double h1_error_pressure_				= h1_Error.norm( errorFunctions_.discretePressure() );
+						const double h1_error_velocity_				= h1_Error.norm( errorFunctions_.discreteVelocity() );
 						const double relative_l2_error_pressure_	= l2_error_pressure_ / l2_Error.norm( exactSolution_.discretePressure() );
 						const double relative_l2_error_velocity_	= l2_error_velocity_ / l2_Error.norm( exactSolution_.discreteVelocity() );
+						const double relative_h1_error_velocity_	= h1_error_velocity_ / h1_Error.norm( exactSolution_.discreteVelocity() );
 						std::vector<double> error_vector;
 						error_vector.push_back( l2_error_velocity_ );
 						error_vector.push_back( l2_error_pressure_ );
+						std::vector<double> h1_error_vector;
+						h1_error_vector.push_back( h1_error_velocity_ );
+						h1_error_vector.push_back( h1_error_pressure_ );
 
 
 						Logger().Info().Resume();
 						Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \n") % l2_error_pressure_ % relative_l2_error_pressure_
 										<< boost::format ("L2-Error Velocity (abs|rel): %e | %e \n") % l2_error_velocity_ % relative_l2_error_velocity_
+										<< boost::format ("H1-Error Velocity (abs|rel): %e | %e \n") % h1_error_velocity_ % relative_h1_error_velocity_
 										<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
 						const double max_l2_error = 1e4;
 						if ( l2_error_velocity_ > max_l2_error )
 							DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
 						info.L2Errors		= error_vector;
+						info.H1Errors		= h1_error_vector;
 					}
 					//end error calc
 
