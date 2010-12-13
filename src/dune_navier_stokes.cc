@@ -132,136 +132,113 @@ RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 int main( int argc, char** argv )
 {
 	Stuff::Signals::installSignalHandler();
-#ifdef NDEBUG
-	try
-#endif
-	{
+	Dune::MPIManager::initialize(argc, argv);
+	//assert( Dune::Capabilities::isParallel< GridType >::v );
+	CollectiveCommunication mpicomm( Dune::MPIManager::helper().getCommunicator() );
 
-		Dune::MPIManager::initialize(argc, argv);
-		//assert( Dune::Capabilities::isParallel< GridType >::v );
-		CollectiveCommunication mpicomm( Dune::MPIManager::helper().getCommunicator() );
-
-		/* ********************************************************************** *
-		 * initialize all the stuff we need                                       *
-		 * ********************************************************************** */
-		if ( argc < 2 ) {
-			std::cerr << "\nUsage: " << argv[0] << " parameterfile \n" << "\n\t --- OR --- \n";
-			std::cerr << "\nUsage: " << argv[0] << " paramfile:"<<"file" << " more-opts:val ..." << std::endl;
-			std::cerr << "\nUsage: " << argv[0] << " -d paramfile "<< "\n\t(for displaying solutions in grape) "<< std::endl;
-			Parameters().PrintParameterSpecs( std::cerr );
-			std::cerr << std::endl;
-			return 2;
-		}
-
-		if ( !(  Parameters().ReadCommandLine( argc, argv ) ) ) {
-			return 1;
-		}
-
-		// LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
-		//--> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_CONSOLE | LOG_FILE = 62
-		const bool useLogger = false;
-		Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
-						 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
-						 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
-						);
-
-		int err = 0;
-		const unsigned int minref = Parameters().getParam( "minref", 0 );
-		RunInfoTimeMapMap rf;
-		const int runtype = Parameters().getParam( "runtype", 5 );
-		switch( runtype ) {
-			case 8: {
-				Logger().Info() << "Reynolds runs\n";
-				const int dt_steps = Parameters().getParam( "dt_steps", 3 );
-				profiler().Reset( dt_steps - 1 );
-				int current_step = 0;
-				for ( double viscosity = Parameters().getParam( "viscosity", 0.1 );
-					  dt_steps > current_step;
-					  ++current_step )
-				{
-					rf[current_step] = singleRun( mpicomm, minref );
-					assert( rf.size() );
-					rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
-					profiler().NextRun();
-					viscosity /= 10.0f;
-					Parameters().setParam( "viscosity", viscosity );
-				}
-				break;
-			}
-			case 6: {
-				Logger().Info() << "Time refine runs\n";
-				const int dt_steps = Parameters().getParam( "dt_steps", 3 );
-				profiler().Reset( dt_steps - 1 );
-				int current_step = 0;
-				for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1 );
-					  dt_steps > current_step;
-					  ++current_step )
-				{
-					rf[current_step] = singleRun( mpicomm, minref );
-					assert( rf.size() );
-					rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
-					profiler().NextRun();
-					dt /= 10.0f;
-					Parameters().setParam( "fem.timeprovider.dt", dt );
-				}
-				break;
-			}
-			case 7: {
-				Logger().Info() << "Scheme runs\n";
-				profiler().Reset( 4 );
-				for ( int current_scheme = 2;
-					  current_scheme < 6;
-					  ++current_scheme )
-				{
-					rf[current_scheme] = singleRun( mpicomm, minref, current_scheme );
-					assert( rf.size() );
-					rf[current_scheme].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
-					profiler().NextRun();
-				}
-				break;
-			}
-			case 5:
-			default: {
-				// ensures maxref>=minref
-				const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
-				profiler().Reset( maxref - minref + 1 );
-				Logger().Info() << "Grid refine runs\n";
-				for ( unsigned int ref = minref;
-					  ref <= maxref;
-					  ++ref )
-				{
-					rf[ref] = singleRun( mpicomm, ref );
-					rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
-					profiler().NextRun();
-				}
-				break;
-			}
-		}
-	//	profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
-
-		Stuff::TimeSeriesOutput out( rf );
-		out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
-
-		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
-		return err;
+	/* ********************************************************************** *
+	 * initialize all the stuff we need                                       *
+	 * ********************************************************************** */
+	if ( argc < 2 ) {
+		std::cerr << "\nUsage: " << argv[0] << " parameterfile \n" << "\n\t --- OR --- \n";
+		std::cerr << "\nUsage: " << argv[0] << " paramfile:"<<"file" << " more-opts:val ..." << std::endl;
+		std::cerr << "\nUsage: " << argv[0] << " -d paramfile "<< "\n\t(for displaying solutions in grape) "<< std::endl;
+		Parameters().PrintParameterSpecs( std::cerr );
+		std::cerr << std::endl;
+		return 2;
 	}
 
-#ifdef NDEBUG
-  catch (Dune::Exception &e){
-	std::cerr << "Dune reported error: " << e << std::endl;
-  }
-  catch ( std::bad_alloc& b ) {
-	  std::cerr << "Memory allocation failed: " << b.what() ;
-	  Logger().Info().Resume();
-	  Stuff::meminfo( Logger().Info() );
-  }
-  catch ( assert_exception& a ) {
-	  std::cerr << "Exception thrown at:\n" << a.what() << std::endl ;
-  }
-  catch (...){
-	std::cerr << "Unknown exception thrown!" << std::endl;
-  }
-#endif
+	if ( !(  Parameters().ReadCommandLine( argc, argv ) ) ) {
+		return 1;
+	}
+
+	// LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
+	//--> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_CONSOLE | LOG_FILE = 62
+	const bool useLogger = false;
+	Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
+					 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
+					 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
+					);
+
+	int err = 0;
+	const unsigned int minref = Parameters().getParam( "minref", 0 );
+	RunInfoTimeMapMap rf;
+	const int runtype = Parameters().getParam( "runtype", 5 );
+	switch( runtype ) {
+		case 8: {
+			Logger().Info() << "Reynolds runs\n";
+			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+			profiler().Reset( dt_steps - 1 );
+			int current_step = 0;
+			for ( double viscosity = Parameters().getParam( "viscosity", 0.1 );
+				  dt_steps > current_step;
+				  ++current_step )
+			{
+				rf[current_step] = singleRun( mpicomm, minref );
+				assert( rf.size() );
+				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
+				profiler().NextRun();
+				viscosity /= 10.0f;
+				Parameters().setParam( "viscosity", viscosity );
+			}
+			break;
+		}
+		case 6: {
+			Logger().Info() << "Time refine runs\n";
+			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+			profiler().Reset( dt_steps - 1 );
+			int current_step = 0;
+			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1 );
+				  dt_steps > current_step;
+				  ++current_step )
+			{
+				rf[current_step] = singleRun( mpicomm, minref );
+				assert( rf.size() );
+				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
+				profiler().NextRun();
+				dt /= 10.0f;
+				Parameters().setParam( "fem.timeprovider.dt", dt );
+			}
+			break;
+		}
+		case 7: {
+			Logger().Info() << "Scheme runs\n";
+			profiler().Reset( 4 );
+			for ( int current_scheme = 2;
+				  current_scheme < 6;
+				  ++current_scheme )
+			{
+				rf[current_scheme] = singleRun( mpicomm, minref, current_scheme );
+				assert( rf.size() );
+				rf[current_scheme].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
+				profiler().NextRun();
+			}
+			break;
+		}
+		case 5:
+		default: {
+			// ensures maxref>=minref
+			const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
+			profiler().Reset( maxref - minref + 1 );
+			Logger().Info() << "Grid refine runs\n";
+			for ( unsigned int ref = minref;
+				  ref <= maxref;
+				  ++ref )
+			{
+				rf[ref] = singleRun( mpicomm, ref );
+				rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
+				profiler().NextRun();
+			}
+			break;
+		}
+	}
+	//	profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
+
+	Stuff::TimeSeriesOutput out( rf );
+	out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
+
+	Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
+	return err;
 }
 
 template < class GridPartType, class CollectiveCommunicationType >
@@ -385,7 +362,28 @@ RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
-	return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run( scheme_type );
+#ifdef NDEBUG
+	try {
+#endif
+		return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run( scheme_type );
+#ifdef NDEBUG
+	}
+	catch (Dune::Exception &e){
+		std::cerr << "Dune reported error: " << e << std::endl;
+	}
+	catch ( std::bad_alloc& b ) {
+		std::cerr << "Memory allocation failed: " << b.what() ;
+		Logger().Info().Resume();
+		Stuff::meminfo( Logger().Info() );
+	}
+	catch ( assert_exception& a ) {
+		std::cerr << "Exception thrown at:\n" << a.what() << std::endl ;
+	}
+	catch (...){
+		std::cerr << "Unknown exception thrown!" << std::endl;
+	}
+	return RunInfoTimeMap();
+#endif
 }
 
 //void eocCheck( const RunInfoVector& runInfos )
