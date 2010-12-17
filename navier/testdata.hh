@@ -48,7 +48,7 @@ namespace Dune {
 					  {
 						  ret = RangeType(0);
 					  }
-					  inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+					  inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				  private:
 					  const double viscosity_;
@@ -135,7 +135,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					  static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -191,7 +191,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -269,7 +269,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -354,7 +354,7 @@ namespace Dune {
 						  ret[0] += ( -2 * M_PI * M_PI * v ) * u[0];
 						  ret[1] += ( -2 * M_PI * M_PI * v ) * u[1];
 					  }
-					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
+					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const { assert(false); }
 
 				  private:
 					  const double viscosity_;
@@ -430,7 +430,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					  static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -486,7 +486,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -552,7 +552,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -621,7 +621,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -796,7 +796,7 @@ namespace Dune {
 							  {
 									  ret = RangeType(0);
 							  }
-							  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
+							  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const { assert(false); }
 
 					  private:
 							  const double viscosity_;
@@ -879,7 +879,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 				  static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -935,7 +935,7 @@ namespace Dune {
 							* \param  ret
 							*         value of dirichlet boundary data at given point
 							**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 					private:
 							static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -993,7 +993,7 @@ namespace Dune {
 							* \param  ret
 							*         value of dirichlet boundary data at given point
 							**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 					private:
 							static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1051,7 +1051,7 @@ namespace Dune {
 							* \param  ret
 							*         value of dirichlet boundary data at given point
 							**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 					private:
 							static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1160,7 +1160,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					  static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1216,7 +1216,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1274,7 +1274,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1624,7 +1624,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1740,7 +1740,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					  static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1795,7 +1795,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1853,7 +1853,7 @@ namespace Dune {
 					* \param  ret
 					*         value of dirichlet boundary data at given point
 					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
