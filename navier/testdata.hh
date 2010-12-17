@@ -276,6 +276,212 @@ namespace Dune {
 					const double parameter_a_;
 					const double parameter_d_;
 			};
+			template <	class FunctionSpaceImp,
+						class TimeProviderImp >
+			class PressureGradient : public TimeFunction <	FunctionSpaceImp ,
+													PressureGradient < FunctionSpaceImp,TimeProviderImp >,
+													TimeProviderImp >
+			{
+				public:
+					typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+				  /**
+				   *  \brief  constructor
+				   *
+				   *  doing nothing besides Base init
+				   **/
+				  PressureGradient( const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					  : BaseType( timeprovider, space ),
+					  parameter_a_( parameter_a ),
+					  parameter_d_( parameter_d )
+				  {}
+
+				  /**
+				   *  \brief  destructor
+				   *
+				   *  doing nothing
+				   **/
+				   ~PressureGradient()
+				   {}
+
+					void evaluateTime( const double t, const DomainType& arg, RangeType& ret ) const
+					{
+						dune_static_assert( dim_ == 3  , "Pressure_Unsuitable_WorldDim");
+						const double x				= arg[0];
+						const double y				= arg[1];
+						const double z				= arg[2];
+						const double a				= parameter_a_;
+						const double b				= parameter_d_;
+
+						const double sxy = std::sin(a*x+b*y);
+						const double sxz = std::sin(a*x+b*z);
+						const double syz = std::sin(a*y+b*z);
+						const double syx = std::sin(a*y+b*x);
+						const double szy = std::sin(a*z+b*y);
+						const double szx = std::sin(a*z+b*x);
+
+						const double cxy = std::cos(a*x+b*y);
+						const double cxz = std::cos(a*x+b*z);
+						const double cyz = std::cos(a*y+b*z);
+						const double cyx = std::cos(a*y+b*x);
+						const double czy = std::cos(a*z+b*y);
+						const double czx = std::cos(a*z+b*x);
+
+						const double exy = std::exp(x+y);
+						const double exz = std::exp(x+z);
+						const double eyz = std::exp(z+y);
+						const double fr = - 0.5 * a * a * std::exp(-2*b*b*t);
+
+						ret[0] = -2*a*exz*sxy*syz
+							  -2*b*eyz*sxy*szx
+							  +2*a*eyz*cxy*czx
+							  +2*b*exy*czx*cyz
+							  +2*a*exy*szx*cyz
+							  +2*a*exz*cxy*cyz + ( 2 * a * std::exp(2*a*x ) );
+
+						ret[1] = -2*a*exy*szx*syz
+							  -2*b*exz*sxy*syz
+							  +2*a*exz*cxy*cyz
+							  +2*b*eyz*cxy*czx
+							  +2*a*eyz*sxy*czx
+							  +2*a*exy*czx*cyz + ( 2 * a * std::exp(2*a*y ) );
+
+
+						ret[2] = -2*a*eyz*sxy*syz
+							  -2*b*exy*szx*syz
+							  +2*a*exy*czx*cyz
+							  +2*b*eyz*cxy*czx
+							  +2*a*eyz*sxy*czx
+							  +2*a*exz*cxy*syz + ( 2 * a * std::exp(2*a*y ) );
+
+						ret *= fr;
+					}
+
+					/**
+					* \brief  evaluates the dirichlet data
+					* \param  arg
+					*         point to evaluate at
+					* \param  ret
+					*         value of dirichlet boundary data at given point
+					**/
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					/**
+					*  \brief  constructor
+					*
+					*  doing nothing besides Base init
+					**/
+					VelocityConvection(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					/**
+					*  \brief  destructor
+					*
+					*  doing nothing
+					**/
+					~VelocityConvection()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+		//				dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
+
+						const double x			= arg[0];
+						const double y			= arg[1];
+						const double v			= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					/**
+					*  \brief  constructor
+					*
+					*  doing nothing besides Base init
+					**/
+					VelocityLaplace(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					/**
+					*  \brief  destructor
+					*
+					*  doing nothing
+					**/
+					~VelocityLaplace()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+		//				dune_static_assert( dim_ == 2  , "DirichletData_Unsuitable_WorldDim");
+						const double x			= arg[0];
+						const double y			= arg[1];
+
+
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+
 
 		}//end namespace TestCase3D
 
