@@ -39,6 +39,9 @@ namespace Dune {
 												typename Traits::GridPartType::GridType,
 												OutputTupleType1 >
 					DataWriterType1;
+				typedef CheckPointer< typename Traits::GridPartType::GridType,
+									  OutputTupleType1 >
+					CheckPointerType;
 				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType >
 					TupleSerializerType2;
 				typedef typename TupleSerializerType2::TupleType
@@ -66,8 +69,10 @@ namespace Dune {
 				mutable typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
+				OutputTupleType1& data_tuple_1;
 				DataWriterType1 dataWriter1_;
 				DataWriterType2 dataWriter2_;
+				CheckPointerType check_pointer_;
 				const typename Traits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
 				mutable typename Traits::OseenPassType::RhsDatacontainer rhsDatacontainer_;
 
@@ -113,14 +118,22 @@ namespace Dune {
 					rhsFunctions_("rhs-adapter",
 								 functionSpaceWrapper_,
 								 gridPart_ ),
+					data_tuple_1( TupleSerializerType1::getTuple(
+							  currentFunctions_,
+							  errorFunctions_,
+							  exactSolution_,
+							  dummyFunctions_) ),
 					dataWriter1_( timeprovider_,
 								 gridPart_.grid(),
-								 TupleSerializerType1::getTuple(
-										 currentFunctions_,
-										 errorFunctions_,
-										 exactSolution_,
-										 dummyFunctions_)
+								 data_tuple_1
 								),
+					check_pointer_(	gridPart_.grid(),
+									"myGridName",
+									data_tuple_1,
+									timeprovider_.startTime(),
+									timeprovider_.endTime(),
+									static_cast<const LoadBalancerInterface*>( 0 )
+								  ),
 					dataWriter2_( timeprovider_,
 								 gridPart_.grid(),
 								 TupleSerializerType2::getTuple(
@@ -388,6 +401,7 @@ namespace Dune {
 				{
 					dataWriter1_.write();
 					dataWriter2_.write();
+					check_pointer_.write( timeprovider_.time(), timeprovider_.timeStep() );
 				}
 
 				typename Traits::OseenPassType::RhsDatacontainer& rhsDatacontainer()
