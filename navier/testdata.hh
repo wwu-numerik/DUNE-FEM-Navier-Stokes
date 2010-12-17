@@ -367,7 +367,7 @@ namespace Dune {
 			{
 				const double x				= arg[0];
 				const double y				= arg[1];
-				const double v				= Parameters().getParam( "viscosity", 1.0 );
+				const double v				= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
 				const double e_minus_2_t	= std::exp( -2 * std::pow( pi_factor, 2 ) * v * time );
 
 				ret[0] = -1 *	std::cos( pi_factor * x ) * std::sin( pi_factor * y ) * e_minus_2_t;
@@ -537,7 +537,7 @@ namespace Dune {
 						dune_static_assert( dim_ == 2 , "Pressure_Unsuitable_WorldDim");
 						const double x				= arg[0];
 						const double y				= arg[1];
-						const double v				= Parameters().getParam( "viscosity", 1.0 );
+						const double v				= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
 						const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
 
 						ret[0] = -0.25 * (
@@ -603,7 +603,7 @@ namespace Dune {
 						dune_static_assert( dim_ == 2  , "Pressure_Unsuitable_WorldDim");
 						const double x				= arg[0];
 						const double y				= arg[1];
-						const double v				= Parameters().getParam( "viscosity", 1.0 );
+						const double v				= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
 						const double e_minus_4_t	= std::exp( -4 * std::pow( pi_factor, 2 ) * time * v );
 
 						ret[0] = 2 * pi_factor  * 0.25 * (
@@ -670,7 +670,7 @@ namespace Dune {
 
 						const double x			= arg[0];
 						const double y			= arg[1];
-						const double v			= Parameters().getParam( "viscosity", 1.0 );;
+						const double v			= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );;
 						const double P			= pi_factor;
 						const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
 						const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
@@ -730,7 +730,7 @@ namespace Dune {
 		//				dune_static_assert( dim_ == 2  , "DirichletData_Unsuitable_WorldDim");
 						const double x			= arg[0];
 						const double y			= arg[1];
-						const double v			= Parameters().getParam( "viscosity", 1.0 );
+						const double v			= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
 						const double P			= pi_factor;
 						const double E			= std::exp( -2 * std::pow( P, 2 ) * v * time );
 						const double F			= std::exp( -4 * std::pow( P, 2 ) * v * time );
@@ -1429,7 +1429,7 @@ namespace Dune {
 			{
 				const double x				= arg[0];
 				const double y				= arg[1];
-				const double v				= Parameters().getParam( "viscosity", 1.0 );
+				const double v				= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
 				const double F				= std::exp( -8 * std::pow( M_PI, 2 ) * time );
 				const double C1				= std::cos(2*M_PI* ( x + 0.25 ) );
 				const double S1				= std::sin(2*M_PI* ( x + 0.25 ) );
@@ -1606,7 +1606,7 @@ namespace Dune {
 					{
 						const double x				= arg[0];
 						const double y				= arg[1];
-						const double v				= Parameters().getParam( "viscosity", 1.0 );
+						const double v				= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
 						const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
 						const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
 						const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );

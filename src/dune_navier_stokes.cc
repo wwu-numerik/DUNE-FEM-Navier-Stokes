@@ -161,16 +161,16 @@ int main( int argc, char** argv )
 					);
 
 	int err = 0;
-	const unsigned int minref = Parameters().getParam( "minref", 0 );
+	const unsigned int minref = Parameters().getParam( "minref", 0, Dune::ValidateNotLess<int>(0) );
 	RunInfoTimeMapMap rf;
 	const int runtype = Parameters().getParam( "runtype", 5 );
 	switch( runtype ) {
 		case 8: {
 			Logger().Info() << "Reynolds runs\n";
-			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
-			for ( double viscosity = Parameters().getParam( "viscosity", 0.1 );
+			for ( double viscosity = Parameters().getParam( "viscosity", 0.1, Dune::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
 				  ++current_step )
 			{
@@ -185,10 +185,10 @@ int main( int argc, char** argv )
 		}
 		case 6: {
 			Logger().Info() << "Time refine runs\n";
-			const int dt_steps = Parameters().getParam( "dt_steps", 3 );
+			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
-			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1 );
+			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1, Dune::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
 				  ++current_step )
 			{

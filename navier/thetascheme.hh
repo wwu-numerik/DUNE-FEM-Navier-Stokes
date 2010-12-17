@@ -143,7 +143,7 @@ namespace Dune {
 					sigma_space_( gridPart_ ),
 					rhsDatacontainer_( currentFunctions_.discreteVelocity().space(), sigma_space_ ),
 					l2Error_( gridPart ),
-					viscosity_( Parameters().getParam( "viscosity", 1.0 ) ),
+					viscosity_( Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) ) ),
 					d_t_( timeprovider_.deltaT() ),
 					reynolds_( 1.0 / viscosity_ ),
 					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
@@ -224,7 +224,7 @@ namespace Dune {
 						info.d12			= Pair( stabil_coeff.Power( "D12" ), stabil_coeff.Factor( "D12" ) );
 						info.bfg			= Parameters().getParam( "do-bfg", true );
 						info.gridname		= gridPart_.grid().name();
-						info.refine_level	= Parameters().getParam( "minref", 0 );
+						info.refine_level	= Parameters().getParam( "minref", 0, Dune::ValidateNotLess<int>(0) );
 
 						info.polorder_pressure	= Traits::OseenModelTraits::pressureSpaceOrder;
 						info.polorder_sigma		= Traits::OseenModelTraits::sigmaSpaceOrder;
@@ -330,8 +330,7 @@ namespace Dune {
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
 
-					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
-					assert( oseen_iterations > 0 );
+					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1), ValidateGreater<unsigned int>( 0 ) );
 					const double dt_n = timeprovider_.deltaT();
 					typename L2ErrorType::Errors old_error_velocity
 							= l2Error_.get( currentFunctions().discreteVelocity(), exactSolution_.discreteVelocity() );
