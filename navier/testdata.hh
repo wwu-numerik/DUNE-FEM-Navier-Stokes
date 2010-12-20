@@ -71,30 +71,14 @@ namespace Dune {
 					  typedef typename BaseType::RangeType
 						  RangeType;
 
-					  /**
-					   *  \brief  constructor
-					   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
-					   **/
 					  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
 						  : BaseType ( space ),
 							viscosity_( viscosity ),
 							alpha_( alpha )
 					  {}
 
-					  /**
-					   *  \brief  destructor
-					   *  doing nothing
-					   **/
-					  ~Force()
-					  {}
+					  ~Force() {}
 
-					  /**
-					   *  \brief  evaluates the force
-					   *  \param  arg
-					   *          point to evaluate at
-					   *  \param  ret
-					   *          value of force at given point
-					   **/
 					  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
 					  {
 						  ret = RangeType(0);
@@ -130,14 +114,7 @@ namespace Dune {
 			  #undef PM
 			}
 
-			/**
-			*  \brief  describes the dirichlet boundary data
-			*
-			*  \tparam DirichletTraitsImp
-			*          types like functionspace, range type, etc
-			*
-			*  \todo   extensive docu with latex
-			**/
+
 			template < class FunctionSpaceImp >
 			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
@@ -151,11 +128,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					DirichletData( const FunctionSpaceImp& space,
 								 const double parameter_a = M_PI /2.0 ,
 								 const double parameter_d = M_PI /4.0)
@@ -164,13 +136,7 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~DirichletData()
-					{}
+					~DirichletData() {}
 
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
@@ -179,13 +145,6 @@ namespace Dune {
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
 					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
@@ -207,11 +166,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					Velocity(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -221,28 +175,13 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~Velocity()
-					{}
+					~Velocity() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
 						dune_static_assert( dim_ == 3 , "DirichletData_Unsuitable_WorldDim");
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
-
-				   /**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -266,11 +205,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-				  /**
-				   *  \brief  constructor
-				   *
-				   *  doing nothing besides Base init
-				   **/
 				  Pressure( const TimeProviderImp& timeprovider,
 							const FunctionSpaceImp& space,
 							const double parameter_a = M_PI /2.0 ,
@@ -280,13 +214,7 @@ namespace Dune {
 					  parameter_d_( parameter_d )
 				  {}
 
-				  /**
-				   *  \brief  destructor
-				   *
-				   *  doing nothing
-				   **/
-				   ~Pressure()
-				   {}
+				   ~Pressure() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
@@ -313,15 +241,6 @@ namespace Dune {
 					#undef PM
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
-
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
 					const double parameter_a_;
@@ -343,11 +262,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-				  /**
-				   *  \brief  constructor
-				   *
-				   *  doing nothing besides Base init
-				   **/
 				  PressureGradient( const TimeProviderImp& timeprovider,
 							const FunctionSpaceImp& space,
 							const double parameter_a = M_PI /2.0 ,
@@ -357,13 +271,7 @@ namespace Dune {
 					  parameter_d_( parameter_d )
 				  {}
 
-				  /**
-				   *  \brief  destructor
-				   *
-				   *  doing nothing
-				   **/
-				   ~PressureGradient()
-				   {}
+				   ~PressureGradient() {}
 
 					void evaluateTime( const double t, const DomainType& arg, RangeType& ret ) const
 					{
@@ -418,15 +326,6 @@ namespace Dune {
 						ret *= fr;
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
-
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
 					const double parameter_a_;
@@ -446,11 +345,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					VelocityConvection(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -460,18 +354,10 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~VelocityConvection()
-					{}
+					~VelocityConvection() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-		//				dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
-
 						const double x			= arg[0];
 						const double y			= arg[1];
 						const double v			= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
@@ -496,11 +382,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					VelocityLaplace(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -510,21 +391,13 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~VelocityLaplace()
-					{}
+					~VelocityLaplace() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
 		//				dune_static_assert( dim_ == 2  , "DirichletData_Unsuitable_WorldDim");
 						const double x			= arg[0];
 						const double y			= arg[1];
-
-
 					}
 
 				private:
@@ -551,30 +424,14 @@ namespace Dune {
 					  typedef typename BaseType::RangeType
 						  RangeType;
 
-					  /**
-					   *  \brief  constructor
-					   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
-					   **/
 					  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
 						  : BaseType ( space ),
 							viscosity_( viscosity ),
 							alpha_( alpha )
 					  {}
 
-					  /**
-					   *  \brief  destructor
-					   *  doing nothing
-					   **/
-					  ~Force()
-					  {}
+					  ~Force() {}
 
-					  /**
-					   *  \brief  evaluates the force
-					   *  \param  arg
-					   *          point to evaluate at
-					   *  \param  ret
-					   *          value of force at given point
-					   **/
 					  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 					  {
 						  const double x			= arg[0];
@@ -631,14 +488,6 @@ namespace Dune {
 				ret[1] =		std::sin( pi_factor * x ) * std::cos( pi_factor * y ) * e_minus_2_t;
 			}
 
-			/**
-			*  \brief  describes the dirichlet boundary data
-			*
-			*  \tparam DirichletTraitsImp
-			*          types like functionspace, range type, etc
-			*
-			*  \todo   extensive docu with latex
-			**/
 			template < class FunctionSpaceImp >
 			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
@@ -652,11 +501,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					DirichletData( const FunctionSpaceImp& space,
 								 const double parameter_a = M_PI /2.0 ,
 								 const double parameter_d = M_PI /4.0)
@@ -665,11 +509,6 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
 					~DirichletData()
 					{}
 
@@ -680,13 +519,6 @@ namespace Dune {
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
 					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
@@ -708,11 +540,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					Velocity(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -722,11 +549,6 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
 					~Velocity()
 					{}
 
@@ -735,15 +557,6 @@ namespace Dune {
 						dune_static_assert( dim_ == 2  , "DirichletData_Unsuitable_WorldDim");
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
-
-				   /**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -767,11 +580,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-				  /**
-				   *  \brief  constructor
-				   *
-				   *  doing nothing besides Base init
-				   **/
 				  Pressure( const TimeProviderImp& timeprovider,
 							const FunctionSpaceImp& space,
 							const double parameter_a = M_PI /2.0 ,
@@ -781,13 +589,7 @@ namespace Dune {
 					  parameter_d_( parameter_d )
 				  {}
 
-				  /**
-				   *  \brief  destructor
-				   *
-				   *  doing nothing
-				   **/
-				   ~Pressure()
-				   {}
+				   ~Pressure() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
@@ -801,15 +603,6 @@ namespace Dune {
 											std::cos( 2 * pi_factor * x ) + std::cos( 2 * pi_factor * y )
 										) * e_minus_4_t;
 					}
-
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -833,11 +626,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-				  /**
-				   *  \brief  constructor
-				   *
-				   *  doing nothing besides Base init
-				   **/
 				  PressureGradient( const TimeProviderImp& timeprovider,
 							const FunctionSpaceImp& space,
 							const double parameter_a = M_PI /2.0 ,
@@ -847,13 +635,7 @@ namespace Dune {
 					  parameter_d_( parameter_d )
 				  {}
 
-				  /**
-				   *  \brief  destructor
-				   *
-				   *  doing nothing
-				   **/
-				   ~PressureGradient()
-				   {}
+				   ~PressureGradient() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
@@ -870,15 +652,6 @@ namespace Dune {
 											std::sin( 2 * pi_factor * y )
 										) * e_minus_4_t;
 					}
-
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -899,11 +672,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					VelocityConvection(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -913,13 +681,7 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~VelocityConvection()
-					{}
+					~VelocityConvection() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
@@ -960,11 +722,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					VelocityLaplace(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -974,13 +731,7 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~VelocityLaplace()
-					{}
+					~VelocityLaplace() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
@@ -1025,30 +776,14 @@ namespace Dune {
 							  typedef typename BaseType::RangeType
 									  RangeType;
 
-							  /**
-							   *  \brief  constructor
-							   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
-							   **/
 							  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
 									  : BaseType ( space ),
 											viscosity_( viscosity ),
 											alpha_( alpha )
 							  {}
 
-							  /**
-							   *  \brief  destructor
-							   *  doing nothing
-							   **/
-							  ~Force()
-							  {}
+							  ~Force() {}
 
-							  /**
-							   *  \brief  evaluates the force
-							   *  \param  arg
-							   *          point to evaluate at
-							   *  \param  ret
-							   *          value of force at given point
-							   **/
 							  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 							  {
 									  ret = RangeType(0);
@@ -1061,14 +796,6 @@ namespace Dune {
 							  static const int dim_ = FunctionSpaceImp::dimDomain;
 			};
 
-			/**
-			*  \brief  describes the dirichlet boundary data
-			*
-			*  \tparam DirichletTraitsImp
-			*          types like functionspace, range type, etc
-			*
-			*  \todo   extensive docu with latex
-			**/
 			template < class FunctionSpaceImp >
 			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
@@ -1082,11 +809,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 							RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					DirichletData( const FunctionSpaceImp& space,
 											 const double parameter_a = M_PI /2.0 ,
 											 const double parameter_d = M_PI /4.0)
@@ -1095,11 +817,6 @@ namespace Dune {
 							parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
 					~DirichletData()
 					{}
 
@@ -1129,13 +846,6 @@ namespace Dune {
 							}
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
 					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
@@ -1157,11 +867,6 @@ namespace Dune {
 							typedef typename BaseType::RangeType
 									RangeType;
 
-							/**
-							*  \brief  constructor
-							*
-							*  doing nothing besides Base init
-							**/
 							Velocity(	const TimeProviderImp& timeprovider,
 													const FunctionSpaceImp& space,
 													const double parameter_a = M_PI /2.0 ,
@@ -1171,28 +876,13 @@ namespace Dune {
 									parameter_d_( parameter_d )
 							{}
 
-							/**
-							*  \brief  destructor
-							*
-							*  doing nothing
-							**/
-							~Velocity()
-							{}
+							~Velocity() {}
 
 							void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 							{
 									dune_static_assert( dim_ == 2 , "DirichletData_Unsuitable_WorldDim");
 									ret = RangeType( 0.0 );
 							}
-
-					   /**
-							* \brief  evaluates the dirichlet data
-							* \param  arg
-							*         point to evaluate at
-							* \param  ret
-							*         value of dirichlet boundary data at given point
-							**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 					private:
 							static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1216,11 +906,6 @@ namespace Dune {
 							typedef typename BaseType::RangeType
 									RangeType;
 
-					  /**
-					   *  \brief  constructor
-					   *
-					   *  doing nothing besides Base init
-					   **/
 					  Pressure( const TimeProviderImp& timeprovider,
 											const FunctionSpaceImp& space,
 											const double parameter_a = M_PI /2.0 ,
@@ -1230,27 +915,12 @@ namespace Dune {
 							  parameter_d_( parameter_d )
 					  {}
 
-					  /**
-					   *  \brief  destructor
-					   *
-					   *  doing nothing
-					   **/
-					   ~Pressure()
-					   {}
+					   ~Pressure() {}
 
 							void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 							{
 								ret = RangeType( 0.0 );
 							}
-
-							/**
-							* \brief  evaluates the dirichlet data
-							* \param  arg
-							*         point to evaluate at
-							* \param  ret
-							*         value of dirichlet boundary data at given point
-							**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 					private:
 							static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1274,11 +944,6 @@ namespace Dune {
 							typedef typename BaseType::RangeType
 									RangeType;
 
-					  /**
-					   *  \brief  constructor
-					   *
-					   *  doing nothing besides Base init
-					   **/
 					  PressureGradient( const TimeProviderImp& timeprovider,
 											const FunctionSpaceImp& space,
 											const double parameter_a = M_PI /2.0 ,
@@ -1288,27 +953,12 @@ namespace Dune {
 							  parameter_d_( parameter_d )
 					  {}
 
-					  /**
-					   *  \brief  destructor
-					   *
-					   *  doing nothing
-					   **/
-					   ~PressureGradient()
-					   {}
+					   ~PressureGradient() {}
 
 						void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 						{
 							ret = RangeType( 0.0 );
 						}
-
-							/**
-							* \brief  evaluates the dirichlet data
-							* \param  arg
-							*         point to evaluate at
-							* \param  ret
-							*         value of dirichlet boundary data at given point
-							**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 					private:
 							static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1382,11 +1032,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					DirichletData( const FunctionSpaceImp& space,
 								 const double parameter_a = M_PI /2.0 ,
 								 const double parameter_d = M_PI /4.0)
@@ -1395,11 +1040,6 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
 					~DirichletData()
 					{}
 
@@ -1410,13 +1050,6 @@ namespace Dune {
 						ret[1] = 0;
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
 					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
@@ -1438,11 +1071,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					Velocity(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -1452,11 +1080,6 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
 					~Velocity()
 					{}
 
@@ -1465,15 +1088,6 @@ namespace Dune {
 						ret[0] = 1;
 						ret[1] = 0;
 					}
-
-				   /**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1497,11 +1111,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-				  /**
-				   *  \brief  constructor
-				   *
-				   *  doing nothing besides Base init
-				   **/
 				  Pressure( const TimeProviderImp& timeprovider,
 							const FunctionSpaceImp& space,
 							const double parameter_a = M_PI /2.0 ,
@@ -1511,11 +1120,6 @@ namespace Dune {
 					  parameter_d_( parameter_d )
 				  {}
 
-				  /**
-				   *  \brief  destructor
-				   *
-				   *  doing nothing
-				   **/
 				   ~Pressure()
 				   {}
 
@@ -1523,15 +1127,6 @@ namespace Dune {
 					{
 						ret = 0;
 					}
-
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1551,11 +1146,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					VelocityLaplace(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -1565,13 +1155,7 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~VelocityLaplace()
-					{}
+					~VelocityLaplace() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
@@ -1597,11 +1181,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					VelocityConvection(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -1611,11 +1190,6 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
 					~VelocityConvection()
 					{}
 
@@ -1645,30 +1219,14 @@ namespace Dune {
 					  typedef typename BaseType::RangeType
 						  RangeType;
 
-					  /**
-					   *  \brief  constructor
-					   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
-					   **/
 					  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
 						  : BaseType ( space ),
 							viscosity_( viscosity ),
 							alpha_( alpha )
 					  {}
 
-					  /**
-					   *  \brief  destructor
-					   *  doing nothing
-					   **/
-					  ~Force()
-					  {}
+					  ~Force() {}
 
-					  /**
-					   *  \brief  evaluates the force
-					   *  \param  arg
-					   *          point to evaluate at
-					   *  \param  ret
-					   *          value of force at given point
-					   **/
 					  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
 					  {
 						  ret = RangeType(0);
@@ -1697,14 +1255,6 @@ namespace Dune {
 				ret[1] = (  1 / v ) * S1 * C2 * F;
 			}
 
-			/**
-			*  \brief  describes the dirichlet boundary data
-			*
-			*  \tparam DirichletTraitsImp
-			*          types like functionspace, range type, etc
-			*
-			*  \todo   extensive docu with latex
-			**/
 			template < class FunctionSpaceImp >
 			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
@@ -1718,11 +1268,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					DirichletData( const FunctionSpaceImp& space,
 								 const double parameter_a = M_PI /2.0 ,
 								 const double parameter_d = M_PI /4.0)
@@ -1731,13 +1276,7 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~DirichletData()
-					{}
+					~DirichletData() {}
 
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
@@ -1745,13 +1284,6 @@ namespace Dune {
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
 					inline void evaluate( const DomainType& arg, RangeType& ret ) const
 					{
 						assert(false);
@@ -1776,11 +1308,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					Velocity(	const TimeProviderImp& timeprovider,
 								const FunctionSpaceImp& space,
 								const double parameter_a = M_PI /2.0 ,
@@ -1790,30 +1317,12 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~Velocity()
-					{}
+					~Velocity() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
 						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
-
-				   /**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const
-//					{
-//						assert(false);
-//					}
 
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
@@ -1837,11 +1346,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-				  /**
-				   *  \brief  constructor
-				   *
-				   *  doing nothing besides Base init
-				   **/
 				  Pressure( const TimeProviderImp& timeprovider,
 							const FunctionSpaceImp& space,
 							const double parameter_a = M_PI /2.0 ,
@@ -1851,13 +1355,7 @@ namespace Dune {
 					  parameter_d_( parameter_d )
 				  {}
 
-				  /**
-				   *  \brief  destructor
-				   *
-				   *  doing nothing
-				   **/
-				   ~Pressure()
-				   {}
+				   ~Pressure() {}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
@@ -1874,15 +1372,6 @@ namespace Dune {
 
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
-//					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
-
 				private:
 					static const int dim_ = FunctionSpaceImp::dimDomain ;
 					const double parameter_a_;
@@ -1891,53 +1380,11 @@ namespace Dune {
 
 		}//end namespace TestCase2D_KOKO
 		namespace DrivenCavity {
-			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			template < class T >
+			struct Force : public NullFunction< T >
 			{
-				  public:
-					  typedef Force< FunctionSpaceImp >
-						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
-						  BaseType;
-					  typedef typename BaseType::DomainType
-						  DomainType;
-					  typedef typename BaseType::RangeType
-						  RangeType;
-
-					  /**
-					   *  \brief  constructor
-					   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
-					   **/
-					  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
-						  : BaseType ( space ),
-							viscosity_( viscosity ),
-							alpha_( alpha )
-					  {}
-
-					  /**
-					   *  \brief  destructor
-					   *  doing nothing
-					   **/
-					  ~Force()
-					  {}
-
-					  /**
-					   *  \brief  evaluates the force
-					   *  \param  arg
-					   *          point to evaluate at
-					   *  \param  ret
-					   *          value of force at given point
-					   **/
-					  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
-					  {
-						  ret = RangeType(0);
-					  }
-					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
-
-				  private:
-					  const double viscosity_;
-					  const double alpha_;
-					  static const int dim_ = FunctionSpaceImp::dimDomain;
+				Force( const T& t )
+					:NullFunction< T >(t){}
 			};
 
 			template < class T, class P >
@@ -1953,14 +1400,6 @@ namespace Dune {
 					:NullFunctionTP< T,P >(p,t){}
 			};
 
-			/**
-			*  \brief  describes the dirichlet boundary data
-			*
-			*  \tparam DirichletTraitsImp
-			*          types like functionspace, range type, etc
-			*
-			*  \todo   extensive docu with latex
-			**/
 			template < class FunctionSpaceImp >
 			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
@@ -1974,11 +1413,6 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-					/**
-					*  \brief  constructor
-					*
-					*  doing nothing besides Base init
-					**/
 					DirichletData( const FunctionSpaceImp& space,
 								 const double parameter_a = M_PI /2.0 ,
 								 const double parameter_d = M_PI /4.0)
@@ -1987,13 +1421,7 @@ namespace Dune {
 						parameter_d_( parameter_d )
 					{}
 
-					/**
-					*  \brief  destructor
-					*
-					*  doing nothing
-					**/
-					~DirichletData()
-					{}
+					~DirichletData() {}
 
 					template < class IntersectionType >
 					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
@@ -2003,13 +1431,6 @@ namespace Dune {
 							ret[0] = 1;
 					}
 
-					/**
-					* \brief  evaluates the dirichlet data
-					* \param  arg
-					*         point to evaluate at
-					* \param  ret
-					*         value of dirichlet boundary data at given point
-					**/
 					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
 
 				private:
