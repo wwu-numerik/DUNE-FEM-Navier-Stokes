@@ -19,7 +19,7 @@ namespace Dune {
 				  typedef typename BaseType::RangeType
 					  RangeType;
 
-				  NullFunction( const double , const FunctionSpaceImp& space, const double = 0.0 )
+				  NullFunction( const FunctionSpaceImp& space )
 					  : BaseType ( space )
 				  {}
 
@@ -27,6 +27,7 @@ namespace Dune {
 				  {}
 
 				  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const { ret = RangeType( 0 ); }
+				  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const { ret = RangeType( 0 ); }
 		};
 
 		template < class FunctionSpaceImp, class TimeProviderImp >
@@ -43,9 +44,7 @@ namespace Dune {
 					RangeType;
 
 				NullFunctionTP(	const TimeProviderImp& timeprovider,
-							const FunctionSpaceImp& space,
-							const double = 2.0 ,
-							const double = 4.0)
+							const FunctionSpaceImp& space )
 					: BaseType( timeprovider, space )
 				{}
 
@@ -1383,7 +1382,7 @@ namespace Dune {
 			template < class T >
 			struct Force : public NullFunction< T >
 			{
-				Force( const T& t )
+				Force( const double d, const T& t )
 					:NullFunction< T >(t){}
 			};
 
