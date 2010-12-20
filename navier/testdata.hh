@@ -6,6 +6,57 @@
 
 namespace Dune {
 	namespace NavierStokes {
+		template < class FunctionSpaceImp >
+		class NullFunction : public Function < FunctionSpaceImp , NullFunction < FunctionSpaceImp > >
+		{
+			  public:
+				  typedef NullFunction< FunctionSpaceImp >
+					  ThisType;
+				  typedef Function < FunctionSpaceImp ,ThisType >
+					  BaseType;
+				  typedef typename BaseType::DomainType
+					  DomainType;
+				  typedef typename BaseType::RangeType
+					  RangeType;
+
+				  NullFunction( const double , const FunctionSpaceImp& space, const double = 0.0 )
+					  : BaseType ( space )
+				  {}
+
+				  ~NullFunction()
+				  {}
+
+				  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const { ret = RangeType( 0 ); }
+		};
+
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class NullFunctionTP : public TimeFunction < FunctionSpaceImp , NullFunctionTP< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef NullFunctionTP< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				NullFunctionTP(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double = 2.0 ,
+							const double = 4.0)
+					: BaseType( timeprovider, space )
+				{}
+
+				~NullFunctionTP()
+				{}
+
+				void evaluateTime( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const { ret = RangeType( 0 ); }
+		};
+
+
+
 		namespace TestCase3D {
 			template < class FunctionSpaceImp >
 			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
