@@ -280,6 +280,7 @@ namespace Dune {
 						profiler().StopTiming( "Timestep" );
 						const double real_time = timeprovider_.subTime();
 						nextStep( Traits::substep_count -1 , info );
+						timeprovider_.printRemainderEstimate( Logger().Info() );
 						runInfoMap[real_time] = info;
 					}
 					assert( runInfoMap.size() > 0 );
