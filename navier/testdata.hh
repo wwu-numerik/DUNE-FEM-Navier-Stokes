@@ -1940,6 +1940,19 @@ namespace Dune {
 					  static const int dim_ = FunctionSpaceImp::dimDomain;
 			};
 
+			template < class T, class P >
+			struct VelocityLaplace : public NullFunctionTP< T,P >
+			{
+				VelocityLaplace( const P& p,const T& t )
+					:NullFunctionTP< T,P >(p,t){}
+			};
+			template < class T, class P >
+			struct VelocityConvection : public NullFunctionTP< T,P >
+			{
+				VelocityConvection ( const P& p,const T& t )
+					:NullFunctionTP< T,P >(p,t){}
+			};
+
 			/**
 			*  \brief  describes the dirichlet boundary data
 			*
