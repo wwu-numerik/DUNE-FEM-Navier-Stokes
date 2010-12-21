@@ -113,9 +113,7 @@ typedef std::vector<std::string>
 
 **/
 RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
-					int refine_level_factor  );
-RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
-					int refine_level_factor, const int scheme_type  );
+					int refine_level_factor, const int scheme_type = Parameters().getParam( "scheme_type", 1, true ) );
 //! output alert for neg. EOC
 //void eocCheck( const RunInfoVector& runInfos );
 
@@ -232,7 +230,7 @@ int main( int argc, char** argv )
 			break;
 		}
 	}
-	profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
+	profiler().OutputMap( mpicomm, rf );
 
 	Stuff::TimeSeriesOutput out( rf );
 	out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
@@ -307,44 +305,15 @@ class ThetaschemeRunner {
 			}
 		}
 
-		RunInfoTimeMap run(){
-			const int scheme_type = Parameters().getParam( "scheme_type", 1, true );
-			return run( scheme_type );
-		}
-
 	private:
 		const GridPartType& grid_part_;
 		CollectiveCommunicationType& comm_;
 };
 
 RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
-					int refine_level_factor )
-{
-	profiler().StartTiming( "SingleRun" );
-	Logging::LogStream& infoStream = Logger().Info();
-	Logging::LogStream& debugStream = Logger().Dbg();
-
-	infoStream << "\n- initialising grid" << std::endl;
-	const int gridDim = GridType::dimensionworld;
-	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
-	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
-	gridPtr->globalRefine( refine_level );
-	typedef Dune::AdaptiveLeafGridPart< GridType >
-		GridPartType;
-	GridPartType gridPart( *gridPtr );
-
-	const int polOrder = POLORDER;
-	debugStream << "  - polOrder: " << polOrder << std::endl;
-	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
-	infoStream << "  - max grid width: " << grid_width << std::endl;
-
-	return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run();
-}
-
-RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor, const int scheme_type )
 {
-	profiler().StartTiming( "SingleRun" );
+	Profiler::ScopedTiming pf_t( "SingleRun" );
 	Logging::LogStream& infoStream = Logger().Info();
 	Logging::LogStream& debugStream = Logger().Dbg();
 
