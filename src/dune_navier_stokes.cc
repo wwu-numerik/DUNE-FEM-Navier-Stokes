@@ -232,7 +232,7 @@ int main( int argc, char** argv )
 			break;
 		}
 	}
-	//	profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
+	profiler().OutputMap( mpicomm, rf );//! \TODO find out why this ain't working in refine runs
 
 	Stuff::TimeSeriesOutput out( rf );
 	out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
