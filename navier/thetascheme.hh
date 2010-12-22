@@ -71,9 +71,9 @@ namespace Dune {
 				mutable typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
 				OutputTupleType1& data_tuple_1;
 				DataWriterType1 dataWriter1_;
-				DataWriterType2 dataWriter2_;
 				CheckPointerType check_pointer_;
-				const typename Traits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space_;
+				DataWriterType2 dataWriter2_;
+				const typename Traits::OseenPassType::Traits::DiscreteSigmaFunctionSpaceType sigma_space_;
 				mutable typename Traits::OseenPassType::RhsDatacontainer rhsDatacontainer_;
 
 				typedef Stuff::L2Error< typename Traits::GridPartType >
