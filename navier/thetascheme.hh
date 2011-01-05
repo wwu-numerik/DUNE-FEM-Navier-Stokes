@@ -359,7 +359,10 @@ namespace Dune {
 												functionSpaceWrapper_,
 												currentFunctions_.discreteVelocity() /*beta*/,
 												true /*do_oseen_disc*/ );
+						if ( Parameters().getParam( "silent_stokes", true ) )
+							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
+						Logger().Info().Resume( Logging::LogStream::default_suspend_priority + 10 );
 
 						typename L2ErrorType::Errors new_error_velocity
 								= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_.discreteVelocity() );
