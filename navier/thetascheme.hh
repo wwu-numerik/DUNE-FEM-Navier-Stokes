@@ -10,6 +10,7 @@
 #include <dune/stuff/customprojection.hh>
 #include <dune/stuff/error.hh>
 #include <dune/stuff/misc.hh>
+#include <dune/stuff/profiler.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
 #include <boost/scoped_ptr.hpp>
@@ -159,6 +160,8 @@ namespace Dune {
 
 					//error calc
 					if ( Parameters().getParam( "calculate_errors", true ) ) {
+						Profiler::ScopedTiming error_time("error_calc");
+
 						errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
 						errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
@@ -275,9 +278,7 @@ namespace Dune {
 
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
-						profiler().StartTiming( "Timestep" );
 						RunInfo info = full_timestep();
-						profiler().StopTiming( "Timestep" );
 						const double real_time = timeprovider_.subTime();
 						nextStep( Traits::substep_count -1 , info );
 						timeprovider_.printRemainderEstimate( Logger().Info() );
@@ -289,6 +290,7 @@ namespace Dune {
 
 				RunInfo full_timestep()
 				{
+					Profiler::ScopedTiming fullstep_time("full_step");
 					RunInfo info;
 					for ( int i=0; i < Traits::substep_count; ++i )
 					{
@@ -364,14 +366,17 @@ namespace Dune {
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 						Logger().Info().Resume( Logging::LogStream::default_suspend_priority + 10 );
 
-						typename L2ErrorType::Errors new_error_velocity
-								= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_.discreteVelocity() );
-						typename L2ErrorType::Errors new_error_pressure
-								= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_.discretePressure() );
-						velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
-						pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
-						Logger().Info() << boost::format("Oseen iteration %d, pressure error reduction %e, velocity error reduction %e\n")
-										   % i % pressure_error_reduction % velocity_error_reduction;
+						{
+							Profiler::ScopedTiming error_time("error_calc");
+							typename L2ErrorType::Errors new_error_velocity
+									= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_.discreteVelocity() );
+							typename L2ErrorType::Errors new_error_pressure
+									= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_.discretePressure() );
+							velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
+							pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
+							Logger().Info() << boost::format("Oseen iteration %d, pressure error reduction %e, velocity error reduction %e\n")
+											   % i % pressure_error_reduction % velocity_error_reduction;
+						}
 						if ( ( ( pressure_error_reduction < 1.0 )
 							  && ( velocity_error_reduction < 1.0 ) ) )
 						{
@@ -402,6 +407,7 @@ namespace Dune {
 
 				void writeData()
 				{
+					Profiler::ScopedTiming io_time("IO");
 					dataWriter1_.write();
 					dataWriter2_.write();
 					check_pointer_.write( timeprovider_.time(), timeprovider_.timeStep() );
