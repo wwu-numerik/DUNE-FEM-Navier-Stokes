@@ -213,6 +213,8 @@ int main( int argc, char** argv )
 			}
 			break;
 		}
+		case 0:
+			Parameters().setParam( "maxref", minref );//only one run with ref=minref
 		case 5:
 		default: {
 			// ensures maxref>=minref
