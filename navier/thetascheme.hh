@@ -215,7 +215,7 @@ namespace Dune {
 
 						info.codim0			= gridPart_.grid().size( 0 );
 						info.grid_width		= current_max_gridwidth_;
-						info.run_time		= profiler().GetTiming( "Timestep" );
+						info.run_time		= -1;
 						info.delta_t		= timeprovider_.deltaT();
 						info.current_time	= timeprovider_.subTime();
 						info.viscosity		= viscosity_;
@@ -361,7 +361,7 @@ namespace Dune {
 												functionSpaceWrapper_,
 												currentFunctions_.discreteVelocity() /*beta*/,
 												true /*do_oseen_disc*/ );
-						if ( Parameters().getParam( "silent_stokes", true ) )
+						if ( Parameters().getParam( "silent_stokes", true ) && ! ( timeprovider_.timeStep() <= 1 ) )
 							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 						Logger().Info().Resume( Logging::LogStream::default_suspend_priority + 10 );
