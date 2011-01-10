@@ -390,8 +390,10 @@ namespace Dune {
 							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting..\n";
 							break;
 						}
-						if ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
-								|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
+						if (  ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
+									|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
+								|| ( pressure_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) )
+								|| ( velocity_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) ) )
 						{
 							Logger().Info() << "Oseen iteration reduced no error, aborting..\n";
 							break;
