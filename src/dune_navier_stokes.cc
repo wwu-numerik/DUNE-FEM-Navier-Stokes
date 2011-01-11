@@ -35,7 +35,7 @@
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
 
-#define NS Dune::NavierStokes::TestCase2D
+#define NS Dune::NavierStokes::TimeDisc
 //#define NS Testing::AdapterFunctionsVisco
 //#define NS Testing::AdapterFunctionsVectorial
 //#define NS Testing::AdapterFunctionsScalar
@@ -168,9 +168,10 @@ int main( int argc, char** argv )
 			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
+			Stuff::LoopTimer<int,Logging::LogStream> loop_timer( current_step, dt_steps, Logger().Info() );
 			for ( double viscosity = Parameters().getParam( "viscosity", 0.1, Dune::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
-				  ++current_step )
+				  ++loop_timer )
 			{
 				rf[current_step] = singleRun( mpicomm, minref );
 				assert( rf.size() );
@@ -186,9 +187,10 @@ int main( int argc, char** argv )
 			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
+			Stuff::LoopTimer<int,Logging::LogStream> loop_timer( current_step, dt_steps, Logger().Info() );
 			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1, Dune::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
-				  ++current_step )
+				  ++loop_timer )
 			{
 				rf[current_step] = singleRun( mpicomm, minref );
 				assert( rf.size() );
@@ -202,9 +204,11 @@ int main( int argc, char** argv )
 		case 7: {
 			Logger().Info() << "Scheme runs\n";
 			profiler().Reset( 4 );
-			for ( int current_scheme = 2;
+			int current_scheme = 2;
+			Stuff::LoopTimer<int,Logging::LogStream> loop_timer( current_scheme, 5, Logger().Info() );
+			for ( ;
 				  current_scheme < 6;
-				  ++current_scheme )
+				  ++loop_timer )
 			{
 				rf[current_scheme] = singleRun( mpicomm, minref, current_scheme );
 				assert( rf.size() );
@@ -221,9 +225,11 @@ int main( int argc, char** argv )
 			const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
 			profiler().Reset( maxref - minref + 1 );
 			Logger().Info() << "Grid refine runs\n";
-			for ( unsigned int ref = minref;
+			unsigned int ref = minref;
+			Stuff::LoopTimer<unsigned int,Logging::LogStream> loop_timer( ref, maxref - minref, Logger().Info() );
+			for ( ;
 				  ref <= maxref;
-				  ++ref )
+				  ++loop_timer )
 			{
 				rf[ref] = singleRun( mpicomm, ref );
 				rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
