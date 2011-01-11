@@ -1553,6 +1553,261 @@ namespace Dune {
 
 		}//end namespace DrivenCavity
 
+		namespace TimeDisc {
+			template < class FunctionSpaceImp >
+			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			{
+				  public:
+					  typedef Force< FunctionSpaceImp >
+						  ThisType;
+					  typedef Function < FunctionSpaceImp ,ThisType >
+						  BaseType;
+					  typedef typename BaseType::DomainType
+						  DomainType;
+					  typedef typename BaseType::RangeType
+						  RangeType;
+
+					  /**
+					   *  \brief  constructor
+					   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
+					   **/
+					  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
+						  : BaseType ( space ),
+							viscosity_( viscosity ),
+							alpha_( alpha )
+					  {}
+
+					  /**
+					   *  \brief  destructor
+					   *  doing nothing
+					   **/
+					  ~Force()
+					  {}
+
+					  /**
+					   *  \brief  evaluates the force
+					   *  \param  arg
+					   *          point to evaluate at
+					   *  \param  ret
+					   *          value of force at given point
+					   **/
+					  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+					  {
+						  const double x			= arg[0];
+						  const double y			= arg[1];
+						  const double v			= viscosity_;
+						  //laplce
+						  ret[0] = -2*std::pow(time,3.0)*v;
+						  ret[1] = 0;
+						  //grad p
+						  ret[0] += time;
+						  ret[1] += 1;
+						  //conv
+						  ret[0] += std::pow(time,5.0)*2*x*y;
+						  ret[1] += std::pow(time,5.0)*y*y;
+						  //dt u
+						  ret[0] += std::pow(time,2.0)*3*y*y;
+						  ret[1] += 2*time*x;
+
+
+					  }
+					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
+
+				  private:
+					  const double viscosity_;
+					  const double alpha_;
+					  static const int dim_ = FunctionSpaceImp::dimDomain;
+			};
+
+			template < class FunctionSpaceImp >
+			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			{
+				public:
+					typedef DirichletData< FunctionSpaceImp >
+						ThisType;
+					typedef Function< FunctionSpaceImp, ThisType >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					DirichletData( const FunctionSpaceImp& space,
+								 const double parameter_a = M_PI /2.0 ,
+								 const double parameter_d = M_PI /4.0)
+						: BaseType( space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					~DirichletData()
+					{}
+
+					template < class IntersectionType >
+					void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& intersection ) const
+					{
+						ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
+						ret[1] = std::pow(time,2.0)* arg[0];
+					}
+
+					inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
+
+				private:
+					  static const int dim_ = FunctionSpaceImp::dimDomain ;
+					  const double parameter_a_;
+					  const double parameter_d_;
+			};
+
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class Velocity : public TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef Velocity< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					Velocity(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					~Velocity()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+						ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
+						ret[1] = std::pow(time,2.0)* arg[0];
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+
+			template <	class FunctionSpaceImp,
+						class TimeProviderImp >
+			class Pressure : public TimeFunction <	FunctionSpaceImp ,
+													Pressure < FunctionSpaceImp,TimeProviderImp >,
+													TimeProviderImp >
+			{
+				public:
+					typedef Pressure< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+				  Pressure( const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					  : BaseType( timeprovider, space ),
+					  parameter_a_( parameter_a ),
+					  parameter_d_( parameter_d )
+				  {}
+
+				   ~Pressure()
+				   {}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+						ret = time * arg[0] + arg[1] - ( ( time + 1 ) / 2.0 );
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					VelocityLaplace(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					~VelocityLaplace() {}
+
+					void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
+					{
+						ret[0] = 2*std::pow(time,3.0);
+						ret[1] = 0;
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+			{
+				public:
+					typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+					VelocityConvection(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
+
+					~VelocityConvection()
+					{}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+						const double x			= arg[0];
+						const double y			= arg[1];
+						ret[0] = std::pow(time,5.0)*2*x*y;
+						ret[1] = std::pow(time,5.0)*y*y;;
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+		}//end namespace TrivialTestCase
+
 	}//end namespace NavierStokes
 }//end namespace Dune
 #endif // TESTDATA_HH
