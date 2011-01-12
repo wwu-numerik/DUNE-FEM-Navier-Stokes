@@ -35,7 +35,7 @@
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
 
-#define NS Dune::NavierStokes::TimeDisc
+#define NS Dune::NavierStokes::TestCase2D
 //#define NS Testing::AdapterFunctionsVisco
 //#define NS Testing::AdapterFunctionsVectorial
 //#define NS Testing::AdapterFunctionsScalar
@@ -187,7 +187,7 @@ int main( int argc, char** argv )
 			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
-			Stuff::LoopTimer<int,Logging::LogStream> loop_timer( current_step, dt_steps, Logger().Info() );
+			Stuff::LoopTimer<int,Logging::LogStream,Stuff::QuadraticWeights> loop_timer( current_step, dt_steps, Logger().Info() );
 			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1, Dune::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
 				  ++loop_timer )
@@ -217,16 +217,16 @@ int main( int argc, char** argv )
 			}
 			break;
 		}
-		case 0:
-			Parameters().setParam( "maxref", minref );//only one run with ref=minref
 		case 5:
+			Parameters().setParam( "maxref", minref );//only one run with ref=minref
+		case 0:
 		default: {
 			// ensures maxref>=minref
 			const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
 			profiler().Reset( maxref - minref + 1 );
 			Logger().Info() << "Grid refine runs\n";
 			unsigned int ref = minref;
-			Stuff::LoopTimer<unsigned int,Logging::LogStream> loop_timer( ref, maxref - minref, Logger().Info() );
+			Stuff::LoopTimer<unsigned int,Logging::LogStream,Stuff::LinearWeights> loop_timer( ref, maxref - minref + 1, Logger().Info() );
 			for ( ;
 				  ref <= maxref;
 				  ++loop_timer )
