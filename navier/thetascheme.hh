@@ -215,7 +215,7 @@ namespace Dune {
 
 						info.codim0			= gridPart_.grid().size( 0 );
 						info.grid_width		= current_max_gridwidth_;
-						info.run_time		= -1;
+						info.run_time		= profiler().GetTiming( "full_step" );
 						info.delta_t		= timeprovider_.deltaT();
 						info.current_time	= timeprovider_.subTime();
 						info.viscosity		= viscosity_;
