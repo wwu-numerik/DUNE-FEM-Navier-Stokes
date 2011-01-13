@@ -112,8 +112,9 @@ typedef std::vector<std::string>
 			the set of coefficients to be used in the run. Default is used in all run types but StabRun().
 
 **/
-RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
-					int refine_level_factor, const int scheme_type = Parameters().getParam( "scheme_type", 1, true ) );
+RunInfoTimeMap singleRun(	CollectiveCommunication& mpicomm,
+							const int refine_level_factor,
+							const int scheme_type );
 //! output alert for neg. EOC
 //void eocCheck( const RunInfoVector& runInfos );
 
@@ -173,7 +174,7 @@ int main( int argc, char** argv )
 				  dt_steps > current_step;
 				  ++loop_timer )
 			{
-				rf[current_step] = singleRun( mpicomm, minref );
+				rf[current_step] = singleRun( mpicomm, minref, Parameters().getParam( "scheme_type", 1, true ) );
 				assert( rf.size() );
 				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
@@ -192,7 +193,7 @@ int main( int argc, char** argv )
 				  dt_steps > current_step;
 				  ++loop_timer )
 			{
-				rf[current_step] = singleRun( mpicomm, minref );
+				rf[current_step] = singleRun( mpicomm, minref, Parameters().getParam( "scheme_type", 1, true ) );
 				assert( rf.size() );
 				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
@@ -231,7 +232,7 @@ int main( int argc, char** argv )
 				  ref <= maxref;
 				  ++loop_timer )
 			{
-				rf[ref] = singleRun( mpicomm, ref );
+				rf[ref] = singleRun( mpicomm, ref, Parameters().getParam( "scheme_type", 1, true ) );
 				rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
 				profiler().NextRun();
 			}
@@ -319,7 +320,7 @@ class ThetaschemeRunner {
 };
 
 RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
-					int refine_level_factor, const int scheme_type )
+					const int refine_level_factor, const int scheme_type )
 {
 	Profiler::ScopedTiming pf_t( "SingleRun" );
 	Logging::LogStream& infoStream = Logger().Info();
@@ -328,7 +329,7 @@ RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
 	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
-	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
+	const int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
 	gridPtr->globalRefine( refine_level );
 	typedef Dune::AdaptiveLeafGridPart< GridType >
 		GridPartType;
