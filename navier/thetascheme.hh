@@ -406,7 +406,7 @@ namespace Dune {
 						}
 						if ( abort_loop )
 						{
-							Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e\n")
+							Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
 																		   % i % pressure_error_reduction % velocity_error_reduction
 																		<< std::endl;
 							break;
