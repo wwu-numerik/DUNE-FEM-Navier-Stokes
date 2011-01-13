@@ -157,6 +157,7 @@ namespace Dune {
 					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
 					currentFunctions_.assign( nextFunctions_ );
 					exactSolution_.project();
+					const bool last_substep = ( step == ( Traits::ThetaSchemeDescriptionType::numberOfSteps_ -1) );
 
 					//error calc
 					if ( Parameters().getParam( "calculate_errors", true ) ) {
@@ -173,11 +174,11 @@ namespace Dune {
 						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 						Dune::H1Norm< typename Traits::GridPartType > h1_Error( gridPart_ );
 
-						if ( Parameters().getParam( "error_scaling", false ) ) {
-								const double scale		= 1 / std::sqrt( viscosity_ );
-								errorFunctions_.discretePressure() *= scale;
-								errorFunctions_.discreteVelocity() *= scale;
-						}
+//						if ( Parameters().getParam( "error_scaling", false ) ) {
+//								const double scale		= 1 / std::sqrt( viscosity_ );
+//								errorFunctions_.discretePressure() *= scale;
+//								errorFunctions_.discreteVelocity() *= scale;
+//						}
 
 						const double l2_error_pressure_				= l2_Error.norm( errorFunctions_.discretePressure() );
 						const double l2_error_velocity_				= l2_Error.norm( errorFunctions_.discreteVelocity() );
@@ -193,12 +194,20 @@ namespace Dune {
 						h1_error_vector.push_back( h1_error_velocity_ );
 						h1_error_vector.push_back( h1_error_pressure_ );
 
-
-						Logger().Info().Resume();
-						Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \n") % l2_error_pressure_ % relative_l2_error_pressure_
-										<< boost::format ("L2-Error Velocity (abs|rel): %e | %e \n") % l2_error_velocity_ % relative_l2_error_velocity_
-										<< boost::format ("H1-Error Velocity (abs|rel): %e | %e \n") % h1_error_velocity_ % relative_h1_error_velocity_
-										<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl;
+					#ifdef NDEBUG
+						if ( last_substep ) //no need to be so verbose otherwise
+					#endif
+						{
+							Logger().Info().Resume();
+							Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \t Velocity (abs|rel): %e | %e \n")
+												% l2_error_pressure_ % relative_l2_error_pressure_
+												% l2_error_velocity_ % relative_l2_error_velocity_
+										#ifndef NDEBUG
+											<< boost::format ("H1-Error Velocity (abs|rel): %e | %e") % h1_error_velocity_ % relative_h1_error_velocity_
+											<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete
+										#endif
+											<< std::endl;
+						}
 						const double max_l2_error = 1e4;
 						if ( l2_error_velocity_ > max_l2_error )
 							DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
@@ -207,7 +216,6 @@ namespace Dune {
 					}
 					//end error calc
 
-					const bool last_substep = ( step == ( Traits::ThetaSchemeDescriptionType::numberOfSteps_ -1) );
 					if ( last_substep ) {
 						typedef Dune::StabilizationCoefficients::ValueType
 							Pair;
@@ -240,12 +248,12 @@ namespace Dune {
 						info.problemIdentifier	= TESTCASE_NAME;
 						info.algo_id			= scheme_params_.algo_id;
 						info.extra_info			= (boost::format("%s on %s") % COMMIT % std::getenv("HOSTNAME") ).str();
-					}
 
-					Logger().Info() << boost::format("current time (substep %d ): %f (%f)\n")
-										   % step
-										   % timeprovider_.subTime()
-										   % timeprovider_.previousSubTime();
+						Logger().Info() << boost::format("current time (substep %d ): %f (%f)\n")
+											   % step
+											   % timeprovider_.subTime()
+											   % timeprovider_.previousSubTime();
+					}
 
 					if ( last_substep || !Parameters().getParam( "write_fulltimestep_only", false ) )
 						writeData();
@@ -255,12 +263,6 @@ namespace Dune {
 
 				void Init()
 				{
-//					typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType::RangeType meanVelocity
-//							= Stuff::meanValue( currentFunctions_.discreteVelocity(), currentFunctions_.discreteVelocity().space() );
-//					const double typicalVelocity = meanVelocity.two_norm();
-//					Stuff::printFieldVector( meanVelocity, "meanVelocity", Logger().Info() );
-//					Logger().Info() << "typicalVelocity " << typicalVelocity << std::endl;
-
 					timeprovider_.init( d_t_ );
 					//initial flow field at t = 0
 					exactSolution_.project();
@@ -376,28 +378,37 @@ namespace Dune {
 									= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_.discretePressure() );
 							velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
 							pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
-							Logger().Info() << boost::format("Oseen iteration %d, pressure error reduction %e, velocity error reduction %e\n")
-											   % i % pressure_error_reduction % velocity_error_reduction;
 						}
+
+						currentFunctions_.assign( nextFunctions_ );
+
+						bool abort_loop = false;
 						if ( ( ( pressure_error_reduction < 1.0 )
 							  && ( velocity_error_reduction < 1.0 ) ) )
 						{
-							Logger().Info() << "Oseen iteration increased error, aborting..\n";
-							break;
+							Logger().Info() << "Oseen iteration increased error, aborting.. -- ";
+							abort_loop = true;
 						}
-						currentFunctions_.assign( nextFunctions_ );
+
 						if ( ( pressure_error_reduction > 10.0 )
 								|| ( velocity_error_reduction > 10.0 ) )
 						{
-							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting..\n";
-							break;
+							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting.. -- ";
+							abort_loop = true;
 						}
 						if (  ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
 									|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
 								|| ( pressure_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) )
 								|| ( velocity_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) ) )
 						{
-							Logger().Info() << "Oseen iteration reduced no error, aborting..\n";
+							Logger().Info() << "Oseen iteration reduced no error, aborting.. -- ";
+							abort_loop = true;
+						}
+						if ( abort_loop )
+						{
+							Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e\n")
+																		   % i % pressure_error_reduction % velocity_error_reduction
+																		<< std::endl;
 							break;
 						}
 					} while ( i++ < oseen_iterations ) ;
@@ -414,7 +425,7 @@ namespace Dune {
 					Profiler::ScopedTiming io_time("IO");
 					dataWriter1_.write();
 					dataWriter2_.write();
-					check_pointer_.write( timeprovider_.time(), timeprovider_.timeStep() );
+//					check_pointer_.write( timeprovider_.time(), timeprovider_.timeStep() );
 				}
 
 				typename Traits::OseenPassType::RhsDatacontainer& rhsDatacontainer()
