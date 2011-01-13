@@ -122,7 +122,7 @@ namespace Dune {
 						long remaining_steps = total_stepcount_estimate_ - ( timeStep_ );
 						double remaining_seconds = remaining_steps * double(avg_time_per_step_);
 						boost::posix_time::time_duration diff(0,0,remaining_seconds,0);
-						stream << boost::format("\n---\nTime remaining: %s (%f %%)\n---\n\n")
+						stream << boost::format("\n---\nTime remaining: %s (%f %%)\n---\n")
 									% boost::posix_time::to_simple_string(diff) % (100 * ( remaining_steps/double(total_stepcount_estimate_) ) );
 					}
 
