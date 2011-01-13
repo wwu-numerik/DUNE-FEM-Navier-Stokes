@@ -29,6 +29,7 @@ namespace Dune {
 			TimestepArray step_sizes_;
 			std::string algo_id;
 
+		private:
 			ThetaSchemeDescription()
 				:algo_id( "N.A." )
 			{}
@@ -43,8 +44,7 @@ namespace Dune {
 				Stuff::fill_entirely( step_sizes_, dt );
 			}
 
-
-
+		public:
 			static ThetaSchemeDescription<1> crank_nicholson( double delta_t )
 			{
 				ThetaValueArray c;
@@ -65,7 +65,7 @@ namespace Dune {
 				ThetaValueArray c = { 1.0f ,  0.0f ,  0.0f ,  1.0f  }  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThetaSchemeDescription<1> ( a, delta_t, "BEW" );
+				return ThetaSchemeDescription<1> ( a, delta_t, "BWE" );
 			}
 			static ThetaSchemeDescription<3> fs0( double delta_t )
 			{
@@ -114,7 +114,7 @@ namespace Dune {
 		template <class Stream, int N>
 	    inline Stream& operator<< (Stream& s, ThetaSchemeDescription<N> desc )
 	    {
-			s << boost::format("%d-step theta-scheme description:\n") % N;
+			s << boost::format("%s (%d-step) scheme description:\n") % desc.algo_id % N;
 			for ( int i = 0; i < N; ++i ) {
 				s << boost::format ( "dt_k: %e\ttheta1: %e\ttheta2: %e\ttheta3: %e\ttheta4: %e\n")//ideally this could be re-used, but that result in exception 'too-few-args"..
 							% desc.step_sizes_[i]
