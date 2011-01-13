@@ -294,23 +294,31 @@ class ThetaschemeRunner {
 		RunInfoTimeMap run(const int scheme_type)
 		{
 			const double dt_ = Parameters().getParam( "fem.timeprovider.dt", double(0.1) );
-			switch ( scheme_type ) {
-				case 1: return OneStepThetaSchemeType(grid_part_,
-				                                      OneStepThetaSchemeDescriptionType::forward_euler( dt_ ) )
-									.run();
-				case 2: return OneStepThetaSchemeType(grid_part_,
-													  OneStepThetaSchemeDescriptionType::backward_euler( dt_ ) )
-									.run();
-				case 3: return OneStepThetaSchemeType(grid_part_,
-													  OneStepThetaSchemeDescriptionType::crank_nicholson( dt_ ) )
-									.run();
-				case 4: return ThreeStepThetaSchemeType(grid_part_,
-				                                      ThreeStepThetaSchemeDescriptionType::fs0( dt_ ) )
-									.run();
-				default: Logger().Info() << "Using default value for theta scheme type\n";
-				case 5: return ThreeStepThetaSchemeType(grid_part_,
-													  ThreeStepThetaSchemeDescriptionType::fs1( dt_ ) )
-									.run();
+			try
+			{
+				switch ( scheme_type ) {
+					case 1: return OneStepThetaSchemeType(grid_part_,
+														  OneStepThetaSchemeDescriptionType::forward_euler( dt_ ) )
+										.run();
+					case 2: return OneStepThetaSchemeType(grid_part_,
+														  OneStepThetaSchemeDescriptionType::backward_euler( dt_ ) )
+										.run();
+					case 3: return OneStepThetaSchemeType(grid_part_,
+														  OneStepThetaSchemeDescriptionType::crank_nicholson( dt_ ) )
+										.run();
+					case 4: return ThreeStepThetaSchemeType(grid_part_,
+														  ThreeStepThetaSchemeDescriptionType::fs0( dt_ ) )
+										.run();
+					default: Logger().Info() << "Using default value for theta scheme type\n";
+					case 5: return ThreeStepThetaSchemeType(grid_part_,
+														  ThreeStepThetaSchemeDescriptionType::fs1( dt_ ) )
+										.run();
+				}
+			}
+			catch ( Stuff::singlerun_abort_exception& e )
+			{
+				Logger().Err() << e.what() << std::endl;
+				return RunInfoTimeMap();
 			}
 		}
 

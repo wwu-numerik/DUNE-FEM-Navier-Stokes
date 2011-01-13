@@ -211,6 +211,8 @@ namespace Dune {
 						const double max_l2_error = 1e4;
 						if ( l2_error_velocity_ > max_l2_error )
 							DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
+						if ( std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ )  )
+							throw Stuff::singlerun_abort_exception("L2 error is Nan");
 						info.L2Errors		= error_vector;
 						info.H1Errors		= h1_error_vector;
 					}
