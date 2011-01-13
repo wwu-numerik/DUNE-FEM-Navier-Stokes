@@ -282,11 +282,17 @@ namespace Dune {
 
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
-						RunInfo info = full_timestep();
-						const double real_time = timeprovider_.subTime();
-						nextStep( Traits::substep_count -1 , info );
-						timeprovider_.printRemainderEstimate( Logger().Info() );
-						runInfoMap[real_time] = info;
+						try {
+							RunInfo info = full_timestep();
+							const double real_time = timeprovider_.subTime();
+							nextStep( Traits::substep_count -1 , info );
+							timeprovider_.printRemainderEstimate( Logger().Info() );
+							runInfoMap[real_time] = info;
+						}
+						catch ( Stuff::singlerun_abort_exception& e ) {
+							Logger().Err() << e.what() << std::endl;
+							return runInfoMap;
+						}
 					}
 					assert( runInfoMap.size() > 0 );
 					return runInfoMap;
