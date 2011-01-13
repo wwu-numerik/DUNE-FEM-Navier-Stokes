@@ -304,10 +304,10 @@ class ThetaschemeRunner {
 				case 3: return OneStepThetaSchemeType(grid_part_,
 													  OneStepThetaSchemeDescriptionType::crank_nicholson( dt_ ) )
 									.run();
-				default: Logger().Info() << "Using default value for theta scheme type\n";
 				case 4: return ThreeStepThetaSchemeType(grid_part_,
 				                                      ThreeStepThetaSchemeDescriptionType::fs0( dt_ ) )
 									.run();
+				default: Logger().Info() << "Using default value for theta scheme type\n";
 				case 5: return ThreeStepThetaSchemeType(grid_part_,
 													  ThreeStepThetaSchemeDescriptionType::fs1( dt_ ) )
 									.run();
