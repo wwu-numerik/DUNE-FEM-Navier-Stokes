@@ -199,22 +199,23 @@ namespace Dune {
 					#endif
 						{
 							Logger().Info().Resume();
-							Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \t Velocity (abs|rel): %e | %e \n")
+							Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \t Velocity (abs|rel): %e | %e")
 												% l2_error_pressure_ % relative_l2_error_pressure_
 												% l2_error_velocity_ % relative_l2_error_velocity_
 										#ifndef NDEBUG
-											<< boost::format ("H1-Error Velocity (abs|rel): %e | %e") % h1_error_velocity_ % relative_h1_error_velocity_
-											<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete
+											<< boost::format ("\nH1-Error Velocity (abs|rel): %e | %e \t Mean pressure (exact|discrete) %e | %e")
+												% h1_error_velocity_ % relative_h1_error_velocity_
+												% meanPressure_exact % meanPressure_discrete
 										#endif
 											<< std::endl;
 						}
 						const double max_l2_error = 1e4;
-						if ( l2_error_velocity_ > max_l2_error )
-							DUNE_THROW(MathError, "Aborted, L2 error above " << max_l2_error );
-						if ( std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ )  )
-							throw Stuff::singlerun_abort_exception("L2 error is Nan");
 						info.L2Errors		= error_vector;
 						info.H1Errors		= h1_error_vector;
+						if ( l2_error_velocity_ > max_l2_error )
+							throw Stuff::singlerun_abort_exception( "Aborted, L2 error above " + Stuff::toString(max_l2_error) );
+						if ( std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ )  )
+							throw Stuff::singlerun_abort_exception("L2 error is Nan");
 					}
 					//end error calc
 
@@ -282,17 +283,23 @@ namespace Dune {
 
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
+						RunInfo info = full_timestep();
+						const double real_time = timeprovider_.subTime();
 						try {
-							RunInfo info = full_timestep();
-							const double real_time = timeprovider_.subTime();
 							nextStep( Traits::substep_count -1 , info );
-							timeprovider_.printRemainderEstimate( Logger().Info() );
-							runInfoMap[real_time] = info;
 						}
 						catch ( Stuff::singlerun_abort_exception& e ) {
 							Logger().Err() << e.what() << std::endl;
+							//fill up the map with dummy data so it can still be used in output
+							runInfoMap[real_time] = info;
+							for( ;timeprovider_.time() <= timeprovider_.endTime(); ) {
+								timeprovider_.nextFractional();
+								runInfoMap[timeprovider_.subTime()] = RunInfo::dummy();
+							}
 							return runInfoMap;
 						}
+						timeprovider_.printRemainderEstimate( Logger().Info() );
+						runInfoMap[real_time] = info;
 					}
 					assert( runInfoMap.size() > 0 );
 					return runInfoMap;
