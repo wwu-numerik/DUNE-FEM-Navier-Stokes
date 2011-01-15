@@ -209,10 +209,10 @@ namespace Dune {
 										#endif
 											<< std::endl;
 						}
-						const double max_l2_error = 1e4;
+						const double max_l2_error = Parameters().getParam( "max_error", 1e2, Dune::ValidateGreater<double>(0.0) );
 						info.L2Errors		= error_vector;
 						info.H1Errors		= h1_error_vector;
-						if ( l2_error_velocity_ > max_l2_error )
+						if ( l2_error_velocity_ > max_l2_error || l2_error_pressure_ > max_l2_error )
 							throw Stuff::singlerun_abort_exception( "Aborted, L2 error above " + Stuff::toString(max_l2_error) );
 						if ( std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ )  )
 							throw Stuff::singlerun_abort_exception("L2 error is Nan");
