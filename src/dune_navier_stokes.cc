@@ -118,6 +118,8 @@ RunInfoTimeMap singleRun(	CollectiveCommunication& mpicomm,
 //! output alert for neg. EOC
 //void eocCheck( const RunInfoVector& runInfos );
 
+bool setSchemeTypeFromString();
+
 /**
  *  \brief  main function
  *
@@ -158,6 +160,8 @@ int main( int argc, char** argv )
 					 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
 					 Parameters().getParam( "fem.io.datadir",   std::string(),              useLogger )
 					);
+	if ( setSchemeTypeFromString() )
+		Logger().Info() << "overrode scheme id from string" << std::endl;
 
 	int err = 0;
 	const unsigned int minref = Parameters().getParam( "minref", 0, Dune::ValidateNotLess<int>(0) );
@@ -362,6 +366,21 @@ RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	}
 	return RunInfoTimeMap();
 #endif
+}
+
+bool setSchemeTypeFromString()
+{
+	bool changed = false;
+	if ( Dune::Parameter::exists("scheme_type_string") )
+	{
+		const std::vector<std::string>& scheme_names = Dune::NavierStokes::ThetaSchemeDescription<0>::scheme_names;
+		Stuff::ValidateInList<std::string> validator( scheme_names );
+		const std::string scheme_string = Parameters().getParam("scheme_type_string", scheme_names.back(), validator );
+		const int scheme_id = Stuff::getIdx( scheme_names, scheme_string );
+		Parameters().setParam( "scheme_type", scheme_id );
+		changed = true;
+	}
+	return changed;
 }
 
 //void eocCheck( const RunInfoVector& runInfos )

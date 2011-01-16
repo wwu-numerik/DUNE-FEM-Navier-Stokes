@@ -12,10 +12,14 @@
 
 namespace Dune {
 	namespace NavierStokes {
+		namespace {
+			const std::string scheme_names_array[] = {"N.A.","FWE", "BWE", "CN", "FS0", "FS1"};
+		}
 		//! for each step keep a set of theta values and one value for dt
 		// thetas_[stepnumber][theta_subscript_index]
 		template < int numberOfSteps >
 		struct ThetaSchemeDescription {
+			static const std::vector<std::string> scheme_names;
 			typedef ThetaSchemeDescription< numberOfSteps >
 				ThisType;
 			static const int numberOfSteps_ = numberOfSteps;
@@ -51,21 +55,21 @@ namespace Dune {
 				Stuff::fill_entirely( c, 0.5f );
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThisType ( a, delta_t, "CN" );
+				return ThisType ( a, delta_t, scheme_names[3] );
 			}
 			static ThetaSchemeDescription<1> forward_euler( double delta_t )
 			{
 				ThetaValueArray c = { 0.0f ,  1.0f ,  1.0f ,  0.0f  }  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThetaSchemeDescription<1> ( a, delta_t, "FWE" );
+				return ThetaSchemeDescription<1> ( a, delta_t, scheme_names[1] );
 			}
 			static ThetaSchemeDescription<1> backward_euler( double delta_t )
 			{
 				ThetaValueArray c = { 1.0f ,  0.0f ,  0.0f ,  1.0f  }  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
-				return ThetaSchemeDescription<1> ( a, delta_t, "BWE" );
+				return ThetaSchemeDescription<1> ( a, delta_t, scheme_names[2] );
 			}
 			static ThetaSchemeDescription<3> fs0( double delta_t )
 			{
@@ -86,7 +90,7 @@ namespace Dune {
 				c[0] = theta * delta_t;
 				c[1] = theta_squigly * delta_t;
 				c[2] = theta * delta_t;
-				return ReturnType ( a, c, "FS0" );
+				return ReturnType ( a, c, scheme_names[4] );
 			}
 			static ThetaSchemeDescription<3> fs1( double delta_t )
 			{
@@ -107,9 +111,12 @@ namespace Dune {
 				c[0] = theta * delta_t;
 				c[1] = theta_squigly * delta_t;
 				c[2] = theta * delta_t;
-				return ReturnType ( a, c, "FS1" );
+				return ReturnType ( a, c, scheme_names[5] );
 			}
 		};
+
+		template <int N>
+		const std::vector<std::string> ThetaSchemeDescription<N>::scheme_names (scheme_names_array,scheme_names_array+6);
 
 		template <class Stream, int N>
 	    inline Stream& operator<< (Stream& s, ThetaSchemeDescription<N> desc )
