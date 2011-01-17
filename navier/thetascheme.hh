@@ -405,13 +405,13 @@ namespace Dune {
 							abort_loop = true;
 						}
 
-						if ( ( pressure_error_reduction > 10.0 )
+						else if ( ( pressure_error_reduction > 10.0 )
 								|| ( velocity_error_reduction > 10.0 ) )
 						{
 							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting.. -- ";
 							abort_loop = true;
 						}
-						if (  ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
+						else if (  ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
 									|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
 								|| ( pressure_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) )
 								|| ( velocity_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) ) )
@@ -419,14 +419,14 @@ namespace Dune {
 							Logger().Info() << "Oseen iteration reduced no error, aborting.. -- ";
 							abort_loop = true;
 						}
-						if ( abort_loop )
+						if ( abort_loop || i++ >= oseen_iterations )
 						{
 							Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
 																		   % i % pressure_error_reduction % velocity_error_reduction
 																		<< std::endl;
 							break;
 						}
-					} while ( i++ < oseen_iterations ) ;
+					} while ( true ) ;
 				}
 
 				void setUpdateFunctions() const
