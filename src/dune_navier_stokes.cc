@@ -35,6 +35,8 @@
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
 
+#define MODEL_PROVIDES_LOCALFUNCTION 1
+
 #define NS Dune::NavierStokes::TestCase2D
 //#define NS Testing::AdapterFunctionsVisco
 //#define NS Testing::AdapterFunctionsVectorial
@@ -85,8 +87,6 @@
 #ifndef COMMIT
 	#define COMMIT "undefined"
 #endif
-
-#define MODEL_PROVIDES_LOCALFUNCTION 1
 
 static const std::string commit_string (COMMIT);
 
