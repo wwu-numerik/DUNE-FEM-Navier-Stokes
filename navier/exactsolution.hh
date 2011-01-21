@@ -1,6 +1,8 @@
 #ifndef EXACTSOLUTION_HH
 #define EXACTSOLUTION_HH
 
+#include <dune/stuff/customprojection.hh>
+
 namespace Dune {
 	namespace NavierStokes {
 
@@ -58,6 +60,15 @@ namespace Dune {
 				typename TraitsType::ExactPressureType& exactPressure()
 				{
 					return pressure_;
+				}
+
+				void atTime( const double time, BaseType& dest ) const
+				{
+					Dune::BetterL2Projection
+						::project( time, pressure_, dest.discretePressure() );
+
+					Dune::BetterL2Projection
+						::project( time, velocity_, dest.discreteVelocity() );
 				}
 
 			public:

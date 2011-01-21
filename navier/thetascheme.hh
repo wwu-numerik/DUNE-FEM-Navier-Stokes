@@ -266,14 +266,14 @@ namespace Dune {
 
 				void Init()
 				{
-					timeprovider_.init( d_t_ );
+					typename Traits::TimeProviderType::StepZeroGuard
+						step0( timeprovider_.stepZeroGuard( d_t_ ) );
 					//initial flow field at t = 0
 					exactSolution_.project();
 					currentFunctions_.assign( exactSolution_ );
 					nextFunctions_.assign( exactSolution_ );
 					writeData();
-					//set current time to t_0 + dt_k
-					timeprovider_.nextFractional();
+					//the guard dtor sets current time to t_0 + dt_k
 				}
 
 				RunInfoTimeMap run()
@@ -343,6 +343,9 @@ namespace Dune {
 																										theta_values,
 																										rhsDatacontainer_ )
 											);
+					typename Traits::DiscreteStokesFunctionWrapperType
+							exactSolution_at_next_time ( "reoh", exactSolution_.space(), gridPart_ );
+					exactSolution_.atTime( timeprovider_.nextSubTime(), exactSolution_at_next_time  );
 					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::AnalyticalDirichletDataType oseenDirichletData =
@@ -353,9 +356,9 @@ namespace Dune {
 					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1), ValidateGreater<unsigned int>( 0 ) );
 					const double dt_n = timeprovider_.deltaT();
 					typename L2ErrorType::Errors old_error_velocity
-							= l2Error_.get( currentFunctions().discreteVelocity(), exactSolution_.discreteVelocity() );
+							= l2Error_.get( currentFunctions().discreteVelocity(), exactSolution_at_next_time.discreteVelocity() );
 					typename L2ErrorType::Errors old_error_pressure
-							= l2Error_.get( currentFunctions().discretePressure(), exactSolution_.discretePressure() );
+							= l2Error_.get( currentFunctions().discretePressure(), exactSolution_at_next_time.discretePressure() );
 					double velocity_error_reduction = 1.0;
 					double pressure_error_reduction = 1.0;
 					unsigned int i = 0;
@@ -388,9 +391,9 @@ namespace Dune {
 						{
 							Profiler::ScopedTiming error_time("error_calc");
 							typename L2ErrorType::Errors new_error_velocity
-									= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_.discreteVelocity() );
+									= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_at_next_time.discreteVelocity() );
 							typename L2ErrorType::Errors new_error_pressure
-									= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_.discretePressure() );
+									= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_at_next_time.discretePressure() );
 							velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
 							pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
 						}

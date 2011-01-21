@@ -13,7 +13,7 @@ namespace Dune {
 
 		template< class SchemeParameterType, class CommProvider = DefaultCollectiveCommunicationType >
 		class FractionalTimeProvider : public TimeProvider < CommProvider > {
-					typedef FractionalTimeProvider< CommProvider >
+					typedef FractionalTimeProvider< SchemeParameterType, CommProvider >
 						ThisType;
 					typedef TimeProvider< CommProvider >
 						BaseType;
@@ -23,6 +23,20 @@ namespace Dune {
 					using BaseType :: time;
 					using BaseType :: timeStep;
 					using BaseType :: deltaT;
+
+					class StepZeroGuard {
+						ThisType& timeprovider_;
+						public:
+							StepZeroGuard( const double initial_dt_, ThisType& timeprovider )
+								:timeprovider_(timeprovider)
+							{
+								timeprovider_.init( initial_dt_ );
+							}
+							~StepZeroGuard()
+							{
+								timeprovider_.nextFractional();
+							}
+					};
 
 				protected:
 					using BaseType :: comm_;
@@ -75,7 +89,13 @@ namespace Dune {
 					//! equivalent of t_{k}
 					const double previousSubTime( ) const
 					{
-						const double t = subTime() - theta_scheme_parameter_.step_sizes_[current_substep_];
+						const double t = subTime() - theta_scheme_parameter_.step_sizes_[current_substep_-1];
+						return Stuff::clamp( t, double(0.0), t);
+					}
+					//! equivalent of t_{k+2}??
+					const double nextSubTime( ) const
+					{
+						const double t = subTime() + theta_scheme_parameter_.step_sizes_[current_substep_];
 						return Stuff::clamp( t, double(0.0), t);
 					}
 
@@ -128,6 +148,11 @@ namespace Dune {
 									% boost::posix_time::to_simple_string(diff)
 									% boost::posix_time::to_simple_string(target)
 									% (100 * ( remaining_steps/double(total_stepcount_estimate_) ) );
+					}
+
+					StepZeroGuard stepZeroGuard( const double dt )
+					{
+						return StepZeroGuard( dt, *this );
 					}
 
 				protected:
