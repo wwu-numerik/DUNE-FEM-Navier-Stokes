@@ -384,7 +384,7 @@ namespace Dune {
 												functionSpaceWrapper_,
 												currentFunctions_.discreteVelocity() /*beta*/,
 												true /*do_oseen_disc*/ );
-						if ( timeprovider_.timeStep() <= 1 )
+						if ( timeprovider_.timeStep() <= 1 && i < 1)
 							oseenPass.printInfo();
 						if ( Parameters().getParam( "silent_stokes", true ) )
 							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
@@ -427,12 +427,17 @@ namespace Dune {
 						}
 						if ( abort_loop || i++ >= oseen_iterations )
 						{
-							Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
-																		   % i % pressure_error_reduction % velocity_error_reduction
-																		<< std::endl;
 							break;
 						}
+						else
+						{
+							Logger().Dbg() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
+																		   % i % pressure_error_reduction % velocity_error_reduction
+																		<< std::endl;
+						}
 					} while ( true ) ;
+					Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
+																   % i % pressure_error_reduction % velocity_error_reduction
 				}
 
 				void alternative_substep( const double dt_k, const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
