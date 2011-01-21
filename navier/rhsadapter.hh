@@ -182,6 +182,21 @@ namespace Dune {
 
 
 		};
+
+		//! this is just a type match wrapper for a velocity discrete function
+		template <	class TimeProviderType,
+					class AnalyticalForceType,
+					class DiscreteVelocityFunctionType,
+					class ThetaValuesType >
+		class DummyForceAdapterFunction :
+				public DiscreteVelocityFunctionType
+		{
+			public:
+				DummyForceAdapterFunction(const DiscreteVelocityFunctionType& other )
+					:DiscreteVelocityFunctionType(other)
+				{}
+		};
+
 		}//end namespace OseenStep
 	}//end namespace NavierStokes
 } //end namespace Dune

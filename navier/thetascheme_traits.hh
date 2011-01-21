@@ -173,8 +173,24 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 				OseenModelTraits;
+
+			typedef NonlinearStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
+						AnalyticalForceImp,
+						OseenStep::DummyForceAdapterFunction,
+						AnalyticalDirichletDataImp,
+						typename ThetaSchemeDescriptionType::ThetaValueArray,
+						gridDim,
+						sigmaOrder,
+						velocityOrder,
+						pressureOrder >
+				OseenModelAltRhsTraits;
+
 			typedef typename OseenModelTraits::ForceAdatperType
 				OseenForceAdapterFunctionType;
+			typedef typename OseenModelAltRhsTraits::ForceAdatperType
+				OseenAltRhsForceAdapterFunctionType;
 
 			typedef ExactPressureImp< typename OseenModelTraits::PressureFunctionSpaceType,
 									  TimeProviderType >
@@ -209,8 +225,13 @@ namespace Dune {
 
 			typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
 				OseenModelType;
+			typedef Dune::DiscreteStokesModelDefault< OseenModelAltRhsTraits >
+				OseenModelAltRhsType;
+
 			typedef Dune::StokesPass< OseenModelType,StokesStartPassType, 0 >
 				OseenPassType;
+			typedef Dune::StokesPass< OseenModelAltRhsType,StokesStartPassType, 0 >
+				OseenPassAltRhsType;
 		};
 	}
 }

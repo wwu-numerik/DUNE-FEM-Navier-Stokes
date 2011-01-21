@@ -312,7 +312,10 @@ namespace Dune {
 					for ( int i=0; i < Traits::substep_count; ++i )
 					{
 						const double dt_k = scheme_params_.step_sizes_[i];
-						substep( dt_k, scheme_params_.thetas_[i] );
+						if ( Parameters().getParam( "alternate_fixpoint", false ) )
+							alternative_substep( dt_k, scheme_params_.thetas_[i] );
+						else
+							substep( dt_k, scheme_params_.thetas_[i] );
 						if ( i != Traits::substep_count - 1 )
 							//the last step increase is done after one call level up
 							nextStep( i, info );
@@ -431,6 +434,142 @@ namespace Dune {
 						}
 					} while ( true ) ;
 				}
+
+				void alternative_substep( const double dt_k, const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
+				{
+					//build rhs
+					const bool first_step = timeprovider_.timeStep() <= 1;
+					const typename Traits::AnalyticalForceType force ( viscosity_,
+																 currentFunctions_.discreteVelocity().space() );
+					if ( Parameters().getParam( "rhs_cheat", false ) )
+						cheatRHS();
+
+
+//					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
+					typename Traits::StokesStartPassType stokesStartPass;
+					typename Traits::AnalyticalDirichletDataType oseenDirichletData =
+							Traits::OseenModelTraits::AnalyticalDirichletDataTraitsImplementation
+											::getInstance( timeprovider_,
+														   functionSpaceWrapper_ );
+
+					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1), ValidateGreater<unsigned int>( 0 ) );
+					const double dt_n = timeprovider_.deltaT();
+					const typename L2ErrorType::Errors old_error_velocity
+							= l2Error_.get( currentFunctions().discreteVelocity(), exactSolution_.discreteVelocity() );
+					const	typename L2ErrorType::Errors old_error_pressure
+							= l2Error_.get( currentFunctions().discretePressure(), exactSolution_.discretePressure() );
+					double velocity_error_reduction = 1.0;
+					double pressure_error_reduction = 1.0;
+					unsigned int oseen_iteration_number = 0;
+					while ( true )
+					{
+						boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
+								ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
+													? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
+																											currentFunctions_.discreteVelocity(),
+																											force,
+																											reynolds_,
+																											theta_values )
+													: new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
+																											currentFunctions_.discreteVelocity(),
+																											force,
+																											reynolds_,
+																											theta_values,
+																											rhsDatacontainer_ )
+												);
+						typename Traits::OseenAltRhsForceAdapterFunctionType
+							real_rhs( rhsDatacontainer_.convection );
+						real_rhs *= -theta_values[0]*dt_n;
+						real_rhs += *ptr_oseenForce;
+
+
+						const double last_velocity_error_reduction = velocity_error_reduction;
+						const double last_pressure_error_reduction = pressure_error_reduction;
+						typename Traits::OseenModelAltRhsType
+								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
+											real_rhs,
+											oseenDirichletData,
+											theta_values[0] * dt_n / reynolds_, /*viscosity*/
+											1.0f, /*alpha*/
+											dt_k,/*pressure_gradient_scale_factor*/
+											theta_values[0] * dt_n /*convection_scale_factor*/
+										   );
+						typename Traits::OseenPassAltRhsType oseenPass( stokesStartPass,
+												oseenModel,
+												gridPart_,
+												functionSpaceWrapper_,
+												currentFunctions_.discreteVelocity() /*beta*/,
+												false /*do_oseen_disc*/ );
+						if ( timeprovider_.timeStep() <= 1 )
+							oseenPass.printInfo();
+						if ( Parameters().getParam( "silent_stokes", true ) )
+						{
+							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
+							Logger().Dbg().Suspend( Logging::LogStream::default_suspend_priority + 10 );
+						}
+						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
+						Logger().Info().Resume( Logging::LogStream::default_suspend_priority + 10 );
+						Logger().Dbg().Resume( Logging::LogStream::default_suspend_priority + 10 );
+						Logger().Flush();
+						bool velocity_error_reduced;
+						bool pressure_error_reduced;
+						{
+							Profiler::ScopedTiming error_time("error_calc");
+							typename L2ErrorType::Errors new_error_velocity
+									= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_.discreteVelocity() );
+							typename L2ErrorType::Errors new_error_pressure
+									= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_.discretePressure() );
+							velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
+							pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
+							const double v_diff = new_error_velocity.absolute() - old_error_velocity.absolute();
+							const double p_diff = new_error_pressure.absolute() - old_error_pressure.absolute();
+							Logger().Dbg()	<< boost::format(" iteration %d, new error: pressure  %e | velocity %e\ndiff %e \t%e")
+													% oseen_iteration_number % new_error_pressure.absolute() % new_error_velocity.absolute()
+											   % p_diff % v_diff
+											<< std::endl;
+
+							velocity_error_reduced = ( v_diff ) < 0;
+							pressure_error_reduced = ( p_diff ) < 0;
+						}
+
+						currentFunctions_.assign( nextFunctions_ );
+
+						bool abort_loop = false;
+//						if ( ! ( velocity_error_reduced || pressure_error_reduced ) )
+//						{
+//							Logger().Info() << "Oseen iteration increased error, aborting.. -- ";
+//							abort_loop = true;
+//						}
+
+						/*else*/ if ( ( pressure_error_reduction > 10.0 )
+								|| ( velocity_error_reduction > 10.0 ) )
+						{
+							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting.. -- ";
+							abort_loop = true;
+						}
+//						else if (  ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
+//									|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
+//								|| ( pressure_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) )
+//								|| ( velocity_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) ) )
+//						{
+//							Logger().Info() << "Oseen iteration reduced no error, aborting.. -- ";
+//							abort_loop = true;
+//						}
+						if ( oseen_iteration_number++ >= oseen_iterations || abort_loop  )
+						{
+							Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
+																		   % (oseen_iteration_number-1) % pressure_error_reduction % velocity_error_reduction
+											<< std::endl;
+							break;
+						}
+						Logger().Dbg()	<< boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
+												% (oseen_iteration_number-1) % pressure_error_reduction % velocity_error_reduction
+
+										<< std::endl;
+
+					}
+				}
+
 
 				void setUpdateFunctions() const
 				{
