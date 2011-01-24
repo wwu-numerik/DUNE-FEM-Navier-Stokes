@@ -284,7 +284,7 @@ namespace Dune {
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
 						RunInfo info;
-						if ( true )
+						if ( !Parameters().getParam("old_timestep", false) )
 							info = full_timestep();
 						else
 							info = operator_split_fullstep();
@@ -640,34 +640,50 @@ namespace Dune {
 
 				RunInfo operator_split_fullstep()
 				{
-					RunInfo info_dummy;
-					profiler().StartTiming( "Timestep" );
-					//stokes step A
-					stokesStep( scheme_params_.step_sizes_[0], scheme_params_.thetas_[0] );
-					//					nextStep( 1, info_dummy );
-
-					//Nonlinear step
-					nonlinearStep( scheme_params_.step_sizes_[1], scheme_params_.thetas_[1] );
-					//					nextStep( 2, info_dummy );
-
-					//stokes step B
 					RunInfo info;
-					info = stokesStep( scheme_params_.step_sizes_[2], scheme_params_.thetas_[2] );
-					//					nextStep( 3, info );
+					{
+						Profiler::ScopedTiming fullstep_time("full_step");
+						RunInfo info_dummy;
+						//stokes step A
+						stokesStep( scheme_params_.step_sizes_[0], scheme_params_.thetas_[0] );
+						nextStep( 0, info_dummy );
 
-					profiler().StopTiming( "Timestep" );
+						Parameters().setParam( "reduced_oseen_solver", true );
+						//Nonlinear step
+						nonlinearStep( scheme_params_.step_sizes_[1], scheme_params_.thetas_[1] );
+						nextStep( 1, info_dummy );
+						Parameters().setParam( "reduced_oseen_solver", false );
+
+						//stokes step B
+						info = stokesStep( scheme_params_.step_sizes_[2], scheme_params_.thetas_[2] );
+					}
+					nextStep( 2, info );
+
 					return info;
 				}
 
 				RunInfo stokesStep(const double dt_k,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values) const
 				{
-
-					const double theta_ = 1 - (std::sqrt(2)/2.0f);
+					const double theta_ = 1.0 - (std::sqrt(2)/2.0f);
+					const double operator_weight_alpha_ ( ( 1.0-2*theta_ ) / ( 1.0-theta_ ) );
+					const double operator_weight_beta_ ( 1.0 - operator_weight_alpha_ );
 					const bool scale_equations = Parameters().getParam( "scale_equations", false );
 					const double delta_t_factor = theta_ * d_t_;
+					const double beta_qout_re_( operator_weight_beta_ / reynolds_ );
 					double stokes_alpha,scale_factor,stokes_viscosity;
 
-					double beta_qout_re_, stokes_alpha_unscaled;
+					const double stokes_alpha_unscaled = 1 / delta_t_factor;
+					if ( scale_equations ) {
+						stokes_alpha = 1;
+						scale_factor = delta_t_factor;
+						stokes_viscosity = operator_weight_alpha_ * delta_t_factor / reynolds_;
+					}
+					else {
+						stokes_alpha = stokes_alpha_unscaled;
+						scale_factor = 1;
+						stokes_viscosity = operator_weight_alpha_ / reynolds_;
+					}
+
 
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
@@ -738,38 +754,30 @@ namespace Dune {
 																										  stokes_alpha_unscaled, theta_values,
 																										  rhsDatacontainer_ )
 											);
-					*ptr_stokesForce *= scale_factor;
-					*ptr_stokesForce_vanilla *= scale_factor;
-					rhsFunctions_.discreteVelocity().assign( do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla );
-
-					typename L2ErrorType::Errors errors_rhs = l2Error.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_stokesForce),
-																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_stokesForce_vanilla),
-																		dummyFunctions_.discreteVelocity() );
-					std::cerr << "RHS " << errors_rhs.str();
+//					typename L2ErrorType::Errors errors_rhs = l2Error.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_stokesForce),
+//																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_stokesForce_vanilla),
+//																		dummyFunctions_.discreteVelocity() );
+//					std::cerr << "RHS " << errors_rhs.str();
 
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
-					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
-						stab_coeff.Factor( "D11", ( 1 / stokes_viscosity ) );
-						stab_coeff.Factor( "C11", stokes_viscosity );
-					}
-					else {
-						stab_coeff.FactorFromParams("D11");
-						stab_coeff.FactorFromParams("C11");
-					}
-					stab_coeff.FactorFromParams("D12");
-					stab_coeff.FactorFromParams("C12");
-					stab_coeff.Add( "E12", 0.5 );
-					stab_coeff.print( Logger().Info() );
+//					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+//						stab_coeff.Factor( "D11", ( 1 / stokes_viscosity ) );
+//						stab_coeff.Factor( "C11", stokes_viscosity );
+//					}
+//					else {
+//						stab_coeff.FactorFromParams("D11");
+//						stab_coeff.FactorFromParams("C11");
+//					}
+//					stab_coeff.FactorFromParams("D12");
+//					stab_coeff.FactorFromParams("C12");
+//					stab_coeff.Add( "E12", 0.5 );
+//					stab_coeff.print( Logger().Info() );
 
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
-					double meanGD
-							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
-					Logger().Info() << boost::format("Dirichlet boundary integral %e") % meanGD
-									<< std::endl;
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
@@ -796,8 +804,10 @@ namespace Dune {
 
 				void nonlinearStep( const double dt_k,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
 				{
-
-					double theta_,beta_qout_re_, operator_weight_alpha_;
+					const double theta_ = 1.0 - (std::sqrt(2)/2.0f);
+					const double operator_weight_alpha_ ( ( 1.0-2*theta_ ) / ( 1.0-theta_ ) );
+					const double operator_weight_beta_ ( 1.0 - operator_weight_alpha_ );
+					double beta_qout_re_( operator_weight_beta_ / reynolds_ );
 					const bool scale_equations = Parameters().getParam( "scale_equations", false );
 					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
 					double oseen_alpha, oseen_viscosity,scale_factor;
@@ -855,6 +865,7 @@ namespace Dune {
 						setUpdateFunctions();
 						currentFunctions_.assign( nextFunctions_ );
 					}
+
 //					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
 //					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
 				}
@@ -872,19 +883,19 @@ namespace Dune {
 							::getInstance( timeprovider_,
 										  functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
-						stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
-						stab_coeff.Factor( "C11", oseen_viscosity );
-					}
-					else {
-						stab_coeff.FactorFromParams("D11");
-						stab_coeff.FactorFromParams("C11");
-					}
-					stab_coeff.FactorFromParams("D12");
-					stab_coeff.FactorFromParams("C12");
-					stab_coeff.Add( "E12", 0.5 );
+//					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+//						stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
+//						stab_coeff.Factor( "C11", oseen_viscosity );
+//					}
+//					else {
+//						stab_coeff.FactorFromParams("D11");
+//						stab_coeff.FactorFromParams("C11");
+//					}
+//					stab_coeff.FactorFromParams("D12");
+//					stab_coeff.FactorFromParams("C12");
+//					stab_coeff.Add( "E12", 0.5 );
 
-					stab_coeff.print( Logger().Info() );
+//					stab_coeff.print( Logger().Info() );
 
 					typename Traits::NonlinearModelType
 							stokesModel(stab_coeff,
