@@ -286,8 +286,8 @@ namespace Dune {
 						RunInfo info;
 						if ( true )
 							info = full_timestep();
-//						else
-//							info = operator_split_fullstep();
+						else
+							info = operator_split_fullstep();
 						const double real_time = timeprovider_.subTime();
 						try {
 							nextStep( Traits::substep_count -1 , info );
@@ -637,35 +637,37 @@ namespace Dune {
 						::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
 					currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 				}
-					#if 0
+
 				RunInfo operator_split_fullstep()
 				{
 					RunInfo info_dummy;
 					profiler().StartTiming( "Timestep" );
 					//stokes step A
-					stokesStep();
+					stokesStep( scheme_params_.step_sizes_[0], scheme_params_.thetas_[0] );
 					//					nextStep( 1, info_dummy );
 
 					//Nonlinear step
-					oseenStep();
+					nonlinearStep( scheme_params_.step_sizes_[1], scheme_params_.thetas_[1] );
 					//					nextStep( 2, info_dummy );
 
 					//stokes step B
 					RunInfo info;
-					info = stokesStep();
+					info = stokesStep( scheme_params_.step_sizes_[2], scheme_params_.thetas_[2] );
 					//					nextStep( 3, info );
 
 					profiler().StopTiming( "Timestep" );
 					return info;
 				}
 
-				RunInfo stokesStep() const
+				RunInfo stokesStep(const double dt_k,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values) const
 				{
 
 					const double theta_ = 1 - (std::sqrt(2)/2.0f);
 					const bool scale_equations = Parameters().getParam( "scale_equations", false );
 					const double delta_t_factor = theta_ * d_t_;
 					double stokes_alpha,scale_factor,stokes_viscosity;
+
+					double beta_qout_re_, stokes_alpha_unscaled;
 
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
@@ -674,18 +676,18 @@ namespace Dune {
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
 
-					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
+					boost::scoped_ptr< typename Traits::StokesForceAdapterType >
 							ptr_stokesForce_vanilla ( first_stokes_step
-												? new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+												? new typename Traits::StokesForceAdapterType ( timeprovider_,
 																										  currentFunctions_.discreteVelocity(),
 																										  force,
 																										  beta_qout_re_,
-																										  stokes_alpha_unscaled )
-												: new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  stokes_alpha_unscaled, theta_values )
+												: new typename Traits::StokesForceAdapterType ( timeprovider_,
 																										  currentFunctions_.discreteVelocity(),
 																										  force,
 																										  beta_qout_re_,
-																										  stokes_alpha_unscaled,
+																										  stokes_alpha_unscaled, theta_values,
 																										  rhsDatacontainer_ )
 											);
 
@@ -722,26 +724,26 @@ namespace Dune {
 						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
-					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
+					boost::scoped_ptr< typename Traits::StokesForceAdapterType >
 							ptr_stokesForce ( first_stokes_step
-												? new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+												? new typename Traits::StokesForceAdapterType ( timeprovider_,
 																										  currentFunctions_.discreteVelocity(),
 																										  force,
 																										  beta_qout_re_,
-																										  stokes_alpha_unscaled )
-												: new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  stokes_alpha_unscaled, theta_values )
+												: new typename Traits::StokesForceAdapterType ( timeprovider_,
 																										  currentFunctions_.discreteVelocity(),
 																										  force,
 																										  beta_qout_re_,
-																										  stokes_alpha_unscaled,
+																										  stokes_alpha_unscaled, theta_values,
 																										  rhsDatacontainer_ )
 											);
 					*ptr_stokesForce *= scale_factor;
 					*ptr_stokesForce_vanilla *= scale_factor;
 					rhsFunctions_.discreteVelocity().assign( do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla );
 
-					typename L2ErrorType::Errors errors_rhs = l2Error.get(	static_cast<typename Traits::StokesAnalyticalForceAdapterType::BaseType>(*ptr_stokesForce),
-																		static_cast<typename Traits::StokesAnalyticalForceAdapterType::BaseType>(*ptr_stokesForce_vanilla),
+					typename L2ErrorType::Errors errors_rhs = l2Error.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_stokesForce),
+																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_stokesForce_vanilla),
 																		dummyFunctions_.discreteVelocity() );
 					std::cerr << "RHS " << errors_rhs.str();
 
@@ -782,14 +784,8 @@ namespace Dune {
 											functionSpaceWrapper_,
 											currentFunctions_.discreteVelocity(),
 											false );
-					typename Traits::StokesModelTraits::SigmaFunctionSpaceType
-							continousVelocityGradientSpace_;
-					typedef TESTING_NS::VelocityGradient<	typename Traits::StokesModelTraits::SigmaFunctionSpaceType,
-															typename Traits::TimeProviderType >
-						VelocityGradient;
-					VelocityGradient velocity_gradient( timeprovider_, continousVelocityGradientSpace_ );
 
-					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_, &velocity_gradient );
+					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 					setUpdateFunctions();
 					RunInfo info;
 					stokesPass.getRuninfo( info );
@@ -798,12 +794,14 @@ namespace Dune {
 					return info;
 				}
 
-				void oseenStep()
+				void nonlinearStep( const double dt_k,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
 				{
 
+					double theta_,beta_qout_re_, operator_weight_alpha_;
 					const bool scale_equations = Parameters().getParam( "scale_equations", false );
 					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
 					double oseen_alpha, oseen_viscosity,scale_factor;
+
 					const double oseen_alpha_unscaled = 1 / delta_t_factor;
 					if ( scale_equations ) {
 						oseen_alpha = 1;
@@ -841,7 +839,7 @@ namespace Dune {
 						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
 
-					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
+					typename Traits::NonlinearForceAdapterType nonlinearForce( timeprovider_,
 																					  currentFunctions_.discreteVelocity(),
 																					  force,
 																					  operator_weight_alpha_ / reynolds_,
@@ -857,11 +855,12 @@ namespace Dune {
 						setUpdateFunctions();
 						currentFunctions_.assign( nextFunctions_ );
 					}
-					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
-					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
+//					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
+//					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
 				}
 
-				void oseenStepSingle(	const typename Traits::NonlinearForceAdapterFunctionType& nonlinearForce,
+				template < class T >
+				void oseenStepSingle(	const T& nonlinearForce,
 									 const double oseen_viscosity,
 									 const double oseen_alpha,
 									 const double scale_factor )
@@ -887,14 +886,14 @@ namespace Dune {
 
 					stab_coeff.print( Logger().Info() );
 
-					typename Traits::OseenModelType
+					typename Traits::NonlinearModelType
 							stokesModel(stab_coeff,
 										nonlinearForce,
 										stokesDirichletData,
 										oseen_viscosity,
 										oseen_alpha,
 										scale_factor, scale_factor);
-					typename Traits::OseenpassType oseenPass( stokesStartPass,
+					typename Traits::NonlinearPassType oseenPass( stokesStartPass,
 															 stokesModel,
 															 gridPart_,
 															 functionSpaceWrapper_,
@@ -904,7 +903,6 @@ namespace Dune {
 
 
 				}
-		#endif
 		};
 	}//end namespace NavierStokes
 }//end namespace Dune

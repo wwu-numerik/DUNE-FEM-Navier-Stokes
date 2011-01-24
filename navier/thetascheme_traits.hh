@@ -173,20 +173,31 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 				OseenModelTraits;
-//			typedef NonlinearStep::DiscreteStokesModelTraits<
-//						TimeProviderType,
-//						GridPartType,
-//						AnalyticalForceImp,
-//						StokesStep::ForceAdapterFunction,
-//						AnalyticalDirichletDataImp,
-//						typename ThetaSchemeDescriptionType::ThetaValueArray,
-//						gridDim,
-//						sigmaOrder,
-//						velocityOrder,
-//						pressureOrder >
-//				StokesModelTraits;
-//			typedef StokesModelTraits::ForceAdatperType
-//				StokesAnalyticalForceAdapterType;
+			typedef NonlinearStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
+						AnalyticalForceImp,
+						StokesStep::ForceAdapterFunction,
+						AnalyticalDirichletDataImp,
+						typename ThetaSchemeDescriptionType::ThetaValueArray,
+						gridDim,
+						sigmaOrder,
+						velocityOrder,
+						pressureOrder >
+				StokesModelTraits;
+
+			typedef NonlinearStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
+						AnalyticalForceImp,
+						NonlinearStep::ForceAdapterFunction,
+						AnalyticalDirichletDataImp,
+						typename ThetaSchemeDescriptionType::ThetaValueArray,
+						gridDim,
+						sigmaOrder,
+						velocityOrder,
+						pressureOrder >
+				NonlinearModelTraits;
 
 			typedef NonlinearStep::DiscreteStokesModelTraits<
 						TimeProviderType,
@@ -205,6 +216,10 @@ namespace Dune {
 				OseenForceAdapterFunctionType;
 			typedef typename OseenModelAltRhsTraits::ForceAdatperType
 				OseenAltRhsForceAdapterFunctionType;
+			typedef typename StokesModelTraits::ForceAdatperType
+				StokesForceAdapterType;
+			typedef typename NonlinearModelTraits::ForceAdatperType
+				NonlinearForceAdapterType;
 
 			typedef ExactPressureImp< typename OseenModelTraits::PressureFunctionSpaceType,
 									  TimeProviderType >
@@ -239,15 +254,19 @@ namespace Dune {
 
 			typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
 				OseenModelType;
-//			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
-//				StokesModelType;
+			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
+				StokesModelType;
+			typedef Dune::DiscreteStokesModelDefault< NonlinearModelTraits >
+				NonlinearModelType;
 			typedef Dune::DiscreteStokesModelDefault< OseenModelAltRhsTraits >
 				OseenModelAltRhsType;
 
 			typedef Dune::StokesPass< OseenModelType,StokesStartPassType, 0 >
 				OseenPassType;
-//			typedef Dune::StokesPass< StokesModelType,StokesStartPassType, 0 >
-//				StokesPassType;
+			typedef Dune::StokesPass< StokesModelType,StokesStartPassType, 0 >
+				StokesPassType;
+			typedef Dune::StokesPass< NonlinearModelType,StokesStartPassType, 0 >
+				NonlinearPassType;
 			typedef Dune::StokesPass< OseenModelAltRhsType,StokesStartPassType, 0 >
 				OseenPassAltRhsType;
 		};

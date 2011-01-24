@@ -205,15 +205,16 @@ namespace Dune {
 			  *
 			  */
 			template <	class TimeProviderType,
-						class AnalyticalForceType,
-						class DiscreteVelocityFunctionType >
+					class AnalyticalForceType,
+					class DiscreteVelocityFunctionType,
+					class ThetaValuesType >
 			class ForceAdapterFunction :
 					public DiscreteVelocityFunctionType
 			{
 				protected:
 					typedef ForceAdapterFunction<	TimeProviderType,
 															AnalyticalForceType,
-															DiscreteVelocityFunctionType >
+															DiscreteVelocityFunctionType,ThetaValuesType >
 						ThisType;
 					const TimeProviderType& timeProvider_;
 					const AnalyticalForceType& force_;
@@ -230,6 +231,7 @@ namespace Dune {
 												   const AnalyticalForceType& force,
 												   const double beta_re_qoutient,
 												   const double quasi_stokes_alpha,
+												const ThetaValuesType& theta_values,
 												   int polOrd = -1 )
 								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 								 timeProvider_( timeProvider ),
@@ -270,6 +272,7 @@ namespace Dune {
 												   const AnalyticalForceType& force,
 												   const double beta_re_qoutient,
 												   const double quasi_stokes_alpha,
+													const ThetaValuesType& theta_values,
 												   const RhsContainerType& rhs_container,
 												   int polOrd = -1 )
 								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
@@ -370,15 +373,16 @@ namespace Dune {
 			  *
 			  */
 			template <	class TimeProviderType,
-						class AnalyticalForceType,
-						class DiscreteVelocityFunctionType >
+					  class AnalyticalForceType,
+					  class DiscreteVelocityFunctionType,
+					  class ThetaValuesType >
 			class ForceAdapterFunction :
 					public DiscreteVelocityFunctionType
 			{
 				protected:
 					typedef ForceAdapterFunction<	TimeProviderType,
-													AnalyticalForceType,
-													DiscreteVelocityFunctionType >
+						AnalyticalForceType,
+					DiscreteVelocityFunctionType,ThetaValuesType >
 						ThisType;
 					typedef DiscreteVelocityFunctionType
 						BaseType;
