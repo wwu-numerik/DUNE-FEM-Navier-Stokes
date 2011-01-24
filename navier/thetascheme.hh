@@ -399,6 +399,12 @@ namespace Dune {
 									= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_at_next_time.discretePressure() );
 							velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
 							pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
+							Logger().Dbg() << boost::format(" abs diff velo %e \tpress %e\nabs new velo %e \tpress %e")
+											  % ( old_error_velocity.absolute() - new_error_velocity.absolute() )
+											  % ( old_error_pressure.absolute() - new_error_pressure.absolute() )
+											  % new_error_velocity.absolute()
+											  % new_error_pressure.absolute()
+										   << std::endl;
 						}
 
 						currentFunctions_.assign( nextFunctions_ );
