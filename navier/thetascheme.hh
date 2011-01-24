@@ -155,7 +155,7 @@ namespace Dune {
 				void nextStep( const int step, RunInfo& info )
 				{
 					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
-					currentFunctions_.assign( nextFunctions_ );
+//					currentFunctions_.assign( nextFunctions_ );
 					exactSolution_.project();
 					const bool last_substep = ( step == ( Traits::ThetaSchemeDescriptionType::numberOfSteps_ -1) );
 
@@ -283,7 +283,11 @@ namespace Dune {
 
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
-						RunInfo info = full_timestep();
+						RunInfo info;
+						if ( true )
+							info = full_timestep();
+//						else
+//							info = operator_split_fullstep();
 						const double real_time = timeprovider_.subTime();
 						try {
 							nextStep( Traits::substep_count -1 , info );
@@ -349,6 +353,7 @@ namespace Dune {
 					typename Traits::DiscreteStokesFunctionWrapperType
 							exactSolution_at_next_time ( "reoh", exactSolution_.space(), gridPart_ );
 					exactSolution_.atTime( timeprovider_.nextSubTime(), exactSolution_at_next_time  );
+					dummyFunctions_.assign( exactSolution_at_next_time );
 					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::AnalyticalDirichletDataType oseenDirichletData =
@@ -358,9 +363,9 @@ namespace Dune {
 
 					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1), ValidateGreater<unsigned int>( 0 ) );
 					const double dt_n = timeprovider_.deltaT();
-					typename L2ErrorType::Errors old_error_velocity
+					const typename L2ErrorType::Errors old_error_velocity
 							= l2Error_.get( currentFunctions().discreteVelocity(), exactSolution_at_next_time.discreteVelocity() );
-					typename L2ErrorType::Errors old_error_pressure
+					const typename L2ErrorType::Errors old_error_pressure
 							= l2Error_.get( currentFunctions().discretePressure(), exactSolution_at_next_time.discretePressure() );
 					double velocity_error_reduction = 1.0;
 					double pressure_error_reduction = 1.0;
@@ -393,13 +398,13 @@ namespace Dune {
 
 						{
 							Profiler::ScopedTiming error_time("error_calc");
-							typename L2ErrorType::Errors new_error_velocity
+							const typename L2ErrorType::Errors new_error_velocity
 									= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_at_next_time.discreteVelocity() );
-							typename L2ErrorType::Errors new_error_pressure
+							const typename L2ErrorType::Errors new_error_pressure
 									= l2Error_.get( nextFunctions_.discretePressure(), exactSolution_at_next_time.discretePressure() );
 							velocity_error_reduction = old_error_velocity.absolute() / new_error_velocity.absolute();
 							pressure_error_reduction = old_error_pressure.absolute() / new_error_pressure.absolute() ;
-							Logger().Dbg() << boost::format(" abs diff velo %e \tpress %e\nabs new velo %e \tpress %e")
+							Logger().Dbg() << boost::format(" abs diff velo %1.20e \tpress %1.20e\nabs new velo %1.20e \tpress %1.20e")
 											  % ( old_error_velocity.absolute() - new_error_velocity.absolute() )
 											  % ( old_error_pressure.absolute() - new_error_pressure.absolute() )
 											  % new_error_velocity.absolute()
@@ -410,27 +415,27 @@ namespace Dune {
 						currentFunctions_.assign( nextFunctions_ );
 
 						bool abort_loop = false;
-						if ( ( ( pressure_error_reduction < 1.0 )
-							  && ( velocity_error_reduction < 1.0 ) ) )
-						{
-							Logger().Info() << "Oseen iteration increased error, aborting.. -- ";
-							abort_loop = true;
-						}
+//						if ( ( ( pressure_error_reduction < 1.0 )
+//							  && ( velocity_error_reduction < 1.0 ) ) )
+//						{
+//							Logger().Info() << "Oseen iteration increased error, aborting.. -- ";
+//							abort_loop = true;
+//						}
 
-						else if ( ( pressure_error_reduction > 10.0 )
-								|| ( velocity_error_reduction > 10.0 ) )
-						{
-							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting.. -- ";
-							abort_loop = true;
-						}
-						else if (  ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
-									|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
-								|| ( pressure_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) )
-								|| ( velocity_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) ) )
-						{
-							Logger().Info() << "Oseen iteration reduced no error, aborting.. -- ";
-							abort_loop = true;
-						}
+//						else if ( ( pressure_error_reduction > 10.0 )
+//								|| ( velocity_error_reduction > 10.0 ) )
+//						{
+//							Logger().Info() << "Oseen iteration reduced error by factor 10, aborting.. -- ";
+//							abort_loop = true;
+//						}
+//						else if (  ( ! ( ( last_pressure_error_reduction != pressure_error_reduction )
+//									|| ( last_velocity_error_reduction != velocity_error_reduction ) ) )
+//								|| ( pressure_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) )
+//								|| ( velocity_error_reduction < Parameters().getParam( "min_error_reduction", 1.05 ) ) )
+//						{
+//							Logger().Info() << "Oseen iteration reduced no error, aborting.. -- ";
+//							abort_loop = true;
+//						}
 						if ( abort_loop || i++ >= oseen_iterations )
 						{
 							break;
@@ -444,6 +449,7 @@ namespace Dune {
 					} while ( true ) ;
 					Logger().Info() << boost::format(" iteration %d, error reduction: pressure  %e | velocity %e")
 																   % i % pressure_error_reduction % velocity_error_reduction
+																<< std::endl;
 				}
 
 				void alternative_substep( const double dt_k, const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
@@ -631,6 +637,274 @@ namespace Dune {
 						::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
 					currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 				}
+					#if 0
+				RunInfo operator_split_fullstep()
+				{
+					RunInfo info_dummy;
+					profiler().StartTiming( "Timestep" );
+					//stokes step A
+					stokesStep();
+					//					nextStep( 1, info_dummy );
+
+					//Nonlinear step
+					oseenStep();
+					//					nextStep( 2, info_dummy );
+
+					//stokes step B
+					RunInfo info;
+					info = stokesStep();
+					//					nextStep( 3, info );
+
+					profiler().StopTiming( "Timestep" );
+					return info;
+				}
+
+				RunInfo stokesStep() const
+				{
+
+					const double theta_ = 1 - (std::sqrt(2)/2.0f);
+					const bool scale_equations = Parameters().getParam( "scale_equations", false );
+					const double delta_t_factor = theta_ * d_t_;
+					double stokes_alpha,scale_factor,stokes_viscosity;
+
+					if ( Parameters().getParam( "silent_stokes", true ) )
+						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+
+					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
+					const typename Traits::AnalyticalForceType force ( viscosity_,
+																 currentFunctions_.discreteVelocity().space() );
+
+					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
+							ptr_stokesForce_vanilla ( first_stokes_step
+												? new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled )
+												: new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled,
+																										  rhsDatacontainer_ )
+											);
+
+					typedef Stuff::L2Error<typename Traits::GridPartType>
+							L2ErrorType;
+					L2ErrorType l2Error( gridPart_ );
+
+					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
+					const bool do_cheat = Parameters().getParam( "rhs_cheat", false ) && !first_stokes_step ;
+//					if ( do_cheat ) //do cheat rhs assembly unconditionally, below we'll choose according to do_cheat which rhs to put into the model
+					{
+						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+							VelocityFunctionSpaceType;
+						VelocityFunctionSpaceType continousVelocitySpace_;
+						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+																typename Traits::TimeProviderType >
+							VelocityConvection;
+						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+							::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
+//						// ----
+						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+																					typename Traits::TimeProviderType >
+								VelocityLaplace;
+						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection //this seems currently inconsequential to the produced error
+							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+
+//						typename L2ErrorType::Errors errors_convection = l2Error.get(	exactSolution_.discreteVelocity() ,
+//																			currentFunctions_.discreteVelocity(),
+//																			dummyFunctions_.discreteVelocity() );
+//						std::cerr << "BLAH " << errors_convection.str();
+
+						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+					}// END CHEAT
+
+					boost::scoped_ptr< typename Traits::StokesAnalyticalForceAdapterType >
+							ptr_stokesForce ( first_stokes_step
+												? new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled )
+												: new typename Traits::StokesAnalyticalForceAdapterType ( timeprovider_,
+																										  currentFunctions_.discreteVelocity(),
+																										  force,
+																										  beta_qout_re_,
+																										  stokes_alpha_unscaled,
+																										  rhsDatacontainer_ )
+											);
+					*ptr_stokesForce *= scale_factor;
+					*ptr_stokesForce_vanilla *= scale_factor;
+					rhsFunctions_.discreteVelocity().assign( do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla );
+
+					typename L2ErrorType::Errors errors_rhs = l2Error.get(	static_cast<typename Traits::StokesAnalyticalForceAdapterType::BaseType>(*ptr_stokesForce),
+																		static_cast<typename Traits::StokesAnalyticalForceAdapterType::BaseType>(*ptr_stokesForce_vanilla),
+																		dummyFunctions_.discreteVelocity() );
+					std::cerr << "RHS " << errors_rhs.str();
+
+					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+
+					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+						stab_coeff.Factor( "D11", ( 1 / stokes_viscosity ) );
+						stab_coeff.Factor( "C11", stokes_viscosity );
+					}
+					else {
+						stab_coeff.FactorFromParams("D11");
+						stab_coeff.FactorFromParams("C11");
+					}
+					stab_coeff.FactorFromParams("D12");
+					stab_coeff.FactorFromParams("C12");
+					stab_coeff.Add( "E12", 0.5 );
+					stab_coeff.print( Logger().Info() );
+
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+											::getInstance( timeprovider_,
+														   functionSpaceWrapper_ );
+					double meanGD
+							= Stuff::boundaryIntegral( stokesDirichletData, currentFunctions_.discreteVelocity().space() );
+					Logger().Info() << boost::format("Dirichlet boundary integral %e") % meanGD
+									<< std::endl;
+
+					typename Traits::StokesModelType
+							stokesModel(stab_coeff,
+										do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla,
+										stokesDirichletData,
+										stokes_viscosity ,
+										stokes_alpha, scale_factor, scale_factor );
+					typename Traits::StokesStartPassType stokesStartPass;
+					typename Traits::StokesPassType stokesPass( stokesStartPass,
+											stokesModel,
+											gridPart_,
+											functionSpaceWrapper_,
+											currentFunctions_.discreteVelocity(),
+											false );
+					typename Traits::StokesModelTraits::SigmaFunctionSpaceType
+							continousVelocityGradientSpace_;
+					typedef TESTING_NS::VelocityGradient<	typename Traits::StokesModelTraits::SigmaFunctionSpaceType,
+															typename Traits::TimeProviderType >
+						VelocityGradient;
+					VelocityGradient velocity_gradient( timeprovider_, continousVelocityGradientSpace_ );
+
+					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_, &velocity_gradient );
+					setUpdateFunctions();
+					RunInfo info;
+					stokesPass.getRuninfo( info );
+					if ( Parameters().getParam( "silent_stokes", true ) )
+						Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
+					return info;
+				}
+
+				void oseenStep()
+				{
+
+					const bool scale_equations = Parameters().getParam( "scale_equations", false );
+					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
+					double oseen_alpha, oseen_viscosity,scale_factor;
+					const double oseen_alpha_unscaled = 1 / delta_t_factor;
+					if ( scale_equations ) {
+						oseen_alpha = 1;
+						scale_factor = delta_t_factor;
+						oseen_viscosity = beta_qout_re_ * scale_factor;
+					}
+					else {
+						oseen_alpha = oseen_alpha_unscaled;
+						oseen_viscosity = beta_qout_re_;
+						scale_factor = 1;
+					}
+
+					const typename Traits::AnalyticalForceType force ( viscosity_,
+																	  currentFunctions_.discreteVelocity().space() );
+
+					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
+					if ( Parameters().getParam( "rhs_cheat", false ) ) {
+						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+								VelocityFunctionSpaceType;
+						VelocityFunctionSpaceType continousVelocitySpace_;
+
+						typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+								typename Traits::TimeProviderType >
+								PressureGradient;
+						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+								::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
+						// ----
+						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+								typename Traits::TimeProviderType >
+								VelocityLaplace;
+						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
+						Dune::BetterL2Projection
+								::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
+						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+					}// END CHEAT
+
+					typename Traits::NonlinearForceAdapterFunctionType nonlinearForce( timeprovider_,
+																					  currentFunctions_.discreteVelocity(),
+																					  force,
+																					  operator_weight_alpha_ / reynolds_,
+																					  oseen_alpha_unscaled,
+																					  rhsDatacontainer_ );
+					nonlinearForce *= scale_factor;
+					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
+					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
+					assert( oseen_iterations > 0 );
+					for( unsigned int i = 0; i<oseen_iterations; ++i )
+					{
+						oseenStepSingle( nonlinearForce, oseen_viscosity, oseen_alpha, scale_factor );
+						setUpdateFunctions();
+						currentFunctions_.assign( nextFunctions_ );
+					}
+					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
+					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
+				}
+
+				void oseenStepSingle(	const typename Traits::NonlinearForceAdapterFunctionType& nonlinearForce,
+									 const double oseen_viscosity,
+									 const double oseen_alpha,
+									 const double scale_factor )
+				{
+					typename Traits::StokesStartPassType stokesStartPass;
+
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
+							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
+							::getInstance( timeprovider_,
+										  functionSpaceWrapper_ );
+					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+						stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
+						stab_coeff.Factor( "C11", oseen_viscosity );
+					}
+					else {
+						stab_coeff.FactorFromParams("D11");
+						stab_coeff.FactorFromParams("C11");
+					}
+					stab_coeff.FactorFromParams("D12");
+					stab_coeff.FactorFromParams("C12");
+					stab_coeff.Add( "E12", 0.5 );
+
+					stab_coeff.print( Logger().Info() );
+
+					typename Traits::OseenModelType
+							stokesModel(stab_coeff,
+										nonlinearForce,
+										stokesDirichletData,
+										oseen_viscosity,
+										oseen_alpha,
+										scale_factor, scale_factor);
+					typename Traits::OseenpassType oseenPass( stokesStartPass,
+															 stokesModel,
+															 gridPart_,
+															 functionSpaceWrapper_,
+															 currentFunctions_.discreteVelocity(),
+															 true );
+					oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
+
+
+				}
+		#endif
 		};
 	}//end namespace NavierStokes
 }//end namespace Dune

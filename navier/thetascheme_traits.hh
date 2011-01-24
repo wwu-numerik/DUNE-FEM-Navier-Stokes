@@ -73,10 +73,10 @@ namespace Dune {
 			}
 			static ThetaSchemeDescription<3> fs0( double delta_t )
 			{
-				const double theta			= 1 - (std::sqrt(2)/2.0f);
-				const double theta_squigly	= 1 - ( 2 * theta );
-				const double tau			= theta_squigly / ( 1 - theta );
-				const double eta			= 1 - tau;
+				const double theta			= 1.0 - (std::sqrt(2.0)/2.0f);
+				const double theta_squigly	= 1.0 - ( 2.0 * theta );
+				const double tau			= theta_squigly / ( 1.0 - theta );
+				const double eta			= 1.0 - tau;
 				typedef ThetaSchemeDescription<3>
 					ReturnType;
 				ReturnType::ThetaValueArray step_one	= { tau * theta,			eta * theta,			eta * theta,			tau * theta };
@@ -94,10 +94,10 @@ namespace Dune {
 			}
 			static ThetaSchemeDescription<3> fs1( double delta_t )
 			{
-				const double theta			= 1 - (std::sqrt(2)/2.0f);
-				const double theta_squigly	= 1 - ( 2 * theta );
-				const double tau			= theta_squigly / ( 1 - theta );
-				const double eta			= 1 - tau;
+				const double theta			= 1.0 - (std::sqrt(2.0)/2.0f);
+				const double theta_squigly	= 1.0 - ( 2.0 * theta );
+				const double tau			= theta_squigly / ( 1.0 - theta );
+				const double eta			= 1.0 - tau;
 				typedef ThetaSchemeDescription<3>
 					ReturnType;
 				ReturnType::ThetaValueArray step_one	= { tau * theta,			eta * theta,			theta,	0 };
@@ -173,6 +173,20 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 				OseenModelTraits;
+//			typedef NonlinearStep::DiscreteStokesModelTraits<
+//						TimeProviderType,
+//						GridPartType,
+//						AnalyticalForceImp,
+//						StokesStep::ForceAdapterFunction,
+//						AnalyticalDirichletDataImp,
+//						typename ThetaSchemeDescriptionType::ThetaValueArray,
+//						gridDim,
+//						sigmaOrder,
+//						velocityOrder,
+//						pressureOrder >
+//				StokesModelTraits;
+//			typedef StokesModelTraits::ForceAdatperType
+//				StokesAnalyticalForceAdapterType;
 
 			typedef NonlinearStep::DiscreteStokesModelTraits<
 						TimeProviderType,
@@ -225,11 +239,15 @@ namespace Dune {
 
 			typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
 				OseenModelType;
+//			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
+//				StokesModelType;
 			typedef Dune::DiscreteStokesModelDefault< OseenModelAltRhsTraits >
 				OseenModelAltRhsType;
 
 			typedef Dune::StokesPass< OseenModelType,StokesStartPassType, 0 >
 				OseenPassType;
+//			typedef Dune::StokesPass< StokesModelType,StokesStartPassType, 0 >
+//				StokesPassType;
 			typedef Dune::StokesPass< OseenModelAltRhsType,StokesStartPassType, 0 >
 				OseenPassAltRhsType;
 		};
