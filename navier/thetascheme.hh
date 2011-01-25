@@ -76,6 +76,7 @@ namespace Dune {
 				DataWriterType2 dataWriter2_;
 				const typename Traits::OseenPassType::Traits::DiscreteSigmaFunctionSpaceType sigma_space_;
 				mutable typename Traits::OseenPassType::RhsDatacontainer rhsDatacontainer_;
+				mutable typename Traits::DiscreteStokesFunctionWrapperType lastFunctions_;
 
 				typedef Stuff::L2Error< typename Traits::GridPartType >
 					L2ErrorType;
@@ -143,6 +144,9 @@ namespace Dune {
 								),
 					sigma_space_( gridPart_ ),
 					rhsDatacontainer_( currentFunctions_.discreteVelocity().space(), sigma_space_ ),
+					  lastFunctions_("last",
+										functionSpaceWrapper_,
+										gridPart_ ),
 					l2Error_( gridPart ),
 					viscosity_( Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) ) ),
 					d_t_( timeprovider_.deltaT() ),
@@ -155,7 +159,8 @@ namespace Dune {
 				void nextStep( const int step, RunInfo& info )
 				{
 					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
-//					currentFunctions_.assign( nextFunctions_ );
+					lastFunctions_.assign( currentFunctions_ );
+					currentFunctions_.assign( nextFunctions_ );
 					exactSolution_.project();
 					const bool last_substep = ( step == ( Traits::ThetaSchemeDescriptionType::numberOfSteps_ -1) );
 
