@@ -378,9 +378,12 @@ namespace Dune {
 					do
 					{
 						DiscreteVelocityFunctionType beta = currentFunctions_.discreteVelocity();
-						beta *= 3.0;
-						beta -= lastFunctions_.discreteVelocity();
-						beta *= 0.5;
+						if ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/)
+						{
+							beta *= 3.0;
+							beta -= lastFunctions_.discreteVelocity();
+							beta *= 0.5;
+						}
 						typename Traits::OseenModelType
 								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
 											*ptr_oseenForce,
