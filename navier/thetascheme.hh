@@ -645,12 +645,14 @@ namespace Dune {
 						Profiler::ScopedTiming fullstep_time("full_step");
 						RunInfo info_dummy;
 						//stokes step A
+						DiscreteVelocityFunctionType u_n( "u_n", dummyFunctions_.discreteVelocity().space() );
+						u_n.assign( currentFunctions_.discreteVelocity() );
 						stokesStep( scheme_params_.step_sizes_[0], scheme_params_.thetas_[0] );
 						nextStep( 0, info_dummy );
 
 						Parameters().setParam( "reduced_oseen_solver", true );
 						//Nonlinear step
-						nonlinearStep( scheme_params_.step_sizes_[1], scheme_params_.thetas_[1] );
+						nonlinearStep( scheme_params_.step_sizes_[1], scheme_params_.thetas_[1], u_n );
 						nextStep( 1, info_dummy );
 						Parameters().setParam( "reduced_oseen_solver", false );
 
@@ -795,9 +797,9 @@ namespace Dune {
 					return info;
 				}
 
-				void nonlinearStep( const double dt_k,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
+				void nonlinearStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/, const DiscreteVelocityFunctionType& u_n )
 				{
-					const double theta_ = 1.0 - (std::sqrt(2)/2.0f);
+					const double theta_ = 1.0 - (std::sqrt(2.0)/2.0f);
 					const double operator_weight_alpha_ ( ( 1.0-2*theta_ ) / ( 1.0-theta_ ) );
 					const double operator_weight_beta_ ( 1.0 - operator_weight_alpha_ );
 					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
@@ -842,20 +844,13 @@ namespace Dune {
 					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
 					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
 					assert( oseen_iterations > 0 );
-//					for( unsigned int i = 0; i<oseen_iterations; ++i )
-					{
-						oseenStepSingle( nonlinearForce, discretization_weights );
-						setUpdateFunctions();
-//						currentFunctions_.assign( nextFunctions_ );
-					}
-
-//					dummyFunctions_.discreteVelocity().assign( nextFunctions_.discreteVelocity() );
-//					dummyFunctions_.discreteVelocity() -= exactSolution_.discreteVelocity();
+					nonlinearStepSingle( nonlinearForce, discretization_weights, u_n );
 				}
 
 				template < class T >
-				void oseenStepSingle(	const T& nonlinearForce,
-										const DiscretizationWeights& discretization_weights )
+				void nonlinearStepSingle(	const T& nonlinearForce,
+											const DiscretizationWeights& discretization_weights,
+											const DiscreteVelocityFunctionType& u_n)
 				{
 					typename Traits::StokesStartPassType stokesStartPass;
 
@@ -877,6 +872,15 @@ namespace Dune {
 //					stab_coeff.Add( "E12", 0.5 );
 
 //					stab_coeff.print( Logger().Info() );
+					const double theta = 1.0 - (std::sqrt(2)/2.0f);
+					DiscreteVelocityFunctionType beta( "beta", dummyFunctions_.discreteVelocity().space() );
+					DiscreteVelocityFunctionType tmp( "tmp", dummyFunctions_.discreteVelocity().space() );
+					tmp.assign( u_n );
+					tmp *= (2.0*theta) / (1.0 - theta);
+					beta.assign( currentFunctions_.discreteVelocity() );
+					beta *= theta / (1.0-theta);
+					beta += tmp;
+
 
 					typename Traits::NonlinearModelType
 							stokesModel(stab_coeff,
@@ -890,7 +894,7 @@ namespace Dune {
 															 stokesModel,
 															 gridPart_,
 															 functionSpaceWrapper_,
-															 currentFunctions_.discreteVelocity(),
+															 beta,
 															 true );
 					oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 
