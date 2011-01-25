@@ -377,12 +377,14 @@ namespace Dune {
 					unsigned int i = 0;
 					do
 					{
+						bool abort_loop = false;
 						DiscreteVelocityFunctionType beta = currentFunctions_.discreteVelocity();
 						if ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/)
 						{
 							beta *= 3.0;
 							beta -= lastFunctions_.discreteVelocity();
 							beta *= 0.5;
+							abort_loop = true; // linCN only needs a single "iteration"
 						}
 						typename Traits::OseenModelType
 								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
@@ -424,7 +426,6 @@ namespace Dune {
 
 						currentFunctions_.assign( nextFunctions_ );
 
-						bool abort_loop = false;
 //						if ( ( ( pressure_error_reduction < 1.0 )
 //							  && ( velocity_error_reduction < 1.0 ) ) )
 //						{
@@ -596,7 +597,6 @@ namespace Dune {
 
 					}
 				}
-
 
 				void setUpdateFunctions() const
 				{
