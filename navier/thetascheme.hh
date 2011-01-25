@@ -377,8 +377,10 @@ namespace Dune {
 					unsigned int i = 0;
 					do
 					{
-						const double last_velocity_error_reduction = velocity_error_reduction;
-						const double last_pressure_error_reduction = pressure_error_reduction;
+						DiscreteVelocityFunctionType beta = currentFunctions_.discreteVelocity();
+						beta *= 3.0;
+						beta -= lastFunctions_.discreteVelocity();
+						beta *= 0.5;
 						typename Traits::OseenModelType
 								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
 											*ptr_oseenForce,
@@ -392,7 +394,7 @@ namespace Dune {
 												oseenModel,
 												gridPart_,
 												functionSpaceWrapper_,
-												currentFunctions_.discreteVelocity() /*beta*/,
+												beta /*beta*/,
 												true /*do_oseen_disc*/ );
 						if ( timeprovider_.timeStep() <= 1 && i < 1)
 							oseenPass.printInfo();
