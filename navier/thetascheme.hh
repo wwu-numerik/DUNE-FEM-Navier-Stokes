@@ -675,20 +675,20 @@ namespace Dune {
 				}
 
 				struct DiscretizationWeights {
-					double alpha,beta,theta_times_delta_t,viscosity;
+					const double theta,alpha,beta,theta_times_delta_t,viscosity,one_neg_two_theta_dt;
+					DiscretizationWeights( const double d_t, const double visc ):
+						theta ( 1.0 - (std::sqrt(2)/2.0f) ),
+						alpha ( ( 1.0-2*theta ) / ( 1.0-theta ) ),
+						beta ( 1.0 - alpha ),
+						theta_times_delta_t(theta * d_t),
+						viscosity( visc ),
+						one_neg_two_theta_dt( ( 1. - 2. * theta ) * d_t )
+					{}
 				};
 
 				RunInfo stokesStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/ ) const
 				{
-					const double theta_ = 1.0 - (std::sqrt(2)/2.0f);
-					const double operator_weight_alpha_ ( ( 1.0-2*theta_ ) / ( 1.0-theta_ ) );
-					const double operator_weight_beta_ ( 1.0 - operator_weight_alpha_ );
-					const double theta_times_delta_t = theta_ * d_t_;
-					DiscretizationWeights discretization_weights;
-					discretization_weights.alpha				= operator_weight_alpha_;
-					discretization_weights.beta					= operator_weight_beta_;
-					discretization_weights.theta_times_delta_t	= theta_times_delta_t;
-					discretization_weights.viscosity			= viscosity_;
+					DiscretizationWeights discretization_weights(d_t_, viscosity_);
 
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
@@ -786,10 +786,10 @@ namespace Dune {
 							stokesModel(stab_coeff,
 										do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla,
 										stokesDirichletData,
-										operator_weight_alpha_ * theta_times_delta_t, /*viscosity*/
+										discretization_weights.alpha * discretization_weights.theta_times_delta_t, /*viscosity*/
 										1.0, /*alpha*/
-										theta_times_delta_t, /*pressure_gradient_scale_factor*/
-										0.0/*convection_scale_factor*/ );
+										0.0,/*convection_scale_factor*/
+										discretization_weights.theta_times_delta_t /*pressure_gradient_scale_factor*/);
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::StokesPassType stokesPass( stokesStartPass,
 											stokesModel,
@@ -809,16 +809,8 @@ namespace Dune {
 
 				void nonlinearStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/, const DiscreteVelocityFunctionType& u_n )
 				{
-					const double theta_ = 1.0 - (std::sqrt(2.0)/2.0f);
-					const double operator_weight_alpha_ ( ( 1.0-2*theta_ ) / ( 1.0-theta_ ) );
-					const double operator_weight_beta_ ( 1.0 - operator_weight_alpha_ );
-					const double delta_t_factor = ( 1. - 2. * theta_ ) * d_t_;
-					const double theta_times_delta_t = delta_t_factor;
+					DiscretizationWeights discretization_weights(d_t_, viscosity_);
 
-					DiscretizationWeights discretization_weights;
-					discretization_weights.alpha				= operator_weight_alpha_;
-					discretization_weights.beta					= operator_weight_beta_;
-					discretization_weights.theta_times_delta_t	= theta_times_delta_t;
 
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																	  currentFunctions_.discreteVelocity().space() );
@@ -882,10 +874,11 @@ namespace Dune {
 //					stab_coeff.Add( "E12", 0.5 );
 
 //					stab_coeff.print( Logger().Info() );
-					const double theta = 1.0 - (std::sqrt(2)/2.0f);
+
 					DiscreteVelocityFunctionType beta( "beta", dummyFunctions_.discreteVelocity().space() );
 					DiscreteVelocityFunctionType tmp( "tmp", dummyFunctions_.discreteVelocity().space() );
 					tmp.assign( u_n );
+					const double theta = discretization_weights.theta;
 					tmp *= (2.0*theta) / (1.0 - theta);
 					beta.assign( currentFunctions_.discreteVelocity() );
 					beta *= theta / (1.0-theta);
@@ -896,10 +889,10 @@ namespace Dune {
 							stokesModel(stab_coeff,
 										nonlinearForce,
 										stokesDirichletData,
-										discretization_weights.beta * discretization_weights.theta_times_delta_t, /*viscosity*/
+										discretization_weights.beta * discretization_weights.one_neg_two_theta_dt, /*viscosity*/
 										1.0, /*alpha*/
-										0.0, /*pressure_gradient_scale_factor*/
-										discretization_weights.theta_times_delta_t /*convection_scale_factor*/ );
+										discretization_weights.one_neg_two_theta_dt, /*convection_scale_factor*/
+										0.0 /*pressure_gradient_scale_factor*/ );
 					typename Traits::NonlinearPassType oseenPass( stokesStartPass,
 															 stokesModel,
 															 gridPart_,

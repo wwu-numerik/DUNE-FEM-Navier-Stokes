@@ -412,7 +412,7 @@ namespace Dune {
 						tmp *= weights.theta_times_delta_t ;
 						*this -= tmp;
 
-						*this *= weights.theta_times_delta_t;
+						*this *= weights.one_neg_two_theta_dt;
 						*this += velocity;
 					}
 			};
