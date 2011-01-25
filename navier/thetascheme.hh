@@ -378,7 +378,7 @@ namespace Dune {
 												functionSpaceWrapper_,
 												currentFunctions_.discreteVelocity() /*beta*/,
 												true /*do_oseen_disc*/ );
-						if ( timeprovider_.timeStep() <= 1 )
+						if ( timeprovider_.timeStep() <= 1 && i == 0)
 							oseenPass.printInfo();
 						if ( Parameters().getParam( "silent_stokes", true ) )
 							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
