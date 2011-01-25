@@ -218,26 +218,21 @@ namespace Dune {
 						ThisType;
 					const TimeProviderType& timeProvider_;
 					const AnalyticalForceType& force_;
-					const double beta_re_qoutient_;
-					const double quasi_stokes_alpha_;
 
 				public:
 					typedef DiscreteVelocityFunctionType
 						BaseType;
 
 					//! this sginature is used in the first stokes where we have analytical data to derive from
+					template < class DiscretizationWeightsType >
 					ForceAdapterFunction(const TimeProviderType& timeProvider,
 												   const DiscreteVelocityFunctionType& velocity,
 												   const AnalyticalForceType& force,
-												   const double beta_re_qoutient,
-												   const double quasi_stokes_alpha,
-												const ThetaValuesType& theta_values,
+												   const DiscretizationWeightsType& weights,
 												   int polOrd = -1 )
 								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 								 timeProvider_( timeProvider ),
-								 force_( force ),
-								 beta_re_qoutient_( beta_re_qoutient ),
-								 quasi_stokes_alpha_( quasi_stokes_alpha )
+								 force_( force )
 					{
 
 						//						TESTING_NS
@@ -262,51 +257,50 @@ namespace Dune {
 						Dune::BetterL2Projection
 							::project( timeProvider_.previousSubTime(), velocity_laplace, velocity_laplace_discrete );
 
-						AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete );
+						AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete, weights );
 					}
 
 					//! this signature is used in all other stokes steps where we get the data from the previous step's discretisation
-					template < class RhsContainerType >
+					template < class RhsContainerType, class DiscretizationWeightsType >
 					ForceAdapterFunction(const TimeProviderType& timeProvider,
 												   const DiscreteVelocityFunctionType& velocity,
 												   const AnalyticalForceType& force,
-												   const double beta_re_qoutient,
-												   const double quasi_stokes_alpha,
-													const ThetaValuesType& theta_values,
+												   const DiscretizationWeightsType& weights,
 												   const RhsContainerType& rhs_container,
 												   int polOrd = -1 )
 								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 								 timeProvider_( timeProvider ),
-								 force_( force ),
-								 beta_re_qoutient_( beta_re_qoutient ),
-								 quasi_stokes_alpha_( quasi_stokes_alpha )
+								 force_( force )
 					{
-						AddCommon( velocity, rhs_container.convection, rhs_container.velocity_laplace );
+						AddCommon( velocity, rhs_container.convection, rhs_container.velocity_laplace, weights );
 					}
 
 				protected:
-					//! F = f + \beta / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
+					//! F = alpha*f_{n+theta} beta*+f_{n} \beta / \Re * laplace u + ( 1/(theta * tau) ) u - ( u * nable ) u
+					template < class DiscretizationWeightsType >
 					void AddCommon( const DiscreteVelocityFunctionType& velocity,
 									const DiscreteVelocityFunctionType& convection,
-									const DiscreteVelocityFunctionType& velocity_laplace )
+									const DiscreteVelocityFunctionType& velocity_laplace,
+									const DiscretizationWeightsType&	weights )
 					{
 						Dune::BetterL2Projection
-							::project( timeProvider_, force_, *this );//this = f
-						Stuff::printFunctionMinMax( std::cout, *this );
+							::project( timeProvider_, force_, *this );//this = f_{n+theta}
+						*this *= weights.alpha;
 
 						DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
+						Dune::BetterL2Projection
+							::project( timeProvider_.previousSubTime(), force_, tmp );//tmp = f_{n+theta}
+						tmp *= weights.beta;
+						*this += tmp;
 
 						tmp.assign( velocity_laplace );
-						tmp *= beta_re_qoutient_;
+						tmp *= weights.beta * weights.viscosity;
 						*this += tmp;// this = f + beta_re_qoutient * laplace
 
-						tmp.assign( convection );
-						*this -= tmp;
+						*this -= convection;
 
-						tmp.assign( velocity );
-						tmp *= quasi_stokes_alpha_;
-						*this += tmp;
-						Stuff::printFunctionMinMax( std::cout, *this );
+						*this *= weights.theta_times_delta_t;
+						*this += velocity;
 					}
 
 
@@ -389,30 +383,37 @@ namespace Dune {
 					const TimeProviderType& timeProvider_;
 
 				public:
-					template < class RhsContainerType >
+					template < class RhsContainerType, class DiscretizationWeightsType >
 					ForceAdapterFunction( const TimeProviderType& timeProvider,
 										  const DiscreteVelocityFunctionType& velocity,
 										  const AnalyticalForceType& force,
-										  const double alpha_re_qoutient,
-										  const double oseen_alpha_unscaled,
+										  const DiscretizationWeightsType& weights,
 										  const RhsContainerType& rhs_container,
 										  int polOrd = -1)
 						: BaseType( "nonlinear-rhsdapater" , velocity.space()),
 						timeProvider_( timeProvider )
 					{
-						// F = f + \alpha \Re \delta u - \nabla p + ( 1/(1-2 \theta) ) * u
+						// F = f + \alpha \Re \delta u - \nabla p + ( 1/(1-2 \theta) ) * u				
 						Dune::BetterL2Projection
-							::project( timeProvider_, force, *this );//this = f
-						*this -= rhs_container.pressure_gradient;
+							::project( timeProvider_, force, *this );//this = f_{n+theta}
+						*this *= weights.beta;
 
-						DiscreteVelocityFunctionType tmp("nonlinear-rhsdapater-tmp", velocity.space() );
+						DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
+						Dune::BetterL2Projection
+							::project( timeProvider_.previousSubTime(), force, tmp );//tmp = f_{n+theta}
+						tmp *= weights.alpha;
+						*this += tmp;
+
 						tmp.assign( rhs_container.velocity_laplace );
-						tmp *= alpha_re_qoutient;
-						*this += tmp;
+						tmp *= weights.alpha * weights.viscosity;
+						*this += tmp;// this = f + beta_re_qoutient * laplace
 
-						tmp.assign( velocity );
-						tmp *= ( oseen_alpha_unscaled );
-						*this += tmp;
+						tmp.assign( rhs_container.pressure_gradient );
+						tmp *= weights.theta_times_delta_t ;
+						*this -= tmp;
+
+						*this *= weights.theta_times_delta_t;
+						*this += velocity;
 					}
 			};
 		}//end namespace NonlinearStep
