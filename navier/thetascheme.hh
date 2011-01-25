@@ -289,10 +289,10 @@ namespace Dune {
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
 						RunInfo info;
-						if ( !Parameters().getParam("old_timestep", false) )
-							info = full_timestep();
-						else
+						if ( Parameters().getParam("old_timestep", false) )
 							info = operator_split_fullstep();
+						else
+							info = full_timestep();
 						const double real_time = timeprovider_.subTime();
 						try {
 							nextStep( Traits::substep_count -1 , info );
