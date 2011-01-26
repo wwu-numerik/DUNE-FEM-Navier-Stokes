@@ -716,7 +716,8 @@ namespace Dune {
 
 					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
 					const bool do_cheat = Parameters().getParam( "rhs_cheat", false ) && !first_stokes_step ;
-					if ( do_cheat ) //do cheat rhs assembly unconditionally, below we'll choose according to do_cheat which rhs to put into the model
+					dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
+//					if ( do_cheat ) //do cheat rhs assembly unconditionally, below we'll choose according to do_cheat which rhs to put into the model
 					{
 						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
 							VelocityFunctionSpaceType;
@@ -795,7 +796,7 @@ namespace Dune {
 											stokesModel,
 											gridPart_,
 											functionSpaceWrapper_,
-											currentFunctions_.discreteVelocity(),
+											dummyFunctions_.discreteVelocity(),
 											false );
 
 					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
