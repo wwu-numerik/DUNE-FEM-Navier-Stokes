@@ -32,7 +32,7 @@ namespace Dune {
 										  typename AnalyticalDirichletType::RangeType& ret,
 										  const IntersectionIteratorType intIt ) const
 					{
-						const double time = timeProvider_.nextSubTime();
+						const double time = timeProvider_.subTime();
 						gd_.evaluate( time, arg, ret, intIt );
 					}
 
@@ -331,7 +331,7 @@ namespace Dune {
 										  typename AnalyticalDirichletType::RangeType& ret,
 										  const IntersectionIteratorType intIt ) const
 					{
-						const double time = timeProvider_.nextSubTime();
+						const double time = timeProvider_.subTime();
 						gd_.evaluate( time, arg, ret, intIt );
 					}
 
