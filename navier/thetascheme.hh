@@ -386,14 +386,15 @@ namespace Dune {
 							beta *= 0.5;
 							abort_loop = true; // linCN only needs a single "iteration"
 						}
+						*ptr_oseenForce /= dt_k;
 						typename Traits::OseenModelType
 								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
 											*ptr_oseenForce,
 											oseenDirichletData,
-											theta_values[0] * dt_n / reynolds_, /*viscosity*/
-											1.0f, /*alpha*/
-											dt_k,/*pressure_gradient_scale_factor*/
-											theta_values[0] * dt_n /*convection_scale_factor*/
+											theta_values[0] * dt_n / ( reynolds_ * dt_k ), /*viscosity*/
+											1.0f/dt_k, /*alpha*/
+											1.0,/*pressure_gradient_scale_factor*/
+											theta_values[0] * dt_n / dt_k/*convection_scale_factor*/
 						                   );
 						typename Traits::OseenPassType oseenPass( stokesStartPass,
 												oseenModel,
@@ -782,15 +783,17 @@ namespace Dune {
 							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
 											::getInstance( timeprovider_,
 														   functionSpaceWrapper_ );
+					*ptr_stokesForce /= discretization_weights.theta_times_delta_t;
+					*ptr_stokesForce_vanilla /= discretization_weights.theta_times_delta_t;
 
 					typename Traits::StokesModelType
 							stokesModel(stab_coeff,
 										do_cheat ? *ptr_stokesForce : *ptr_stokesForce_vanilla,
 										stokesDirichletData,
-										discretization_weights.alpha * discretization_weights.theta_times_delta_t, /*viscosity*/
-										1.0, /*alpha*/
+										discretization_weights.alpha, /*viscosity*/
+										1.0/discretization_weights.theta_times_delta_t, /*alpha*/
 										0.0,/*convection_scale_factor*/
-										discretization_weights.theta_times_delta_t /*pressure_gradient_scale_factor*/);
+										1.0 /*pressure_gradient_scale_factor*/);
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::StokesPassType stokesPass( stokesStartPass,
 											stokesModel,
