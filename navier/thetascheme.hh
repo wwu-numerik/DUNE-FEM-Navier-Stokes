@@ -357,7 +357,7 @@ namespace Dune {
 											);
 					typename Traits::DiscreteStokesFunctionWrapperType
 							exactSolution_at_next_time ( "reoh", exactSolution_.space(), gridPart_ );
-					exactSolution_.atTime( timeprovider_.nextSubTime(), exactSolution_at_next_time  );
+					exactSolution_.atTime( timeprovider_.subTime(), exactSolution_at_next_time  );
 					dummyFunctions_.assign( exactSolution_at_next_time );
 					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
 					typename Traits::StokesStartPassType stokesStartPass;
