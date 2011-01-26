@@ -258,9 +258,9 @@ namespace Dune {
 						info.extra_info			= (boost::format("%s on %s") % COMMIT % std::getenv("HOSTNAME") ).str();
 
 						Logger().Info() << boost::format("current time (substep %d ): %f (%f)\n")
-											   % step
-											   % timeprovider_.subTime()
-											   % timeprovider_.previousSubTime();
+												% step
+												% timeprovider_.subTime()
+												% timeprovider_.previousSubTime();
 					}
 
 					if ( last_substep || !Parameters().getParam( "write_fulltimestep_only", false ) )
