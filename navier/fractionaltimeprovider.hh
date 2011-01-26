@@ -95,6 +95,7 @@ namespace Dune {
 					//! equivalent of t_{k+2}??
 					const double nextSubTime( ) const
 					{
+						assert( false ); //currently produces wring results on the interval bounds
 						const double t = subTime() + theta_scheme_parameter_.step_sizes_[current_substep_];
 						return Stuff::clamp( t, double(0.0), t);
 					}
