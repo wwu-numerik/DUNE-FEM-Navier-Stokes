@@ -341,6 +341,16 @@ namespace Dune {
 					if ( Parameters().getParam( "rhs_cheat", false ) )
 						cheatRHS();
 
+
+					if ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/)
+					{
+						DiscreteVelocityFunctionType beta = currentFunctions_.discreteVelocity();
+						beta *= 3.0;
+						beta -= lastFunctions_.discreteVelocity();
+						beta *= 0.5;
+						Dune::BruteForceReconstruction< typename Traits::OseenPassType::RhsDatacontainer, typename Traits::OseenModelType >
+															::getConvection( beta, rhsDatacontainer_.velocity_gradient, rhsDatacontainer_.convection );
+					}
 					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 							ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
 												? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
