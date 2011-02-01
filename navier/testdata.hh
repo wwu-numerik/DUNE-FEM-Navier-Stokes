@@ -466,6 +466,8 @@ namespace Dune {
 						  VelocityEvaluate( 0, 0, time, arg, u);
 						  ret[0] += ( -2 * M_PI * M_PI * v ) * u[0];
 						  ret[1] += ( -2 * M_PI * M_PI * v ) * u[1];
+
+						  ret *=0;
 					  }
 					  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const { assert(false); }
 
