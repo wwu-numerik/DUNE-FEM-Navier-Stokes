@@ -1329,6 +1329,16 @@ namespace Dune {
 			};
 		}//end namespace DrivenCavity
 
+		namespace NullTest {
+			NULLFUNCTION(Force)
+			NULLFUNCTION(DirichletData)
+			NULLFUNCTION_TP(VelocityLaplace)
+			NULLFUNCTION_TP(VelocityConvection)
+			NULLFUNCTION_TP(Velocity)
+			NULLFUNCTION_TP(Pressure)
+			NULLFUNCTION_TP(PressureGradient)
+		}
+
 		namespace TimeDisc {
 			template < class FunctionSpaceImp >
 			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
