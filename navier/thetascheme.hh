@@ -436,6 +436,7 @@ namespace Dune {
 										   << std::endl;
 						}
 
+						setUpdateFunctions();
 						currentFunctions_.assign( nextFunctions_ );
 
 //						if ( ( ( pressure_error_reduction < 1.0 )
