@@ -37,7 +37,7 @@
 
 #define MODEL_PROVIDES_LOCALFUNCTION 1
 
-#define NS Dune::NavierStokes::TestCase2D
+#define NS Dune::NavierStokes::TESTCASE
 //#define NS Testing::AdapterFunctionsVisco
 //#define NS Testing::AdapterFunctionsVectorial
 //#define NS Testing::AdapterFunctionsScalar
