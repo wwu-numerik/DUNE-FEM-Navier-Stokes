@@ -288,6 +288,7 @@ namespace Dune {
 
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
+						assert( timeprovider_.time() > 0.0 );
 						RunInfo info;
 						if ( Parameters().getParam("old_timestep", false) )
 							info = operator_split_fullstep();
