@@ -28,6 +28,8 @@ namespace Dune {
 
 				  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const { ret = RangeType( 0 ); }
 				  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const { ret = RangeType( 0 ); }
+				  template < class IntersectionIteratorType >
+				  inline void evaluate( const double /*time*/, const DomainType& /*arg*/, RangeType& ret, const IntersectionIteratorType /*it*/) const { ret = RangeType( 0 ); }
 		};
 
 		template < class FunctionSpaceImp, class TimeProviderImp >
@@ -59,7 +61,8 @@ namespace Dune {
 	{classname( const P& p,const T& t ):NullFunctionTP< T,P >(p,t){}};
 #define NULLFUNCTION(classname)\
 	template < class T > struct classname : public NullFunction< T >\
-	{classname( const double d, const T& t ):NullFunction< T >(t){}};
+	{classname( const double d, const T& t ):NullFunction< T >(t){}\
+	 classname( const T& t ):NullFunction< T >(t){}};
 
 		namespace TestCase3D {
 			template < class FunctionSpaceImp >
