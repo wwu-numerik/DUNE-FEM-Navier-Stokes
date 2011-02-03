@@ -1036,6 +1036,44 @@ namespace Dune {
 					const double parameter_a_;
 					const double parameter_d_;
 			};
+			template <	class FunctionSpaceImp,
+						class TimeProviderImp >
+			class PressureGradient : public TimeFunction <	FunctionSpaceImp ,
+													PressureGradient < FunctionSpaceImp,TimeProviderImp >,
+													TimeProviderImp >
+			{
+				public:
+					typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+				  PressureGradient( const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					  : BaseType( timeprovider, space ),
+					  parameter_a_( parameter_a ),
+					  parameter_d_( parameter_d )
+				  {}
+
+				   ~PressureGradient()
+				   {}
+
+					void evaluateTime( const double /*time*/, const DomainType& arg, RangeType& ret ) const
+					{
+						ret = 0;
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
 			template < class FunctionSpaceImp, class TimeProviderImp >
 			class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 			{
@@ -1280,6 +1318,53 @@ namespace Dune {
 					const double parameter_a_;
 					const double parameter_d_;
 			};
+			template <	class FunctionSpaceImp,
+						class TimeProviderImp >
+			class PressureGradient : public TimeFunction <	FunctionSpaceImp ,
+													PressureGradient < FunctionSpaceImp,TimeProviderImp >,
+													TimeProviderImp >
+			{
+				public:
+					typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+						ThisType;
+					typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+						BaseType;
+					typedef typename BaseType::DomainType
+						DomainType;
+					typedef typename BaseType::RangeType
+						RangeType;
+
+				  PressureGradient( const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					  : BaseType( timeprovider, space ),
+					  parameter_a_( parameter_a ),
+					  parameter_d_( parameter_d )
+				  {}
+
+				   ~PressureGradient() {}
+
+					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+					{
+						const double x				= arg[0];
+						const double y				= arg[1];
+						const double v				= Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) );
+						const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
+						const double C1				= -4*M_PI*std::sin(4*M_PI* ( x + 0.25 ) );
+						const double C2				= -4*M_PI*std::sin(4*M_PI* ( y + 0.5 ) );
+
+						ret[0] = ( -1 / ( 4 * v ) ) * C1 * F;
+						ret[0] = ( -1 / ( 4 * v ) ) * C2 * F;
+					}
+
+				private:
+					static const int dim_ = FunctionSpaceImp::dimDomain ;
+					const double parameter_a_;
+					const double parameter_d_;
+			};
+			NULLFUNCTION_TP(VelocityLaplace)
+			NULLFUNCTION_TP(VelocityConvection)
 
 		}//end namespace TestCase2D_KOKO
 		namespace DrivenCavity {
@@ -1288,6 +1373,7 @@ namespace Dune {
 			NULLFUNCTION_TP(VelocityConvection)
 			NULLFUNCTION_TP(Velocity)
 			NULLFUNCTION_TP(Pressure)
+			NULLFUNCTION_TP(PressureGradient)
 
 			template < class FunctionSpaceImp >
 			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
