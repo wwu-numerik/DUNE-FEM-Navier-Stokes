@@ -158,7 +158,21 @@ namespace Dune {
 					const double dt_n = timeProvider_.deltaT();
 					this->clear();
 
+					typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+						VelocityFunctionSpaceType;
+					VelocityFunctionSpaceType continousVelocitySpace_;
+
+					typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+															TimeProviderType >
+							PressureGradient;
+					PressureGradient g( timeProvider_, continousVelocitySpace_ );
+
 					DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
+					Dune::BetterL2Projection
+						::project( timeProvider_.previousSubTime(), g, tmp );
+					tmp *= ( theta_values_[1] * dt_n );
+//					*this -= tmp;
+
 					Dune::BetterL2Projection
 						::project( timeProvider_, force_, tmp );
 					tmp *= ( theta_values_[3] * dt_n );
