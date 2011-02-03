@@ -1928,7 +1928,9 @@ namespace ConvDiff {
 			ThisType;
 		typedef GridPartImp
 			GridPartType;
-		typedef Dune::NavierStokes::FractionalTimeProvider<CommunicatorImp>
+		typedef Dune::NavierStokes::ThetaSchemeDescription<1>
+			SchemeDescriptionType;
+		typedef Dune::NavierStokes::FractionalTimeProvider<SchemeDescriptionType,CommunicatorImp>
 			TimeProviderType;
 
 		typedef DiscreteModelTraits<
