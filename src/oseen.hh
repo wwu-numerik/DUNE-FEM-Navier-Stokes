@@ -6,6 +6,7 @@
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
+#include <dune/navier/thetascheme_traits.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/functions.hh>
@@ -93,8 +94,6 @@ namespace Oseen {
 							DiscreteVelocityFunctionType,
 							DiscretePressureFunctionType > >
 					DiscreteStokesFunctionWrapperType;
-
-			private:
 
 				//! function space type for sigma
 				typedef Dune::MatrixFunctionSpace<  double,
@@ -527,7 +526,7 @@ namespace Oseen {
 					  const double C_y			= std::cos( P * y );
 					  ret[0] = - C_x * E * P * ( S_x * E + v * S_y * P )	+ 0.5 * P * F * S_2x;
 					  ret[1] = - C_y * E * P * ( S_y * E - v * S_x * P )	+ 0.5 * P * F * S_2y;
-//					  ret = RangeType(0);
+					  ret = RangeType(0);
 				  }
 
 			  private:
@@ -1103,7 +1102,7 @@ namespace Oseen {
 	}//end namespace TrivialTestCase
 
 #ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE Oseen::TrivialTestCase
+	#define OSEEN_DATA_NAMESPACE Oseen::TestCaseTaylor2D
 #endif
 
 	template <	class CommunicatorImp,
@@ -1117,7 +1116,9 @@ namespace Oseen {
 			ThisType;
 		typedef GridPartImp
 			GridPartType;
-		typedef Dune::NavierStokes::FractionalTimeProvider<CommunicatorImp>
+		typedef Dune::NavierStokes::ThetaSchemeDescription<1>
+			SchemeDescriptionType;
+		typedef Dune::NavierStokes::FractionalTimeProvider<SchemeDescriptionType,CommunicatorImp>
 			TimeProviderType;
 
 		typedef DiscreteModelTraits<
