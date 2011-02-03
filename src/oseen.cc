@@ -265,7 +265,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 		OseenTraits;
 
 	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
-	OseenTraits::TimeProviderType timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, comm );
+	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
 	OseenTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
 	typedef OseenTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
@@ -316,7 +316,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
-	OseenTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
+	OseenTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
 	OseenTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
 	OseenTraits::OseenPassType oseenPass( startPass,
