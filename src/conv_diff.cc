@@ -80,6 +80,9 @@
 #include <dune/stuff/error.hh>
 #include <dune/stuff/functionadapter.hh>
 
+
+#include <dune/navier/thetascheme_traits.hh>
+
 #include "conv_diff.hh"
 
 #ifndef COMMIT
@@ -258,7 +261,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 		ConvDiffTraits;
 
 	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
-	ConvDiffTraits::TimeProviderType timeprovider_( theta_,0.5,0.5, comm );
+
+	ConvDiffTraits::TimeProviderType timeprovider_( ConvDiffTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
 	ConvDiffTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
 	typedef ConvDiffTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
@@ -299,8 +303,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						alpha );
 	currentFunctions.assign( exactSolution );
 
-	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
-	ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType discrete_velocityGradient( "velocityGradient", sigma_space );
+	ConvDiffTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
+	ConvDiffTraits::OseenModelTraits::DiscreteSigmaFunctionType discrete_velocityGradient( "velocityGradient", sigma_space );
 	ConvDiffTraits::OseenModelTraits::SigmaFunctionSpaceType cont_sigma_space;
 	ConvDiffTraits::VelocityGradientType velocityGradient( timeprovider_, cont_sigma_space );
 
@@ -332,7 +336,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 		()(exactConvection, discrete_exactConvection);
 
 	typedef Stuff::GradientSplitterFunction<	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
-												ConvDiffTraits::OseenPassType::DiscreteSigmaFunctionType >
+												ConvDiffTraits::OseenModelTraits::DiscreteSigmaFunctionType >
 			GradientSplitterFunctionType;
 	GradientSplitterFunctionType gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
 									rhs_container.velocity_gradient );
