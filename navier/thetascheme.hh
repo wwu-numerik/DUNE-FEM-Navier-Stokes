@@ -217,9 +217,9 @@ namespace Dune {
 						const double max_l2_error = Parameters().getParam( "max_error", 1e2, Dune::ValidateGreater<double>(0.0) );
 						info.L2Errors		= error_vector;
 						info.H1Errors		= h1_error_vector;
-						if ( l2_error_velocity_ > max_l2_error || l2_error_pressure_ > max_l2_error )
+						if ( l2_error_velocity_ > max_l2_error || ( !Parameters().getParam( "parabolic", false ) && l2_error_pressure_ > max_l2_error ) )
 							throw Stuff::singlerun_abort_exception( "Aborted, L2 error above " + Stuff::toString(max_l2_error) );
-						if ( std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ )  )
+						if ( !Parameters().getParam( "parabolic", false ) && (std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ ) )  )
 							throw Stuff::singlerun_abort_exception("L2 error is Nan");
 					}
 					//end error calc
@@ -411,7 +411,7 @@ namespace Dune {
 												gridPart_,
 												functionSpaceWrapper_,
 												beta /*beta*/,
-												true /*do_oseen_disc*/ );
+												!Parameters().getParam( "parabolic", false ) /*do_oseen_disc*/ );
 						if ( timeprovider_.timeStep() <= 1 && i < 1)
 							oseenPass.printInfo();
 						if ( Parameters().getParam( "silent_stokes", true ) )
