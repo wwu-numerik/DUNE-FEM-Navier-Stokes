@@ -343,7 +343,8 @@ namespace Dune {
 						cheatRHS();
 
 
-					if ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/)
+					if ( !Parameters().getParam( "parabolic", false )
+							&& ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/) )
 					{
 						DiscreteVelocityFunctionType beta = currentFunctions_.discreteVelocity();
 						beta *= 3.0;
