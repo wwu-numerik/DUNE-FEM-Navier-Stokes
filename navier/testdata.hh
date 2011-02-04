@@ -1667,8 +1667,8 @@ namespace Dune {
 						  static const double sigma = 0.1;
 						  static const double alpha = 3.0;
 						  static const double mu = 0.5;
-						  ret = -	std::pow( sigma, -5.0 )
-									* (arg*arg - 2*mu*arg + alpha*std::pow(sigma, 4.0)*mu*mu - sigma*sigma)
+						  ret = -	std::pow( sigma, -4.0 )
+									* (arg*arg - 2*mu*arg + alpha*std::pow(sigma, 4.0) + mu*mu - sigma*sigma)
 									* H_eval( time, sigma, mu, alpha, arg );
 
 					  }
