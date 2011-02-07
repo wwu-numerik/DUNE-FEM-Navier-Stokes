@@ -204,22 +204,28 @@ namespace Dune {
 					#endif
 						{
 							Logger().Info().Resume();
-							Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \t Velocity (abs|rel): %e | %e")
-												% l2_error_pressure_ % relative_l2_error_pressure_
-												% l2_error_velocity_ % relative_l2_error_velocity_
-										#ifndef NDEBUG
-											<< boost::format ("\nH1-Error Velocity (abs|rel): %e | %e \t Mean pressure (exact|discrete) %e | %e")
-												% h1_error_velocity_ % relative_h1_error_velocity_
-												% meanPressure_exact % meanPressure_discrete
-										#endif
-											<< std::endl;
+							if ( Parameters().getParam( "parabolic", false ) )
+								Logger().Info() << boost::format ("L2-Error Velocity (abs|rel): %e | %e")
+													% l2_error_velocity_ % relative_l2_error_velocity_;
+							else
+								Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \t Velocity (abs|rel): %e | %e")
+													% l2_error_pressure_ % relative_l2_error_pressure_
+													% l2_error_velocity_ % relative_l2_error_velocity_;
+							#ifndef NDEBUG
+								Logger().Info() << boost::format ("\nH1-Error Velocity (abs|rel): %e | %e \t Mean pressure (exact|discrete) %e | %e")
+													% h1_error_velocity_ % relative_h1_error_velocity_
+													% meanPressure_exact % meanPressure_discrete;
+							#endif
+							Logger().Info() << std::endl;
 						}
 						const double max_l2_error = Parameters().getParam( "max_error", 1e2, Dune::ValidateGreater<double>(0.0) );
 						info.L2Errors		= error_vector;
 						info.H1Errors		= h1_error_vector;
-						if ( l2_error_velocity_ > max_l2_error || ( !Parameters().getParam( "parabolic", false ) && l2_error_pressure_ > max_l2_error ) )
+						if ( l2_error_velocity_ > max_l2_error
+								|| ( !Parameters().getParam( "parabolic", false ) && l2_error_pressure_ > max_l2_error ) )
 							throw Stuff::singlerun_abort_exception( "Aborted, L2 error above " + Stuff::toString(max_l2_error) );
-						if ( !Parameters().getParam( "parabolic", false ) && (std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ ) )  )
+						if ( !Parameters().getParam( "parabolic", false )
+								&& (std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ ) )  )
 							throw Stuff::singlerun_abort_exception("L2 error is Nan");
 					}
 					//end error calc
@@ -389,9 +395,10 @@ namespace Dune {
 					unsigned int i = 0;
 					do
 					{
-						bool abort_loop = false;
+						bool abort_loop = Parameters().getParam( "parabolic", false );
 						DiscreteVelocityFunctionType beta = currentFunctions_.discreteVelocity();
-						if ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/)
+						if ( !Parameters().getParam( "parabolic", false )
+								&& ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/) )
 						{
 							beta *= 3.0;
 							beta -= lastFunctions_.discreteVelocity();
