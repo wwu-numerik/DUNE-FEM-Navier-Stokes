@@ -417,7 +417,7 @@ namespace Dune {
 		}//end namespace TestCase3D
 
 		namespace TestCase2D {
-			static const double pi_factor = 4*M_PI;//controls number of vortices
+			static const double pi_factor = M_PI;//controls number of vortices
 			template < class FunctionSpaceImp >
 			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
