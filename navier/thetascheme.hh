@@ -362,7 +362,7 @@ namespace Dune {
 					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 							ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
 												? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
-																										currentFunctions_.discreteVelocity(),
+																										exactSolution_.discreteVelocity(),
 																										force,
 																										reynolds_,
 																										theta_values )
@@ -411,7 +411,7 @@ namespace Dune {
 											oseenDirichletData,
 											theta_values[0] * dt_n / reynolds_, /*viscosity*/
 											1.0f, /*alpha*/
-											dt_k,/*pressure_gradient_scale_factor*/
+											theta_values[0] * dt_k,/*pressure_gradient_scale_factor*/
 											theta_values[0] * dt_n /*convection_scale_factor*/
 						                   );
 						typename Traits::OseenPassType oseenPass( stokesStartPass,
@@ -514,7 +514,7 @@ namespace Dune {
 						boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 								ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
 													? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
-																											currentFunctions_.discreteVelocity(),
+																											exactSolution_.discreteVelocity(),
 																											force,
 																											reynolds_,
 																											theta_values )
