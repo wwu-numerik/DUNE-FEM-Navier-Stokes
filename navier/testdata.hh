@@ -1636,6 +1636,7 @@ namespace Dune {
 			template < class R >
 			double H_eval(const double t, const double sigma, const double mu, const double alpha, const R& x)
 			{
+				//(d/dx(d/dx((1/(sqrt(2*pi)*s))*exp(-(x-m)^2/(2*s*s))*exp(-a*t))))
 				return (1/std::sqrt(2*M_PI*sigma*sigma))
 							* std::exp( -std::pow(x-mu,2)/(2*sigma*sigma) )
 							* std::exp( -alpha*t );
@@ -1794,7 +1795,12 @@ namespace Dune {
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
 						dune_static_assert( dim_ == 1  , "DirichletData_Unsuitable_WorldDim");
-						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
+						static const double sigma = 0.1;
+						static const double alpha = 3.0;
+						static const double mu = 0.5;
+
+						ret = H_eval( time, sigma, mu, alpha, arg );
+						ret *= std::pow(sigma,-4.0) * (mu*mu-2*mu*arg-sigma*sigma+arg*arg);
 					}
 
 				private:
@@ -1805,8 +1811,7 @@ namespace Dune {
 
 			NULLFUNCTION_TP(PressureGradient)
 			NULLFUNCTION_TP(VelocityConvection)
-			NULLFUNCTION_TP(VelocityLaplace)
-			NULLFUNCTION(Pressure)
+			NULLFUNCTION_TP(Pressure)
 		}//end namespace TestCase1D
 
 	}//end namespace NavierStokes
