@@ -362,7 +362,7 @@ namespace Dune {
 					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 							ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
 												? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
-																										currentFunctions_.discreteVelocity(),
+																										exactSolution_.discreteVelocity(),
 																										force,
 																										reynolds_,
 																										theta_values )
@@ -411,7 +411,7 @@ namespace Dune {
 											oseenDirichletData,
 											theta_values[0] * dt_n / reynolds_, /*viscosity*/
 											1.0f, /*alpha*/
-											dt_k,/*pressure_gradient_scale_factor*/
+											theta_values[0] * dt_k,/*pressure_gradient_scale_factor*/
 											theta_values[0] * dt_n /*convection_scale_factor*/
 						                   );
 						typename Traits::OseenPassType oseenPass( stokesStartPass,
@@ -514,7 +514,7 @@ namespace Dune {
 						boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 								ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
 													? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
-																											currentFunctions_.discreteVelocity(),
+																											exactSolution_.discreteVelocity(),
 																											force,
 																											reynolds_,
 																											theta_values )
@@ -666,6 +666,20 @@ namespace Dune {
 					Dune::BetterL2Projection
 						::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
 					currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
+
+					typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+															typename Traits::TimeProviderType >
+						VelocityConvection;
+					VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
+					typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+															typename Traits::TimeProviderType >
+						PressureGradient;
+					PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
+
+					Dune::BetterL2Projection
+						::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient);
+					Dune::BetterL2Projection //we need evals from the _previous_ (t_{k-1}) step
+						::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
 				}
 
 				RunInfo operator_split_fullstep()

@@ -116,16 +116,23 @@ namespace Dune {
 															TimeProviderType >
 						VelocityConvection;
 					VelocityConvection velocity_convection( timeProvider_, continousVelocitySpace_ );
+					typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+															TimeProviderType >
+						PressureGradient;
+					PressureGradient pressure_gradient( timeProvider_, continousVelocitySpace_ );
 
 					DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", velocity.space() );
 					DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", velocity.space() );
+					DiscreteVelocityFunctionType pressure_gradient_discrete("velocity_laplace_discrete", velocity.space() );
 
 					Dune::BetterL2Projection //we need evals from the _previous_ (t_{k-1}) step
 						::project( timeProvider_.previousSubTime(), velocity_convection, velocity_convection_discrete );
 					Dune::BetterL2Projection
 						::project( timeProvider_.previousSubTime(), velocity_laplace, velocity_laplace_discrete );
+					Dune::BetterL2Projection
+						::project( timeProvider_.previousSubTime(), pressure_gradient, pressure_gradient_discrete );
 
-					AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete );
+					AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete, pressure_gradient_discrete );
 				}
 
 				//! this signature is used in all other stokes steps where we get the data from the previous step's discretisation
@@ -143,7 +150,7 @@ namespace Dune {
 					reynolds_( reynolds ),
 					theta_values_( theta_values )
 				{
-					AddCommon( velocity, rhs_container.convection, rhs_container.velocity_laplace );
+					AddCommon( velocity, rhs_container.convection, rhs_container.velocity_laplace, rhs_container.pressure_gradient );
 				}
 
 			protected:
@@ -153,7 +160,8 @@ namespace Dune {
 				\note theta value array is 0 based, so all indices have a -1 offset to the paper**/
 				void AddCommon( const DiscreteVelocityFunctionType& velocity,
 								const DiscreteVelocityFunctionType& convection,
-								const DiscreteVelocityFunctionType& velocity_laplace )
+								const DiscreteVelocityFunctionType& velocity_laplace,
+								const DiscreteVelocityFunctionType& pressure_gradient )
 				{
 					const double dt_n = timeProvider_.deltaT();
 					this->clear();
@@ -161,21 +169,26 @@ namespace Dune {
 					DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
 					Dune::BetterL2Projection
 						::project( timeProvider_, force_, tmp );
-					tmp *= ( theta_values_[3] * dt_n );
+					tmp *= ( theta_values_[3] );
 					*this += tmp;
 
 					Dune::BetterL2Projection
 						::project( timeProvider_.previousSubTime(), force_, tmp );
-					tmp *= ( theta_values_[2] * dt_n );
+					tmp *= ( theta_values_[2] );
 					*this += tmp;
 
 					tmp.assign( velocity_laplace );
-					tmp *= ( theta_values_[1] * dt_n ) / reynolds_;
+					tmp *= ( theta_values_[1] ) / reynolds_;
 					*this += tmp;// this = f + beta_re_qoutient * laplace
 
 					tmp.assign( convection );
-					tmp *= ( theta_values_[1] * dt_n );
+					tmp *= ( theta_values_[1] );
 					*this -= tmp;
+
+					tmp.assign( pressure_gradient );
+					tmp *= ( theta_values_[1] );
+					*this -= tmp;
+					*this *= dt_n ;
 
 					*this += velocity;
 				}

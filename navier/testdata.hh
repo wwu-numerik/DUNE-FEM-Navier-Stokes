@@ -1766,14 +1766,11 @@ namespace Dune {
 					const double parameter_d_;
 			};
 
-			template <	class FunctionSpaceImp,
-						class TimeProviderImp >
-			class Pressure : public TimeFunction <	FunctionSpaceImp ,
-													Pressure < FunctionSpaceImp,TimeProviderImp >,
-													TimeProviderImp >
+			template < class FunctionSpaceImp, class TimeProviderImp >
+			class VelocityLaplace : public TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 			{
 				public:
-					typedef Pressure< FunctionSpaceImp, TimeProviderImp >
+					typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 						ThisType;
 					typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 						BaseType;
@@ -1782,21 +1779,22 @@ namespace Dune {
 					typedef typename BaseType::RangeType
 						RangeType;
 
-				  Pressure( const TimeProviderImp& timeprovider,
-							const FunctionSpaceImp& space,
-							const double parameter_a = M_PI /2.0 ,
-							const double parameter_d = M_PI /4.0)
-					  : BaseType( timeprovider, space ),
-					  parameter_a_( parameter_a ),
-					  parameter_d_( parameter_d )
-				  {}
+					VelocityLaplace(	const TimeProviderImp& timeprovider,
+								const FunctionSpaceImp& space,
+								const double parameter_a = M_PI /2.0 ,
+								const double parameter_d = M_PI /4.0)
+						: BaseType( timeprovider, space ),
+						parameter_a_( parameter_a ),
+						parameter_d_( parameter_d )
+					{}
 
-				   ~Pressure() {}
+					~VelocityLaplace()
+					{}
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
-						dune_static_assert( dim_ == 1 , "Pressure_Unsuitable_WorldDim");
-						ret = -666 * arg * time;
+						dune_static_assert( dim_ == 1  , "DirichletData_Unsuitable_WorldDim");
+						VelocityEvaluate( parameter_a_, parameter_d_, time, arg, ret);
 					}
 
 				private:
@@ -1808,6 +1806,7 @@ namespace Dune {
 			NULLFUNCTION_TP(PressureGradient)
 			NULLFUNCTION_TP(VelocityConvection)
 			NULLFUNCTION_TP(VelocityLaplace)
+			NULLFUNCTION(Pressure)
 		}//end namespace TestCase1D
 
 	}//end namespace NavierStokes
