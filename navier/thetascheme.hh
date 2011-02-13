@@ -387,6 +387,10 @@ namespace Dune {
 																										theta_values,
 																										rhsDatacontainer_ )
 											);
+					typename L2ErrorType::Errors errors_rhs = l2Error_.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForce),
+																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla),
+																		dummyFunctions_.discreteVelocity() );
+					std::cerr << "RHS " << errors_rhs.str();
 					typename Traits::DiscreteStokesFunctionWrapperType
 							exactSolution_at_next_time ( "reoh", exactSolution_.space(), gridPart_ );
 					exactSolution_.atTime( timeprovider_.subTime(), exactSolution_at_next_time  );
@@ -554,6 +558,10 @@ namespace Dune {
 																											theta_values,
 																											rhsDatacontainer_ )
 												);
+						typename L2ErrorType::Errors errors_rhs = l2Error_.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForce),
+																			static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla),
+																			dummyFunctions_.discreteVelocity() );
+						std::cerr << "RHS " << errors_rhs.str();
 						typename Traits::OseenAltRhsForceAdapterFunctionType
 							real_rhs( rhsDatacontainer_.convection );
 						real_rhs *= -theta_values[0]*dt_n;
