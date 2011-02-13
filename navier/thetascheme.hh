@@ -342,12 +342,10 @@ namespace Dune {
 				void substep( const double dt_k, const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
 				{
 					//build rhs
-					const bool first_step = timeprovider_.timeStep() <= 1;
+					const bool first_step = timeprovider_.timeStep() <= 2;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
-					if ( Parameters().getParam( "rhs_cheat", false ) )
-						cheatRHS();
-
+					const bool do_cheat = Parameters().getParam( "rhs_cheat", false );
 
 					if ( !Parameters().getParam( "parabolic", false )
 							&& ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/) )
@@ -359,6 +357,22 @@ namespace Dune {
 						Dune::BruteForceReconstruction< typename Traits::OseenPassType::RhsDatacontainer, typename Traits::OseenModelType >
 															::getConvection( beta, rhsDatacontainer_.velocity_gradient, rhsDatacontainer_.convection );
 					}
+					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
+							ptr_oseenForceVanilla( first_step //in our very first step no previous computed data is avail. in rhs_container
+												? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
+																										exactSolution_.discreteVelocity(),
+																										force,
+																										reynolds_,
+																										theta_values )
+												: new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
+																										currentFunctions_.discreteVelocity(),
+																										force,
+																										reynolds_,
+																										theta_values,
+																										rhsDatacontainer_ )
+											);
+//					if ( do_cheat )
+						cheatRHS();
 					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 							ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
 												? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
@@ -407,7 +421,7 @@ namespace Dune {
 						}
 						typename Traits::OseenModelType
 								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
-											*ptr_oseenForce,
+											do_cheat ? *ptr_oseenForce : *ptr_oseenForceVanilla,
 											oseenDirichletData,
 											theta_values[0] * dt_n / reynolds_, /*viscosity*/
 											1.0f, /*alpha*/
@@ -420,7 +434,7 @@ namespace Dune {
 												functionSpaceWrapper_,
 												beta /*beta*/,
 												!Parameters().getParam( "parabolic", false ) /*do_oseen_disc*/ );
-						if ( timeprovider_.timeStep() <= 1 && i < 1)
+						if ( timeprovider_.timeStep() <= 2 && i < 1)
 							oseenPass.printInfo();
 						if ( Parameters().getParam( "silent_stokes", true ) )
 							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
@@ -489,8 +503,7 @@ namespace Dune {
 					const bool first_step = timeprovider_.timeStep() <= 1;
 					const typename Traits::AnalyticalForceType force ( viscosity_,
 																 currentFunctions_.discreteVelocity().space() );
-					if ( Parameters().getParam( "rhs_cheat", false ) )
-						cheatRHS();
+
 
 
 //					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
@@ -511,6 +524,22 @@ namespace Dune {
 					unsigned int oseen_iteration_number = 0;
 					while ( true )
 					{
+						boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
+								ptr_oseenForceVanilla( first_step //in our very first step no previous computed data is avail. in rhs_container
+													? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
+																											exactSolution_.discreteVelocity(),
+																											force,
+																											reynolds_,
+																											theta_values )
+													: new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
+																											currentFunctions_.discreteVelocity(),
+																											force,
+																											reynolds_,
+																											theta_values,
+																											rhsDatacontainer_ )
+												);
+						if ( Parameters().getParam( "rhs_cheat", false ) )
+							cheatRHS();
 						boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 								ptr_oseenForce( first_step //in our very first step no previous computed data is avail. in rhs_container
 													? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
