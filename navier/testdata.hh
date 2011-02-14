@@ -1471,6 +1471,7 @@ namespace Dune {
 
 					void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 					{
+						dune_static_assert( dim_ == 2  , "Wrong world dim");
 						ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
 						ret[1] = std::pow(time,2.0)* arg[0];
 					}
