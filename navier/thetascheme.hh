@@ -388,13 +388,12 @@ namespace Dune {
 																										rhsDatacontainer_ )
 											);
 					typename L2ErrorType::Errors errors_rhs = l2Error_.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForce),
-																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla),
-																		dummyFunctions_.discreteVelocity() );
+																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla) );
 					std::cerr << "RHS " << errors_rhs.str();
 					typename Traits::DiscreteStokesFunctionWrapperType
 							exactSolution_at_next_time ( "reoh", exactSolution_.space(), gridPart_ );
 					exactSolution_.atTime( timeprovider_.subTime(), exactSolution_at_next_time  );
-					dummyFunctions_.assign( exactSolution_at_next_time );
+
 					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
 					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::AnalyticalDirichletDataType oseenDirichletData =
@@ -463,6 +462,7 @@ namespace Dune {
 
 						setUpdateFunctions();
 						currentFunctions_.assign( nextFunctions_ );
+						dummyFunctions_.discreteVelocity().assign( rhsDatacontainer_.convection );
 
 //						if ( ( ( pressure_error_reduction < 1.0 )
 //							  && ( velocity_error_reduction < 1.0 ) ) )
@@ -559,8 +559,7 @@ namespace Dune {
 																											rhsDatacontainer_ )
 												);
 						typename L2ErrorType::Errors errors_rhs = l2Error_.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForce),
-																			static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla),
-																			dummyFunctions_.discreteVelocity() );
+																			static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla) );
 						std::cerr << "RHS " << errors_rhs.str();
 						typename Traits::OseenAltRhsForceAdapterFunctionType
 							real_rhs( rhsDatacontainer_.convection );
