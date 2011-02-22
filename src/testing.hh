@@ -783,7 +783,7 @@ namespace AdapterFunctionsScalar {
 
 namespace AdapterFunctionsVectorial {
 
-	static const double pi_factor =  M_PI / 2.;//controls number of vortices
+	static const double pi_factor =  M_PI ;//controls number of vortices
 	struct Evals {
 		template < class DomainType >
 		Evals( const DomainType& arg, const double time )

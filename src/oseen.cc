@@ -283,7 +283,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					gridPart,
 					functionSpaceWrapper );
 	exactSolution.project();
-	exactSolution.exactPressure().setShift( pressure_C );
+//	exactSolution.exactPressure().setShift( pressure_C );
 	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
@@ -304,11 +304,13 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 			stokesModel( stab_coeff ,
 						force,
 						stokesDirichletData,
-						oseen_viscosity,
-						oseen_alpha );
+						oseen_viscosity, /*viscosity*/
+						oseen_alpha, /*alpha*/
+						0.0,/*convection_scale_factor*/
+						1.0 /*pressure_gradient_scale_factor*/);
 	currentFunctions.assign( exactSolution );
 
-	OseenTraits::ConvectionType convection( oseen_viscosity, continousVelocitySpace );
+	OseenTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convetion", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
@@ -324,7 +326,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							gridPart,
 							functionSpaceWrapper,
 							discrete_convection,
-							true );
+							false );
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
