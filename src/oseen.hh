@@ -232,13 +232,13 @@ namespace Oseen {
 			ret[0] = 1 - e_lambda_x * 	std::cos( 2 * M_PI * y );
 			ret[1] = (lambda/(2*M_PI)) * e_lambda_x * 	std::sin( 2 * M_PI * y );
 		}
-		template < class FunctionSpaceImp >
-		class Convection : public Function < FunctionSpaceImp , Convection< FunctionSpaceImp > >
+		template < class FunctionSpaceImp , class TimeProviderImp >
+		class VelocityConvection :  public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
-				typedef Convection< FunctionSpaceImp >
+				typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Function< FunctionSpaceImp, ThisType >
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -250,10 +250,11 @@ namespace Oseen {
 				*
 				*  doing nothing besides Base init
 				**/
-				Convection( double dummy, const FunctionSpaceImp& space,
-							 const double parameter_a = M_PI /2.0 ,
-							 const double parameter_d = M_PI /4.0)
-					: BaseType( space ),
+				VelocityConvection(	const TimeProviderImp& timeprovider,
+						const FunctionSpaceImp& space,
+						const double parameter_a = M_PI /2.0 ,
+						const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
 					lambda_( Parameters().getParam( "lambda", 0.0 ) )
 				{}
 
@@ -262,7 +263,7 @@ namespace Oseen {
 				*
 				*  doing nothing
 				**/
-				~Convection()
+				~VelocityConvection()
 				{}
 
 				template < class IntersectionType >
@@ -271,6 +272,9 @@ namespace Oseen {
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{VelocityEvaluate( lambda_, 0, arg, ret);}
 
 				/**
 				* \brief  evaluates the dirichlet data
@@ -613,13 +617,13 @@ namespace Oseen {
 				  static const int dim_ = FunctionSpaceImp::dimDomain ;
 				  const double lambda_;
 		};
-		template < class FunctionSpaceImp >
-		class Convection : public Function < FunctionSpaceImp , Convection< FunctionSpaceImp > >
+		template < class FunctionSpaceImp , class TimeProviderImp >
+		class VelocityConvection :  public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
-				typedef Convection< FunctionSpaceImp >
+				typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Function< FunctionSpaceImp, ThisType >
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -631,10 +635,11 @@ namespace Oseen {
 				*
 				*  doing nothing besides Base init
 				**/
-				Convection( double dummy, const FunctionSpaceImp& space,
-							 const double parameter_a = M_PI /2.0 ,
-							 const double parameter_d = M_PI /4.0)
-					: BaseType( space ),
+			VelocityConvection(	const TimeProviderImp& timeprovider,
+						const FunctionSpaceImp& space,
+						const double parameter_a = M_PI /2.0 ,
+						const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
 					lambda_( Parameters().getParam( "lambda", 0.0 ) )
 				{}
 
@@ -643,7 +648,7 @@ namespace Oseen {
 				*
 				*  doing nothing
 				**/
-				~Convection()
+				~VelocityConvection()
 				{}
 
 				template < class IntersectionType >
@@ -652,6 +657,7 @@ namespace Oseen {
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
 					VelocityEvaluate( lambda_, time, arg, ret);
 				}
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, time, arg, ret);}
 
 				/**
 				* \brief  evaluates the dirichlet data
