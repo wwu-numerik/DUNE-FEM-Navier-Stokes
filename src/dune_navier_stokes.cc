@@ -158,7 +158,8 @@ int main( int argc, char** argv )
 	const bool useLogger = false;
 	Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
 					 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
-					 Parameters().getParam( "fem.io.datadir",   std::string(),              useLogger )
+					 Parameters().getParam( "fem.io.datadir",   std::string("data"),        useLogger ),
+					 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
 					);
 	if ( setSchemeTypeFromString() )
 		Logger().Info() << "overrode scheme id from string" << std::endl;
