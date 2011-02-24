@@ -1854,11 +1854,11 @@ namespace ConvDiff {
 					  ret[0] = -2*std::pow(time,3.0)*v;
 					  ret[1] = 0;
 					  //grad p
-					  ret[0] += time;
-					  ret[1] += 1;
+//					  ret[0] += time;
+//					  ret[1] += 1;
 					  //conv
-//					  ret[0] += std::pow(time,5.0)*2*x*y;
-//					  ret[1] += std::pow(time,5.0)*y*y;
+					  ret[0] += std::pow(time,5.0)*2*x*y;
+					  ret[1] += std::pow(time,5.0)*y*y;
 					  //dt u
 //					  ret[0] += std::pow(time,2.0)*3*y*y;
 //					  ret[1] += 2*time*x;

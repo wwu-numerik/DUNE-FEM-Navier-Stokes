@@ -264,7 +264,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						force,
 						stokesDirichletData,
 						viscosity,
-						alpha );
+						alpha,
+						1.0,/*convection_scale_factor*/
+						0.0 /*pressure_gradient_scale_factor*/);
 	currentFunctions.assign( exactSolution );
 
 	ConvDiffTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
@@ -358,8 +360,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					<< errors_velocity.str()
 					<< errors_gradient.str()
 					<< errors_laplace.str()
+					   << "current time: " << timeprovider_.time()
 //					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
-					<< "GD: " << GD << std::endl;
+					<< "\nGD: " << GD << std::endl;
 
 	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;
