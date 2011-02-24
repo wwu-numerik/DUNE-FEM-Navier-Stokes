@@ -27,18 +27,11 @@
 	#define VELOCITY_POLORDER POLORDER
 #endif
 
-#if ! defined(TESTCASE)
-	#define TESTCASE TestCase3D
-#endif
-
-#define TESTCASE_NAME "TESTCASE"
-
 #if ( ( defined(SGRID) || defined(ALUGRID_SIMPLEX) ||  defined(ALUGRID_CUBE) ) && ( GRIDDIM == 3 ) ) || defined(UGGRID) || defined(YASPGRID)
 	//this is no mistake, ALU is indeed only incompatible in 3d
 	#define OLD_DUNE_GRID_VERSION
 #endif
-#define TESTING_NS Testing::AdapterFunctionsVectorial
-#include "testing.hh"
+
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
 
 #include <vector>
@@ -52,36 +45,6 @@
 
 //!ATTENTION: undef's GRIDDIM
 #include <dune/grid/io/file/dgfparser/dgfgridtype.hh> // for the grid
-
-#include <dune/fem/solver/oemsolver/oemsolver.hh>
-#include <dune/fem/space/dgspace.hh>
-#include <dune/fem/space/combinedspace.hh>
-#include <dune/fem/space/dgspace/dgadaptiveleafgridpart.hh>
-#include <dune/fem/pass/pass.hh>
-#include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
-#include <dune/fem/misc/gridwidth.hh>
-#include <dune/fem/misc/l2error.hh>
-
-#include <dune/stokes/discretestokesfunctionspacewrapper.hh>
-#include <dune/stokes/discretestokesmodelinterface.hh>
-#include <dune/stokes/stokespass.hh>
-#include <dune/stokes/boundarydata.hh>
-
-#include <dune/stuff/printing.hh>
-#include <dune/stuff/femeoc.hh>
-#include <dune/stuff/misc.hh>
-#include <dune/stuff/logging.hh>
-#include <dune/stuff/parametercontainer.hh>
-#include <dune/stuff/postprocessing.hh>
-#include <dune/stuff/profiler.hh>
-#include <dune/stuff/timeseries.hh>
-#include <dune/stuff/signals.hh>
-#include <dune/stuff/tuple.hh>
-#include <dune/stuff/error.hh>
-#include <dune/stuff/functionadapter.hh>
-
-
-#include <dune/navier/thetascheme_traits.hh>
 
 #include "conv_diff.hh"
 
@@ -301,7 +264,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						force,
 						stokesDirichletData,
 						viscosity,
-						alpha );
+						alpha,
+						1.0,/*convection_scale_factor*/
+						0.0 /*pressure_gradient_scale_factor*/);
 	currentFunctions.assign( exactSolution );
 
 	ConvDiffTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
@@ -395,8 +360,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					<< errors_velocity.str()
 					<< errors_gradient.str()
 					<< errors_laplace.str()
+					   << "current time: " << timeprovider_.time()
 //					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
-					<< "GD: " << GD << std::endl;
+					<< "\nGD: " << GD << std::endl;
 
 	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;

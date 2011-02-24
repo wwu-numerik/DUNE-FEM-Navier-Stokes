@@ -1,151 +1,40 @@
 #ifndef CONV_DIFF_HH
 #define CONV_DIFF_HH
 
+#ifndef CONVDIFF_DATA_NAMESPACE
+	#define CONVDIFF_DATA_NAMESPACE Dune::ConvDiff::TimeDisc
+#endif
+#define TESTING_NS CONVDIFF_DATA_NAMESPACE
+
+#include <dune/fem/solver/oemsolver/oemsolver.hh>
+#include <dune/fem/space/dgspace.hh>
+#include <dune/fem/space/combinedspace.hh>
+#include <dune/fem/space/dgspace/dgadaptiveleafgridpart.hh>
+#include <dune/fem/pass/pass.hh>
+#include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
+#include <dune/fem/misc/gridwidth.hh>
+#include <dune/fem/misc/l2error.hh>
+
+#include <dune/stokes/discretestokesfunctionspacewrapper.hh>
 #include <dune/stokes/discretestokesmodelinterface.hh>
 #include <dune/stokes/stokespass.hh>
-#include <dune/navier/fractionaltimeprovider.hh>
-#include <dune/navier/stokestraits.hh>
-#include <dune/navier/exactsolution.hh>
-#include <dune/fem/misc/mpimanager.hh>
-#include <dune/stuff/datawriter.hh>
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/timefunction.hh>
-#include <dune/stuff/customprojection.hh>
-#include <dune/common/collectivecommunication.hh>
-#include <cmath>
+#include <dune/stokes/boundarydata.hh>
 
+#include <dune/stuff/printing.hh>
+#include <dune/stuff/femeoc.hh>
+#include <dune/stuff/misc.hh>
+#include <dune/stuff/logging.hh>
+#include <dune/stuff/parametercontainer.hh>
+#include <dune/stuff/postprocessing.hh>
+#include <dune/stuff/profiler.hh>
+#include <dune/stuff/timeseries.hh>
+#include <dune/stuff/signals.hh>
+#include <dune/stuff/tuple.hh>
+#include <dune/stuff/error.hh>
+#include <dune/stuff/functionadapter.hh>
 
 namespace Dune {
 namespace ConvDiff {
-
-		template <	class TimeProviderType,
-					class GridPartImp,
-					template < class > class ForceFuntionType,
-					template < class > class AnalyticalDirichletDataImp,
-					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
-		class DiscreteModelTraits
-		{
-			public:
-
-				//! for CRTP trick
-			typedef Dune::DiscreteStokesModelDefault < DiscreteModelTraits >
-					DiscreteModelType;
-
-				//! we use caching quadratures for the entities
-				typedef Dune::CachingQuadrature< GridPartImp, 0 >
-					VolumeQuadratureType;
-
-				//! we use caching quadratures for the faces
-				typedef Dune::CachingQuadrature< GridPartImp, 1 >
-					FaceQuadratureType;
-
-				//! polynomial order for the discrete sigma function space
-				static const int sigmaSpaceOrder = sigmaOrder;
-				//! polynomial order for the discrete velocity function space
-				static const int velocitySpaceOrder = velocityOrder;
-				//! polynomial order for the discrete pressure function space
-				static const int pressureSpaceOrder = pressureOrder;
-
-		//    private:
-
-				//! function space type for the velocity
-				typedef Dune::FunctionSpace< double, double, gridDim, gridDim >
-					VelocityFunctionSpaceType;
-
-				//! discrete function space type for the velocity
-				typedef Dune::DiscontinuousGalerkinSpace<   VelocityFunctionSpaceType,
-															GridPartImp,
-															velocitySpaceOrder >
-					DiscreteVelocityFunctionSpaceType;
-
-				//! function space type for the pressure
-				typedef Dune::FunctionSpace< double, double, gridDim, 1 >
-					PressureFunctionSpaceType;
-
-				//! discrete function space type for the pressure
-				typedef Dune::DiscontinuousGalerkinSpace<   PressureFunctionSpaceType,
-															GridPartImp,
-															pressureSpaceOrder >
-					DiscretePressureFunctionSpaceType;
-
-			public:
-
-				//! discrete function space wrapper type
-				typedef Dune::DiscreteStokesFunctionSpaceWrapper< Dune::DiscreteStokesFunctionSpaceWrapperTraits<
-							DiscreteVelocityFunctionSpaceType,
-							DiscretePressureFunctionSpaceType > >
-					DiscreteStokesFunctionSpaceWrapperType;
-
-			private:
-
-				//! discrete function type for the velocity
-				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
-					DiscreteVelocityFunctionType;
-
-				//! discrete function type for the pressure
-				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
-					DiscretePressureFunctionType;
-
-			public:
-
-				//! discrete function wrapper type
-				typedef Dune::DiscreteStokesFunctionWrapper< Dune::DiscreteStokesFunctionWrapperTraits<
-							DiscreteStokesFunctionSpaceWrapperType,
-							DiscreteVelocityFunctionType,
-							DiscretePressureFunctionType > >
-					DiscreteStokesFunctionWrapperType;
-
-			public:
-
-				//! function space type for sigma
-				typedef Dune::MatrixFunctionSpace<  double,
-													double,
-													gridDim,
-													gridDim,
-													gridDim >
-					SigmaFunctionSpaceType;
-
-				//! discrete function space type for sigma
-				typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
-															GridPartImp,
-															sigmaSpaceOrder >
-					DiscreteSigmaFunctionSpaceType;
-
-			public:
-
-				//! discrete function type for sigma
-				typedef Dune::AdaptiveDiscreteFunction< DiscreteSigmaFunctionSpaceType >
-					DiscreteSigmaFunctionType;
-
-				//! function type for the analytical force
-				typedef ForceFuntionType < VelocityFunctionSpaceType >
-					AnalyticalForceFunctionType;
-
-				typedef AnalyticalForceFunctionType
-					AnalyticalForceType;
-
-				//! function type for the analytical dirichlet data
-				typedef typename Dune::NavierStokes::StokesStep::DirichletAdapterFunctionTraits< AnalyticalDirichletDataImp, TimeProviderType >
-									::template Implementation<VelocityFunctionSpaceType,GridPartImp >
-						AnalyticalDirichletDataTraitsImplementation;
-				typedef typename AnalyticalDirichletDataTraitsImplementation::AnalyticalDirichletDataType
-					AnalyticalDirichletDataType;
-
-				typedef DiscreteVelocityFunctionType
-					ExtraDataFunctionType;
-				/**
-				 *  \name   types needed for the pass
-				 *  \{
-				 **/
-				//! return type of the pass
-				typedef DiscreteStokesFunctionWrapperType
-					DestinationType;
-				/**
-				 *  \}
-				 **/
-
-		};
-
 	namespace TestCase2D {
 		template < class FunctionSpaceImp >
 		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
@@ -1913,9 +1802,453 @@ namespace ConvDiff {
 				const double parameter_d_;
 		};
 	}//end namespace AdapterFunctionsVectorial
-#ifndef CONVDIFF_DATA_NAMESPACE
-	#define CONVDIFF_DATA_NAMESPACE ConvDiff::AdapterFunctionsVectorial
-#endif
+	namespace TimeDisc {
+
+		NULLFUNCTION_TP(VelocityGradientX)
+		NULLFUNCTION_TP(VelocityGradientY)
+		NULLFUNCTION_TP(VelocityGradient)
+
+		template < class FunctionSpaceImp >
+		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		{
+			  public:
+				  typedef Force< FunctionSpaceImp >
+					  ThisType;
+				  typedef Function < FunctionSpaceImp ,ThisType >
+					  BaseType;
+				  typedef typename BaseType::DomainType
+					  DomainType;
+				  typedef typename BaseType::RangeType
+					  RangeType;
+
+				  /**
+				   *  \brief  constructor
+				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
+				   **/
+				  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
+					  : BaseType ( space ),
+						viscosity_( viscosity ),
+						alpha_( alpha )
+				  {}
+
+				  /**
+				   *  \brief  destructor
+				   *  doing nothing
+				   **/
+				  ~Force()
+				  {}
+
+				  /**
+				   *  \brief  evaluates the force
+				   *  \param  arg
+				   *          point to evaluate at
+				   *  \param  ret
+				   *          value of force at given point
+				   **/
+				  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+				  {
+					  const double x			= arg[0];
+					  const double y			= arg[1];
+					  const double v			= viscosity_;
+					  //laplce
+					  ret[0] = -2*std::pow(time,3.0)*v;
+					  ret[1] = 0;
+					  //grad p
+//					  ret[0] += time;
+//					  ret[1] += 1;
+					  //conv
+					  ret[0] += std::pow(time,5.0)*2*x*y;
+					  ret[1] += std::pow(time,5.0)*y*y;
+					  //dt u
+//					  ret[0] += std::pow(time,2.0)*3*y*y;
+//					  ret[1] += 2*time*x;
+
+//					  ret *=0;
+
+
+				  }
+				  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
+
+			  private:
+				  const double viscosity_;
+				  const double alpha_;
+				  static const int dim_ = FunctionSpaceImp::dimDomain;
+		};
+
+		template < class FunctionSpaceImp >
+		class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+		{
+			public:
+				typedef DirichletData< FunctionSpaceImp >
+					ThisType;
+				typedef Function< FunctionSpaceImp, ThisType >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				DirichletData( const FunctionSpaceImp& space,
+							 const double parameter_a = M_PI /2.0 ,
+							 const double parameter_d = M_PI /4.0)
+					: BaseType( space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				~DirichletData()
+				{}
+
+				template < class IntersectionType >
+				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& intersection ) const
+				{
+					ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
+					ret[1] = std::pow(time,2.0)* arg[0];
+				}
+
+				inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
+
+			private:
+				  static const int dim_ = FunctionSpaceImp::dimDomain ;
+				  const double parameter_a_;
+				  const double parameter_d_;
+		};
+
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class Velocity : public TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef Velocity< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				Velocity(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				~Velocity()
+				{}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					dune_static_assert( dim_ == 2  , "Wrong world dim");
+					ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
+					ret[1] = std::pow(time,2.0)* arg[0];
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class PressureGradient : public TimeFunction < FunctionSpaceImp , PressureGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				PressureGradient(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				~PressureGradient()
+				{}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					ret[0] = time;
+					ret[1] = 1;
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+
+		template <	class FunctionSpaceImp,
+					class TimeProviderImp >
+		class Pressure : public TimeFunction <	FunctionSpaceImp ,
+												Pressure < FunctionSpaceImp,TimeProviderImp >,
+												TimeProviderImp >
+		{
+			public:
+				typedef Pressure< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+			  Pressure( const TimeProviderImp& timeprovider,
+						const FunctionSpaceImp& space,
+						const double parameter_a = M_PI /2.0 ,
+						const double parameter_d = M_PI /4.0)
+				  : BaseType( timeprovider, space ),
+				  parameter_a_( parameter_a ),
+				  parameter_d_( parameter_d )
+			  {}
+
+			   ~Pressure()
+			   {}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					ret = time * arg[0] + arg[1] - ( ( time + 1 ) / 2.0 );
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				VelocityLaplace(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				~VelocityLaplace() {}
+
+				void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
+				{
+					ret[0] = 2*std::pow(time,3.0);
+					ret[1] = 0;
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		{
+			public:
+				typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
+				typedef typename BaseType::DomainType
+					DomainType;
+				typedef typename BaseType::RangeType
+					RangeType;
+
+				VelocityConvection(	const TimeProviderImp& timeprovider,
+							const FunctionSpaceImp& space,
+							const double parameter_a = M_PI /2.0 ,
+							const double parameter_d = M_PI /4.0)
+					: BaseType( timeprovider, space ),
+					parameter_a_( parameter_a ),
+					parameter_d_( parameter_d )
+				{}
+
+				~VelocityConvection()
+				{}
+
+				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+				{
+					const double x			= arg[0];
+					const double y			= arg[1];
+					ret[0] = std::pow(time,5.0)*2*x*y;
+					ret[1] = std::pow(time,5.0)*y*y;;
+				}
+
+			private:
+				static const int dim_ = FunctionSpaceImp::dimDomain ;
+				const double parameter_a_;
+				const double parameter_d_;
+		};
+	}//end namespace TimeDisc
+
+}
+}
+
+#include <dune/navier/fractionaltimeprovider.hh>
+#include <dune/navier/stokestraits.hh>
+#include <dune/navier/exactsolution.hh>
+#include <dune/stokes/discretestokesmodelinterface.hh>
+#include <dune/stokes/stokespass.hh>
+#include <dune/fem/misc/mpimanager.hh>
+#include <dune/stuff/datawriter.hh>
+#include <dune/stuff/functions.hh>
+#include <dune/stuff/timefunction.hh>
+#include <dune/stuff/customprojection.hh>
+#include <dune/common/collectivecommunication.hh>
+#include <dune/navier/thetascheme_traits.hh>
+#include <cmath>
+
+namespace Dune {
+namespace ConvDiff {
+
+		template <	class TimeProviderType,
+					class GridPartImp,
+					template < class > class ForceFuntionType,
+					template < class > class AnalyticalDirichletDataImp,
+					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
+		class DiscreteModelTraits
+		{
+			public:
+
+				//! for CRTP trick
+			typedef Dune::DiscreteStokesModelDefault < DiscreteModelTraits >
+					DiscreteModelType;
+
+				//! we use caching quadratures for the entities
+				typedef Dune::CachingQuadrature< GridPartImp, 0 >
+					VolumeQuadratureType;
+
+				//! we use caching quadratures for the faces
+				typedef Dune::CachingQuadrature< GridPartImp, 1 >
+					FaceQuadratureType;
+
+				//! polynomial order for the discrete sigma function space
+				static const int sigmaSpaceOrder = sigmaOrder;
+				//! polynomial order for the discrete velocity function space
+				static const int velocitySpaceOrder = velocityOrder;
+				//! polynomial order for the discrete pressure function space
+				static const int pressureSpaceOrder = pressureOrder;
+
+		//    private:
+
+				//! function space type for the velocity
+				typedef Dune::FunctionSpace< double, double, gridDim, gridDim >
+					VelocityFunctionSpaceType;
+
+				//! discrete function space type for the velocity
+				typedef Dune::DiscontinuousGalerkinSpace<   VelocityFunctionSpaceType,
+															GridPartImp,
+															velocitySpaceOrder >
+					DiscreteVelocityFunctionSpaceType;
+
+				//! function space type for the pressure
+				typedef Dune::FunctionSpace< double, double, gridDim, 1 >
+					PressureFunctionSpaceType;
+
+				//! discrete function space type for the pressure
+				typedef Dune::DiscontinuousGalerkinSpace<   PressureFunctionSpaceType,
+															GridPartImp,
+															pressureSpaceOrder >
+					DiscretePressureFunctionSpaceType;
+
+			public:
+
+				//! discrete function space wrapper type
+				typedef Dune::DiscreteStokesFunctionSpaceWrapper< Dune::DiscreteStokesFunctionSpaceWrapperTraits<
+							DiscreteVelocityFunctionSpaceType,
+							DiscretePressureFunctionSpaceType > >
+					DiscreteStokesFunctionSpaceWrapperType;
+
+			private:
+
+				//! discrete function type for the velocity
+				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+					DiscreteVelocityFunctionType;
+
+				//! discrete function type for the pressure
+				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+					DiscretePressureFunctionType;
+
+			public:
+
+				//! discrete function wrapper type
+				typedef Dune::DiscreteStokesFunctionWrapper< Dune::DiscreteStokesFunctionWrapperTraits<
+							DiscreteStokesFunctionSpaceWrapperType,
+							DiscreteVelocityFunctionType,
+							DiscretePressureFunctionType > >
+					DiscreteStokesFunctionWrapperType;
+
+			public:
+
+				//! function space type for sigma
+				typedef Dune::MatrixFunctionSpace<  double,
+													double,
+													gridDim,
+													gridDim,
+													gridDim >
+					SigmaFunctionSpaceType;
+
+				//! discrete function space type for sigma
+				typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
+															GridPartImp,
+															sigmaSpaceOrder >
+					DiscreteSigmaFunctionSpaceType;
+
+			public:
+
+				//! discrete function type for sigma
+				typedef Dune::AdaptiveDiscreteFunction< DiscreteSigmaFunctionSpaceType >
+					DiscreteSigmaFunctionType;
+
+				//! function type for the analytical force
+				typedef ForceFuntionType < VelocityFunctionSpaceType >
+					AnalyticalForceFunctionType;
+
+				typedef AnalyticalForceFunctionType
+					AnalyticalForceType;
+
+				//! function type for the analytical dirichlet data
+				typedef typename Dune::NavierStokes::StokesStep::DirichletAdapterFunctionTraits< AnalyticalDirichletDataImp, TimeProviderType >
+									::template Implementation<VelocityFunctionSpaceType,GridPartImp >
+						AnalyticalDirichletDataTraitsImplementation;
+				typedef typename AnalyticalDirichletDataTraitsImplementation::AnalyticalDirichletDataType
+					AnalyticalDirichletDataType;
+
+				typedef DiscreteVelocityFunctionType
+					ExtraDataFunctionType;
+				/**
+				 *  \name   types needed for the pass
+				 *  \{
+				 **/
+				//! return type of the pass
+				typedef DiscreteStokesFunctionWrapperType
+					DestinationType;
+				/**
+				 *  \}
+				 **/
+
+		};
 
 	template <	class CommunicatorImp,
 				class GridPartImp,
