@@ -20,7 +20,7 @@ namespace Oseen {
 
 		template <	class TimeProviderType,
 					class GridPartImp,
-					template < class > class ForceFuntionType,
+					template < class,class > class ForceFuntionType,
 					template < class > class AnalyticalDirichletDataImp,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		class DiscreteModelTraits
@@ -116,7 +116,7 @@ namespace Oseen {
 					DiscreteSigmaFunctionType;
 
 				//! function type for the analytical force
-				typedef ForceFuntionType < VelocityFunctionSpaceType >
+				typedef ForceFuntionType < VelocityFunctionSpaceType,TimeProviderType >
 					AnalyticalForceFunctionType;
 
 				typedef AnalyticalForceFunctionType
@@ -801,14 +801,14 @@ namespace Oseen {
 	}//end namespace TestCaseTaylor2D
 
 	namespace TimeDisc {
-		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class Force : public TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
-			  public:
-				  typedef Force< FunctionSpaceImp >
-					  ThisType;
-				  typedef Function < FunctionSpaceImp ,ThisType >
-					  BaseType;
+			public:
+				typedef Force< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
 				  typedef typename BaseType::DomainType
 					  DomainType;
 				  typedef typename BaseType::RangeType
@@ -818,8 +818,8 @@ namespace Oseen {
 				   *  \brief  constructor
 				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
 				   **/
-				  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
-					  : BaseType ( space ),
+				  Force( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space, const double  viscosity = 0.0, const double alpha = 0.0 )
+					  : BaseType ( timeprovider, space ),
 						viscosity_( viscosity ),
 						alpha_( alpha )
 				  {}
@@ -838,7 +838,7 @@ namespace Oseen {
 				   *  \param  ret
 				   *          value of force at given point
 				   **/
-				  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+				  void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				  {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
@@ -850,8 +850,8 @@ namespace Oseen {
 					  ret[0] += time;
 					  ret[1] += 1;
 					  //conv
-//					  ret[0] += std::pow(time,5.0)*2*x*y;
-//					  ret[1] += std::pow(time,5.0)*y*y;
+					  ret[0] += std::pow(time,5.0)*2*x*y;
+					  ret[1] += std::pow(time,5.0)*y*y;
 					  //dt u
 //					  ret[0] += std::pow(time,2.0)*3*y*y;
 //					  ret[1] += 2*time*x;
@@ -860,7 +860,6 @@ namespace Oseen {
 
 
 				  }
-				  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {ret = RangeType(0);}
 
 			  private:
 				  const double viscosity_;
@@ -893,7 +892,7 @@ namespace Oseen {
 				{}
 
 				template < class IntersectionType >
-				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& intersection ) const
+				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection*/ ) const
 				{
 					ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
 					ret[1] = std::pow(time,2.0)* arg[0];

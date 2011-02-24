@@ -212,16 +212,17 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
 	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
+	static bool firstRun = true;
 	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
-	gridPtr->globalRefine( refine_level );
+	if ( firstRun && refine_level_factor > 0 ) {
+		refine_level = ( refine_level_factor ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
+		gridPtr->globalRefine( refine_level );
+	}
 
 	typedef Dune::AdaptiveLeafGridPart< GridType >
 		GridPartType;
 	GridPartType gridPart( *gridPtr );
 
-	/* ********************************************************************** *
-	 * initialize problem                                                     *
-	 * ********************************************************************** */
 	infoStream << "\n- initialising problem" << std::endl;
 
 	const int polOrder = POLORDER;
@@ -300,16 +301,18 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	OseenTraits::OseenModelTraits::VelocityFunctionSpaceType
 			continousVelocitySpace;
 
-	OseenTraits::OseenModelTraits::AnalyticalForceFunctionType force( oseen_viscosity, continousVelocitySpace, oseen_alpha );
+	OseenTraits::OseenModelTraits::AnalyticalForceFunctionType force( timeprovider_, continousVelocitySpace, oseen_viscosity, oseen_alpha );
 	OseenTraits::OseenModelType
 			stokesModel( stab_coeff ,
 						force,
 						stokesDirichletData,
 						oseen_viscosity, /*viscosity*/
 						oseen_alpha, /*alpha*/
-						0.0,/*convection_scale_factor*/
+						Parameters().getParam( "cscale", 1.0 ),/*convection_scale_factor*/
 						1.0 /*pressure_gradient_scale_factor*/);
-	currentFunctions.assign( exactSolution );
+//	currentFunctions.assign( exactSolution );
+	currentFunctions.clear();
+	nextFunctions.clear();
 
 	OseenTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convetion", currentFunctions.discreteVelocity().space() );
@@ -327,7 +330,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							gridPart,
 							functionSpaceWrapper,
 							discrete_convection,
-							false );
+							true );
+	nextFunctions.clear();
+	oseenPass.printInfo();
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
@@ -351,14 +356,17 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
 					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
 					<< "GD: " << GD << "\n"
-					<< "lambda: " << lambda << std::endl;
+					<< "lambda: " << lambda
+					<< "current time: " << timeprovider_.time()
+					<< std::endl;
 
 	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*
+							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
+							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*
 						>
 		OutputTupleType;
 	typedef Dune::TimeAwareDataWriter<	OseenTraits::TimeProviderType,
@@ -370,8 +378,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &exactSolution.discreteVelocity(),
 						 &exactSolution.discretePressure(),
 						 &errorFunctions.discreteVelocity(),
-						 &errorFunctions.discretePressure()
-						 );
+						 &errorFunctions.discretePressure(),
+						 &discrete_convection);
 
 	DataWriterType dt( timeprovider_,
 					   gridPart.grid(),
