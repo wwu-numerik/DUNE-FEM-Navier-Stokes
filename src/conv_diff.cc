@@ -290,7 +290,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							discrete_convection,
+							exactSolution.discreteVelocity(),
 							true );
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, &velocityGradient );
 
