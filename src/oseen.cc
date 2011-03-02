@@ -239,7 +239,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double operator_weight_beta_ = 1.0;
 	const double operator_weight_alpha_ = 1.0;
 	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
-	const double oseen_viscosity = 1 / reynolds;
+	const double oseen_viscosity = Parameters().getParam( "viscosity", 1.0 );
 	const double lambda = ( reynolds * 0.5 )
 						  - std::sqrt(
 								  ( std::pow( reynolds, 2 ) * 0.25 )
@@ -308,8 +308,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						stokesDirichletData,
 						oseen_viscosity, /*viscosity*/
 						oseen_alpha, /*alpha*/
-						Parameters().getParam( "cscale", 1.0 ),/*convection_scale_factor*/
-						1.0 /*pressure_gradient_scale_factor*/);
+						0,//Parameters().getParam( "cscale", 1.0 ),/*convection_scale_factor*/
+						Parameters().getParam( "pscale", 1.0 ) /*pressure_gradient_scale_factor*/);
 //	currentFunctions.assign( exactSolution );
 	currentFunctions.clear();
 	nextFunctions.clear();

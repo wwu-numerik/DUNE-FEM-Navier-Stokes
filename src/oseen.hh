@@ -145,27 +145,27 @@ namespace Oseen {
 		};
 
 	namespace TestCase2D {
-		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
-		{
-			  public:
-				  typedef Force< FunctionSpaceImp >
-					  ThisType;
-				  typedef Function < FunctionSpaceImp ,ThisType >
-					  BaseType;
-				  typedef typename BaseType::DomainType
-					  DomainType;
-				  typedef typename BaseType::RangeType
-					  RangeType;
+	template < class FunctionSpaceImp, class TimeProviderImp >
+	class Force : public TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	{
+		public:
+			typedef Force< FunctionSpaceImp, TimeProviderImp >
+				ThisType;
+			typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				BaseType;
+			  typedef typename BaseType::DomainType
+				  DomainType;
+			  typedef typename BaseType::RangeType
+				  RangeType;
 
-				  /**
-				   *  \brief  constructor
-				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
-				   **/
-				  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
-					  : BaseType ( space ),
-						viscosity_( viscosity ),
-						alpha_( alpha ),
+			  /**
+			   *  \brief  constructor
+			   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
+			   **/
+			  Force( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space, const double  viscosity = 0.0, const double alpha = 0.0 )
+				  : BaseType ( timeprovider, space ),
+					viscosity_( viscosity ),
+					alpha_( alpha ),
 						lambda_( Parameters().getParam( "lambda", 0.0 ) ),
 						gamma_( Parameters().getParam( "alpha", 0.0 ) )
 				  {}
@@ -184,7 +184,7 @@ namespace Oseen {
 				   *  \param  ret
 				   *          value of force at given point
 				   **/
-				  inline void evaluate( const double /*time*/, const DomainType& arg, RangeType& ret ) const
+				  inline void evaluateTime( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 				  {
 					  const double lambda			= lambda_;
 					  const double x				= arg[0];
@@ -209,9 +209,6 @@ namespace Oseen {
 					  ret[0] += gamma_ * u[0];
 					  ret[1] += gamma_ * u[1];
 //					  ret *= 0 ;
-				  }
-				  inline void evaluate( const DomainType& arg, RangeType& ret ) const {
-					  evaluate(0, arg, ret);
 				  }
 
 			  private:
@@ -478,14 +475,14 @@ namespace Oseen {
 	} //end namespace Oseem::TestCase2D
 
 	namespace TestCaseTaylor2D {
-		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class Force : public TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			  public:
-				  typedef Force< FunctionSpaceImp >
-					  ThisType;
-				  typedef Function < FunctionSpaceImp ,ThisType >
-					  BaseType;
+				typedef Force< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
 				  typedef typename BaseType::DomainType
 					  DomainType;
 				  typedef typename BaseType::RangeType
@@ -495,8 +492,8 @@ namespace Oseen {
 				   *  \brief  constructor
 				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
 				   **/
-				  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
-					  : BaseType ( space ),
+				  Force( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space, const double  viscosity = 0.0, const double alpha = 0.0 )
+					  : BaseType ( timeprovider, space ),
 						viscosity_( viscosity ),
 						alpha_( alpha )
 				  {}
@@ -515,7 +512,7 @@ namespace Oseen {
 				   *  \param  ret
 				   *          value of force at given point
 				   **/
-				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
+				  inline void evaluateTime( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 				  {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
@@ -843,20 +840,24 @@ namespace Oseen {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
+					  const double alpha = Parameters().getParam( "alpha", 1.0 );
+//					  ret[0] = std::pow(time,3.0)* arg[1] * arg[1];// * Parameters().getParam( "alpha", 1.0 ) ;
+//					  ret[1] = std::pow(time,2.0)* arg[0];// * Parameters().getParam( "alpha", 1.0 ) ;
+//					  ret *= alpha;
 					  //laplce
-					  ret[0] = -2*std::pow(time,3.0)*v;
-					  ret[1] = 0;
+					  ret[0] += -2*std::pow(time,3.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
+					  ret[1] += 0;
 					  //grad p
-					  ret[0] += time;
-					  ret[1] += 1;
+					  ret[0] += 1;
+					  ret[1] += time;
 					  //conv
-					  ret[0] += std::pow(time,5.0)*2*x*y;
-					  ret[1] += std::pow(time,5.0)*y*y;
+//					  ret[0] +=  std::pow(time,5.0)*2*x*y;
+//					  ret[1] +=  std::pow(time,5.0)*y*y;
 					  //dt u
 //					  ret[0] += std::pow(time,2.0)*3*y*y;
 //					  ret[1] += 2*time*x;
 
-//					  ret *=0;
+//					  ret *=Parameters().getParam( "fscale", 1.0 );
 
 
 				  }
@@ -971,8 +972,8 @@ namespace Oseen {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					ret[0] = time;
-					ret[1] = 1;
+					ret[0] = 1;
+					ret[1] = time;
 				}
 
 			private:
@@ -1011,7 +1012,7 @@ namespace Oseen {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					ret = time * arg[0] + arg[1] - ( ( time + 1 ) / 2.0 );
+					ret = time * arg[1] + arg[0] - ( ( time + 1 ) / 2.0 );
 				}
 
 			private:

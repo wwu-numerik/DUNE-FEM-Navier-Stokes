@@ -2,6 +2,7 @@
 #define CONV_DIFF_HH
 
 #ifndef CONVDIFF_DATA_NAMESPACE
+//	#define CONVDIFF_DATA_NAMESPACE Dune::ConvDiff::AdapterFunctionsVectorial
 	#define CONVDIFF_DATA_NAMESPACE Dune::ConvDiff::TimeDisc
 #endif
 #define TESTING_NS CONVDIFF_DATA_NAMESPACE
@@ -1288,6 +1289,11 @@ namespace ConvDiff {
 					  ret += u;
 
 //					  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
+
+					  ret[0] = -2;
+					  ret[1] = -2;
+					  ret[0] += 2*std::pow(arg[0],2.0)*arg[1];
+					  ret[1] += 2*std::pow(arg[1],2.0)*arg[0];
 				  }
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const {
 					  evaluate( 0, arg,ret);
@@ -1302,9 +1308,11 @@ namespace ConvDiff {
 		template < class DomainType, class RangeType >
 		void VelocityEvaluate( const double /*parameter_a*/, const double /*parameter_d*/, const double time, const DomainType& arg, RangeType& ret)
 		{
-			Evals evals( arg, time );
-			ret[0] = -1 *	evals.C_x * evals.S_y * evals.E;
-			ret[1] =		evals.S_x * evals.C_y * evals.E;
+//			Evals evals( arg, time );
+//			ret[0] = -1 *	evals.C_x * evals.S_y * evals.E;
+//			ret[1] =		evals.S_x * evals.C_y * evals.E;
+			ret[0] = arg[1]*arg[1];
+			ret[1] = arg[0]*arg[0];
 		}
 
 		/**
@@ -1850,9 +1858,13 @@ namespace ConvDiff {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
+					  const double alpha = Parameters().getParam( "alpha", 1.0 );
+					  ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
+					  ret[1] = std::pow(time,2.0)* arg[0];
+					  ret *= alpha;
 					  //laplce
-					  ret[0] = -2*std::pow(time,3.0)*v;
-					  ret[1] = 0;
+					  ret[0] += -2*std::pow(time,3.0)*v;
+					  ret[1] += 0;
 					  //grad p
 //					  ret[0] += time;
 //					  ret[1] += 1;

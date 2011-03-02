@@ -206,7 +206,6 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	Parameters().setParam( "reduced_oseen_solver", true );
 
-	const double theta_ = 1.0;
 	const double alpha = Parameters().getParam( "alpha", 1.0 );
 	const double viscosity = Parameters().getParam( "viscosity", 1.0 );
 
