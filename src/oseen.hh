@@ -798,6 +798,13 @@ namespace Oseen {
 	}//end namespace TestCaseTaylor2D
 
 	namespace TimeDisc {
+		template < class DomainType, class RangeType >
+		static void evaluateTimeVelocity( const double time, const DomainType& arg, RangeType& ret )
+		{
+			ret[0] = std::pow(time,3.0)* arg[1];
+			ret[1] = std::pow(time,2.0)* arg[0];
+		}
+
 		template < class FunctionSpaceImp, class TimeProviderImp >
 		class Force : public TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
@@ -841,18 +848,21 @@ namespace Oseen {
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
 					  const double alpha = Parameters().getParam( "alpha", 1.0 );
+					  RangeType u;
+					  evaluateTimeVelocity( time, arg, u );
+					  assert( time == 1.0 );
 //					  ret[0] = std::pow(time,3.0)* arg[1] * arg[1];// * Parameters().getParam( "alpha", 1.0 ) ;
 //					  ret[1] = std::pow(time,2.0)* arg[0];// * Parameters().getParam( "alpha", 1.0 ) ;
 //					  ret *= alpha;
 					  //laplce
-					  ret[0] += -2*std::pow(time,3.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
-					  ret[1] += 0;
+					  ret[0] = 0;//-2*std::pow(time,3.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
+					  ret[1] = 0;//-2*std::pow(time,2.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
 					  //grad p
-					  ret[0] += 1;
-					  ret[1] += time;
+					  ret[0] += time;
+					  ret[1] += 1;
 					  //conv
-//					  ret[0] +=  std::pow(time,5.0)*2*x*y;
-//					  ret[1] +=  std::pow(time,5.0)*y*y;
+					  ret[0] +=  std::pow(time,5.0)*x;
+					  ret[1] +=  std::pow(time,5.0)*y;
 					  //dt u
 //					  ret[0] += std::pow(time,2.0)*3*y*y;
 //					  ret[1] += 2*time*x;
@@ -895,8 +905,7 @@ namespace Oseen {
 				template < class IntersectionType >
 				void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection*/ ) const
 				{
-					ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
-					ret[1] = std::pow(time,2.0)* arg[0];
+					evaluateTimeVelocity( time, arg, ret );
 				}
 
 				inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
@@ -935,8 +944,7 @@ namespace Oseen {
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
 					dune_static_assert( dim_ == 2  , "Wrong world dim");
-					ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
-					ret[1] = std::pow(time,2.0)* arg[0];
+					evaluateTimeVelocity( time, arg, ret );
 				}
 
 			private:
@@ -1012,7 +1020,7 @@ namespace Oseen {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					ret = time * arg[1] + arg[0] - ( ( time + 1 ) / 2.0 );
+					ret = time * arg[0] + arg[1] - ( ( time + 1 ) / 2.0 );
 				}
 
 			private:
@@ -1082,10 +1090,17 @@ namespace Oseen {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					const double x			= arg[0];
-					const double y			= arg[1];
-					ret[0] = std::pow(time,5.0)*2*x*y;
-					ret[1] = std::pow(time,5.0)*y*y;;
+					evaluateTimeVelocity( time, arg, ret );
+				}
+
+				inline void jacobianTime (	const double time,	const DomainType& arg,
+											typename BaseType::BaseType::JacobianRangeType& ret ) const
+				{
+					ret[0][0] = 0;
+					ret[0][1] = std::pow(time,3.0);
+					ret[1][0] = std::pow(time,2.0);
+					ret[1][1] = 0;
+
 				}
 
 			private:

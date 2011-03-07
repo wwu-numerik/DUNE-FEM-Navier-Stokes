@@ -308,7 +308,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						stokesDirichletData,
 						oseen_viscosity, /*viscosity*/
 						oseen_alpha, /*alpha*/
-						0,//Parameters().getParam( "cscale", 1.0 ),/*convection_scale_factor*/
+						1,//Parameters().getParam( "cscale", 1.0 ),/*convection_scale_factor*/
 						Parameters().getParam( "pscale", 1.0 ) /*pressure_gradient_scale_factor*/);
 //	currentFunctions.assign( exactSolution );
 	currentFunctions.clear();
@@ -333,7 +333,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							true );
 	nextFunctions.clear();
 	oseenPass.printInfo();
-	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
+	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, &convection );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
 	errorFunctions.discretePressure() -= nextFunctions.discretePressure();
@@ -341,7 +341,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	errorFunctions.discreteVelocity() -= nextFunctions.discreteVelocity();
 
 	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
-	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+	double meanPressure_discrete = Stuff::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 	Dune::L2Norm< GridPartType > l2_Error( gridPart );
