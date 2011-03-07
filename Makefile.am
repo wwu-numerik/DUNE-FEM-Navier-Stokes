@@ -3,8 +3,6 @@
 # we need the module file to be able to build via dunecontrol
 EXTRA_DIST=dune.module
 
-subdirs = src
-
 # don't follow the full GNU-standard
 # we need automake 1.5
 AUTOMAKE_OPTIONS = foreign 1.5
