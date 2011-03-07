@@ -16,7 +16,7 @@ AC_SUBST(AM_CPPFLAGS, $DUNE_CPPFLAGS)
 AC_SUBST(AM_LDFLAGS, $DUNE_LDFLAGS)
 LIBS="$DUNE_LIBS"
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile ])
 AC_OUTPUT
 # finally print the summary information
 DUNE_SUMMARY_ALL
