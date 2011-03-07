@@ -153,6 +153,7 @@ int main( int argc, char** argv )
 		const bool useLogger = false;
 		Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
 						 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
+						 Parameters().getParam( "fem.io.datadir",	std::string("data"),		useLogger ),
 						 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
 						);
 
@@ -211,16 +212,17 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
 	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
+	static bool firstRun = true;
 	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
-	gridPtr->globalRefine( refine_level );
+	if ( firstRun && refine_level_factor > 0 ) {
+		refine_level = ( refine_level_factor ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
+		gridPtr->globalRefine( refine_level );
+	}
 
 	typedef Dune::AdaptiveLeafGridPart< GridType >
 		GridPartType;
 	GridPartType gridPart( *gridPtr );
 
-	/* ********************************************************************** *
-	 * initialize problem                                                     *
-	 * ********************************************************************** */
 	infoStream << "\n- initialising problem" << std::endl;
 
 	const int polOrder = POLORDER;
@@ -237,7 +239,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double operator_weight_beta_ = 1.0;
 	const double operator_weight_alpha_ = 1.0;
 	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
-	const double oseen_viscosity = 1 / reynolds;
+	const double oseen_viscosity = Parameters().getParam( "viscosity", 1.0 );
 	const double lambda = ( reynolds * 0.5 )
 						  - std::sqrt(
 								  ( std::pow( reynolds, 2 ) * 0.25 )
@@ -265,7 +267,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 		OseenTraits;
 
 	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
-	OseenTraits::TimeProviderType timeprovider_( theta_,operator_weight_alpha_,operator_weight_beta_, comm );
+	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
 	OseenTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
 	typedef OseenTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
@@ -283,7 +285,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					gridPart,
 					functionSpaceWrapper );
 	exactSolution.project();
-	exactSolution.exactPressure().setShift( pressure_C );
+//	exactSolution.exactPressure().setShift( pressure_C );
 	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
@@ -299,16 +301,20 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	OseenTraits::OseenModelTraits::VelocityFunctionSpaceType
 			continousVelocitySpace;
 
-	OseenTraits::OseenModelTraits::AnalyticalForceFunctionType force( oseen_viscosity, continousVelocitySpace, oseen_alpha );
+	OseenTraits::OseenModelTraits::AnalyticalForceFunctionType force( timeprovider_, continousVelocitySpace, oseen_viscosity, oseen_alpha );
 	OseenTraits::OseenModelType
 			stokesModel( stab_coeff ,
 						force,
 						stokesDirichletData,
-						oseen_viscosity,
-						oseen_alpha );
-	currentFunctions.assign( exactSolution );
+						oseen_viscosity, /*viscosity*/
+						oseen_alpha, /*alpha*/
+						1,//Parameters().getParam( "cscale", 1.0 ),/*convection_scale_factor*/
+						Parameters().getParam( "pscale", 1.0 ) /*pressure_gradient_scale_factor*/);
+//	currentFunctions.assign( exactSolution );
+	currentFunctions.clear();
+	nextFunctions.clear();
 
-	OseenTraits::ConvectionType convection( oseen_viscosity, continousVelocitySpace );
+	OseenTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
 	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convetion", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
@@ -316,16 +322,18 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
-	OseenTraits::OseenPassType::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
+	OseenTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
 	OseenTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
 	OseenTraits::OseenPassType oseenPass( startPass,
 							stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							discrete_convection,
+							exactSolution.discreteVelocity(),
 							true );
-	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
+	nextFunctions.clear();
+	oseenPass.printInfo();
+	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, &convection );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
 	errorFunctions.discretePressure() -= nextFunctions.discretePressure();
@@ -333,7 +341,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	errorFunctions.discreteVelocity() -= nextFunctions.discreteVelocity();
 
 	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
-	double meanPressure_discrete = Stuff::meanValue( currentFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+	double meanPressure_discrete = Stuff::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 	Dune::L2Norm< GridPartType > l2_Error( gridPart );
@@ -348,14 +356,17 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
 					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
 					<< "GD: " << GD << "\n"
-					<< "lambda: " << lambda << std::endl;
+					<< "lambda: " << lambda
+					<< "current time: " << timeprovider_.time()
+					<< std::endl;
 
 	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*
+							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
+							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*
 						>
 		OutputTupleType;
 	typedef Dune::TimeAwareDataWriter<	OseenTraits::TimeProviderType,
@@ -367,8 +378,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						 &exactSolution.discreteVelocity(),
 						 &exactSolution.discretePressure(),
 						 &errorFunctions.discreteVelocity(),
-						 &errorFunctions.discretePressure()
-						 );
+						 &errorFunctions.discretePressure(),
+						 &discrete_convection);
 
 	DataWriterType dt( timeprovider_,
 					   gridPart.grid(),

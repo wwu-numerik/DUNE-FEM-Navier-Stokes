@@ -6,6 +6,7 @@
 #include <dune/stokes/stokespass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
+#include <dune/navier/exactsolution.hh>
 #include <dune/navier/testdata.hh>
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/misc.hh>
@@ -73,10 +74,10 @@ namespace Dune {
 			}
 			static ThetaSchemeDescription<3> fs0( double delta_t )
 			{
-				const double theta			= 1 - (std::sqrt(2)/2.0f);
-				const double theta_squigly	= 1 - ( 2 * theta );
-				const double tau			= theta_squigly / ( 1 - theta );
-				const double eta			= 1 - tau;
+				const double theta			= 1.0 - (std::sqrt(2.0)/2.0f);
+				const double theta_squigly	= 1.0 - ( 2.0 * theta );
+				const double tau			= theta_squigly / ( 1.0 - theta );
+				const double eta			= 1.0 - tau;
 				typedef ThetaSchemeDescription<3>
 					ReturnType;
 				ReturnType::ThetaValueArray step_one	= { tau * theta,			eta * theta,			eta * theta,			tau * theta };
@@ -94,10 +95,10 @@ namespace Dune {
 			}
 			static ThetaSchemeDescription<3> fs1( double delta_t )
 			{
-				const double theta			= 1 - (std::sqrt(2)/2.0f);
-				const double theta_squigly	= 1 - ( 2 * theta );
-				const double tau			= theta_squigly / ( 1 - theta );
-				const double eta			= 1 - tau;
+				const double theta			= 1.0 - (std::sqrt(2.0)/2.0f);
+				const double theta_squigly	= 1.0 - ( 2.0 * theta );
+				const double tau			= theta_squigly / ( 1.0 - theta );
+				const double eta			= 1.0 - tau;
 				typedef ThetaSchemeDescription<3>
 					ReturnType;
 				ReturnType::ThetaValueArray step_one	= { tau * theta,			eta * theta,			theta,	0 };
@@ -173,8 +174,53 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 				OseenModelTraits;
+			typedef NonlinearStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
+						AnalyticalForceImp,
+						StokesStep::ForceAdapterFunction,
+						AnalyticalDirichletDataImp,
+						typename ThetaSchemeDescriptionType::ThetaValueArray,
+						gridDim,
+						sigmaOrder,
+						velocityOrder,
+						pressureOrder >
+				StokesModelTraits;
+
+			typedef NonlinearStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
+						AnalyticalForceImp,
+						NonlinearStep::ForceAdapterFunction,
+						AnalyticalDirichletDataImp,
+						typename ThetaSchemeDescriptionType::ThetaValueArray,
+						gridDim,
+						sigmaOrder,
+						velocityOrder,
+						pressureOrder >
+				NonlinearModelTraits;
+
+			typedef NonlinearStep::DiscreteStokesModelTraits<
+						TimeProviderType,
+						GridPartType,
+						AnalyticalForceImp,
+						OseenStep::DummyForceAdapterFunction,
+						AnalyticalDirichletDataImp,
+						typename ThetaSchemeDescriptionType::ThetaValueArray,
+						gridDim,
+						sigmaOrder,
+						velocityOrder,
+						pressureOrder >
+				OseenModelAltRhsTraits;
+
 			typedef typename OseenModelTraits::ForceAdatperType
 				OseenForceAdapterFunctionType;
+			typedef typename OseenModelAltRhsTraits::ForceAdatperType
+				OseenAltRhsForceAdapterFunctionType;
+			typedef typename StokesModelTraits::ForceAdatperType
+				StokesForceAdapterType;
+			typedef typename NonlinearModelTraits::ForceAdatperType
+				NonlinearForceAdapterType;
 
 			typedef ExactPressureImp< typename OseenModelTraits::PressureFunctionSpaceType,
 									  TimeProviderType >
@@ -209,8 +255,21 @@ namespace Dune {
 
 			typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
 				OseenModelType;
+			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
+				StokesModelType;
+			typedef Dune::DiscreteStokesModelDefault< NonlinearModelTraits >
+				NonlinearModelType;
+			typedef Dune::DiscreteStokesModelDefault< OseenModelAltRhsTraits >
+				OseenModelAltRhsType;
+
 			typedef Dune::StokesPass< OseenModelType,StokesStartPassType, 0 >
 				OseenPassType;
+			typedef Dune::StokesPass< StokesModelType,StokesStartPassType, 0 >
+				StokesPassType;
+			typedef Dune::StokesPass< NonlinearModelType,StokesStartPassType, 0 >
+				NonlinearPassType;
+			typedef Dune::StokesPass< OseenModelAltRhsType,StokesStartPassType, 0 >
+				OseenPassAltRhsType;
 		};
 	}
 }

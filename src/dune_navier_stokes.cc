@@ -35,7 +35,9 @@
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
 #endif
 
-#define NS Dune::NavierStokes::TestCase2D
+#define MODEL_PROVIDES_LOCALFUNCTION 1
+
+#define NS Dune::NavierStokes::TESTCASE
 //#define NS Testing::AdapterFunctionsVisco
 //#define NS Testing::AdapterFunctionsVectorial
 //#define NS Testing::AdapterFunctionsScalar
@@ -85,8 +87,6 @@
 #ifndef COMMIT
 	#define COMMIT "undefined"
 #endif
-
-#define MODEL_PROVIDES_LOCALFUNCTION 1
 
 static const std::string commit_string (COMMIT);
 
@@ -158,7 +158,8 @@ int main( int argc, char** argv )
 	const bool useLogger = false;
 	Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
 					 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
-					 Parameters().getParam( "fem.io.datadir",   std::string(),              useLogger )
+					 Parameters().getParam( "fem.io.datadir",   std::string("data"),        useLogger ),
+					 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
 					);
 	if ( setSchemeTypeFromString() )
 		Logger().Info() << "overrode scheme id from string" << std::endl;
