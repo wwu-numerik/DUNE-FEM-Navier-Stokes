@@ -3,7 +3,6 @@
 AC_PREREQ(2.50)
 DUNE_AC_INIT # gets module version from dune.module file
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([src/dune_navier_stokes.cc])
 AM_CONFIG_HEADER([config.h])
 
 
