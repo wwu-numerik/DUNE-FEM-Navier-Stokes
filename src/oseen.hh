@@ -801,7 +801,7 @@ namespace Oseen {
 		template < class DomainType, class RangeType >
 		static void evaluateTimeVelocity( const double time, const DomainType& arg, RangeType& ret )
 		{
-			ret[0] = std::pow(time,3.0)* arg[1];
+			ret[0] = std::pow(time,3.0)* arg[1]*arg[1];
 			ret[1] = std::pow(time,2.0)* arg[0];
 		}
 
@@ -855,14 +855,14 @@ namespace Oseen {
 //					  ret[1] = std::pow(time,2.0)* arg[0];// * Parameters().getParam( "alpha", 1.0 ) ;
 //					  ret *= alpha;
 					  //laplce
-					  ret[0] = 0;//-2*std::pow(time,3.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
+					  ret[0] = -2*std::pow(time,3.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
 					  ret[1] = 0;//-2*std::pow(time,2.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
 					  //grad p
-					  ret[0] += time;
-					  ret[1] += 1;
+					  ret[0] += 1;
+					  ret[1] += time;
 					  //conv
-					  ret[0] +=  std::pow(time,5.0)*x;
-					  ret[1] +=  std::pow(time,5.0)*y;
+					  ret[0] +=  std::pow(time,5.0)*x*y;
+					  ret[1] +=  std::pow(time,5.0)*y*y;
 					  //dt u
 //					  ret[0] += std::pow(time,2.0)*3*y*y;
 //					  ret[1] += 2*time*x;
