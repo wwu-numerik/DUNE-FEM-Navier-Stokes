@@ -32,7 +32,7 @@
 #endif
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
-//#define TESTING_NS Testing::AdapterFunctionsVisco
+
 #define TESTING_NS Testing::AdapterFunctionsVectorial
 #include "testing.hh"
 
@@ -69,22 +69,9 @@
 #include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
+#include <dune/stuff/signals.hh>
 
-#include <dune/navier/thetascheme.hh>
-#include <dune/navier/testdata.hh>
-
-#include <dune/stokes/discretestokesmodelinterface.hh>
-#include <dune/stokes/stokespass.hh>
-#include <dune/navier/fractionaltimeprovider.hh>
-#include <dune/navier/stokestraits.hh>
-#include <dune/navier/exactsolution.hh>
-#include <dune/fem/misc/mpimanager.hh>
-#include <dune/stuff/datawriter.hh>
-#include <dune/stuff/customprojection.hh>
-#include <dune/common/collectivecommunication.hh>
-#include <dune/stuff/error.hh>
-#include <dune/stuff/functionadapter.hh>
-#include <boost/format.hpp>
+#include "oseen.hh"
 
 #ifndef COMMIT
 	#define COMMIT "undefined"
@@ -101,7 +88,6 @@ static const std::string commit_string (COMMIT);
 //! the strings used for column headers in tex output
 typedef std::vector<std::string>
 	ColumnHeaders;
-
 
 /** \brief one single application of the discretisation and solver
 
@@ -132,6 +118,7 @@ void eocCheck( const RunInfoVector& runInfos );
  **/
 int main( int argc, char** argv )
 {
+	Stuff::Signals::installSignalHandler(SIGINT);
 #ifdef NDEBUG
 	try
 #endif
@@ -166,6 +153,7 @@ int main( int argc, char** argv )
 		const bool useLogger = false;
 		Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
 						 Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
+						 Parameters().getParam( "fem.io.datadir",	std::string("data"),		useLogger ),
 						 Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
 						);
 
@@ -181,7 +169,6 @@ int main( int argc, char** argv )
 		{
 			singleRun( mpicomm, ref );
 			profiler().NextRun();
-			std::cout << "\n-------------------------------------------------------------\n";
 		}
 
 		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
@@ -201,12 +188,15 @@ int main( int argc, char** argv )
   catch ( assert_exception& a ) {
 	  std::cerr << "Exception thrown at:\n" << a.what() << std::endl ;
   }
+	catch ( std::exception& e ) {
+		std::cerr << "Exception thrown at:\n" << e.what() << std::endl ;
+	}
   catch (...){
 	std::cerr << "Unknown exception thrown!" << std::endl;
   }
 #endif
 }
-#include "testing.hh"
+
 RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
@@ -222,103 +212,127 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
 	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
+	static bool firstRun = true;
 	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
-	gridPtr->globalRefine( refine_level );
+	if ( firstRun && refine_level_factor > 0 ) {
+		refine_level = ( refine_level_factor ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
+		gridPtr->globalRefine( refine_level );
+	}
 
 	typedef Dune::AdaptiveLeafGridPart< GridType >
 		GridPartType;
-	GridPartType gridPart_( *gridPtr );
+	GridPartType gridPart( *gridPtr );
 
-	/* ********************************************************************** *
-	 * initialize problem                                                     *
-	 * ********************************************************************** */
 	infoStream << "\n- initialising problem" << std::endl;
 
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
-	typedef Stuff::L2Error<GridPartType>
-			L2ErrorType;
-	L2ErrorType l2Error( gridPart_ );
-	// model traits
-	typedef Dune::NavierStokes::ThetaSchemeTraits<
-					CollectiveCommunication,
-					GridPartType,
-					TESTING_NS::Force,
-					TESTING_NS::DirichletData,
-					TESTING_NS::Pressure,
-					TESTING_NS::Velocity,
-					gridDim,
-					polOrder,
-					VELOCITY_POLORDER,
-					PRESSURE_POLORDER >
-		Traits;
-	typedef Dune::NavierStokes::ThetaScheme<Traits>
-		ThetaSchemeType;
-	Traits::CommunicatorType communicator_= Dune::MPIManager::helper().getCommunicator();
 
-	Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_( gridPart_ );
+	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
+	infoStream << "  - max grid width: " << grid_width << std::endl;
 
-	Traits::StokesModelTraits::VelocityFunctionSpaceType
-			continousVelocitySpace_;
+//	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
 
-		typedef Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
-			DiscreteVelocityFunctionType;
-//	DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", functionSpaceWrapper_.discreteVelocitySpace() );
-//	DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", exactSolution_.discreteVelocity().space() );
-//	DiscreteVelocityFunctionType pressure_gradient_discrete("pressure_gradient_discrete", exactSolution_.discreteVelocity().space() );
+	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
+	const double theta_ = 1.0;
+	const double d_t = 1.0;
+	const double operator_weight_beta_ = 1.0;
+	const double operator_weight_alpha_ = 1.0;
+	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
+	const double oseen_viscosity = Parameters().getParam( "viscosity", 1.0 );
+	const double lambda = ( reynolds * 0.5 )
+						  - std::sqrt(
+								  ( std::pow( reynolds, 2 ) * 0.25 )
+								  + ( 4 * std::pow( M_PI, 2 ) )
+									  ) ;
+	const double pressure_C = ( std::exp( 3 * lambda ) - std::exp(-1  * lambda ) ) / ( - 8 * lambda );
 
-//	Dune::BetterL2Projection
-//		::project(timeprovider_,velocity_laplace, velocity_laplace_discrete );
+//	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
 
-//	L2ErrorType::Errors errors_pressure_gradient = l2Error.get(	thetaScheme.rhsDatacontainer().pressure_gradient,
-//														pressure_gradient_discrete );
-//	L2ErrorType::Errors errors_velocity_gradient = l2Error.get(	thetaScheme.rhsDatacontainer().velocity_gradient,
-//														velocity_gradient_discrete );
-//	L2ErrorType::Errors errors_velocity_laplace = l2Error.get(	thetaScheme.rhsDatacontainer().velocity_laplace,
-//														velocity_laplace_discrete );
-//	std::cout << errors_pressure_gradient.str()
-//			  << errors_velocity_laplace.str()
-//			  << errors_velocity_gradient.str();
+	Parameters().setParam( "lambda", lambda );
+	Parameters().setParam( "viscosity", oseen_viscosity );
+	Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+	stab_coeff.FactorFromParams( "D12", 0 );
+	stab_coeff.FactorFromParams( "C12", 0 );
+	stab_coeff.Add( "E12", 0.5 );
+	stab_coeff.FactorFromParams( "E12", 0.5 );
 
-//	typedef Dune::Tuple<	const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*,
-//							const DiscreteVelocityFunctionType*
-//						>
-//		OutputTupleType;
-//	typedef Dune::TimeAwareDataWriter<	Traits::TimeProviderType,
-//										GridPartType::GridType,
-//										OutputTupleType >
-//		DataWriterType;
+	typedef Dune::Oseen::Traits<
+			CollectiveCommunication,
+			GridPartType,
+			gridDim,
+			polOrder,
+			VELOCITY_POLORDER,
+			PRESSURE_POLORDER >
+		OseenTraits;
 
-//	{
-//		GradientSplitterFunctionType velocity_gradient_splitter(	exactSolution_.discreteVelocity().space(),
-//										thetaScheme.rhsDatacontainer().velocity_gradient );
-//		OutputTupleType out(
-//							 &pressure_gradient_discrete,
-//							 &(thetaScheme.rhsDatacontainer().velocity_laplace),
-//							 &velocity_laplace_discrete,
-//							&(thetaScheme.rhsDatacontainer().pressure_gradient),
-//							 &pressure_gradient_discrete,
-//							velocity_gradient_splitter[0].get(),
-//							velocity_gradient_splitter[1].get(),
-//							exact_gradient_splitter[0].get(),
-//							exact_gradient_splitter[1].get()
-//							);
-//		DataWriterType( timeprovider_,
-//						   gridPart_.grid(),
-//						   out ).write();
-//	}
+	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
+	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
+	OseenTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
-//	RunInfo info_dummy;
-//	thetaScheme.nextStep(1,info_dummy);
+	typedef OseenTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
+		DiscreteStokesFunctionWrapperType;
+	DiscreteStokesFunctionWrapperType currentFunctions(  "current_",
+						functionSpaceWrapper,
+						gridPart );
+	DiscreteStokesFunctionWrapperType nextFunctions(  "next_",
+					functionSpaceWrapper,
+					gridPart );
+	DiscreteStokesFunctionWrapperType errorFunctions(  "error_",
+					functionSpaceWrapper,
+					gridPart );
+	OseenTraits::ExactSolutionType exactSolution( timeprovider_,
+					gridPart,
+					functionSpaceWrapper );
+	exactSolution.project();
+//	exactSolution.exactPressure().setShift( pressure_C );
+	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
+
+//	currentFunctions.assign( exactSolution );
+	currentFunctions.clear();
+	nextFunctions.clear();
+
+	typedef OseenTraits::OseenModelTraits::PressureFunctionSpaceType
+			PressureFunctionSpaceType;
+	PressureFunctionSpaceType pressureFunctionSpace;
+	Stuff::VolumeDiffFunction<PressureFunctionSpaceType> vol(pressureFunctionSpace, -12.8430582392842 );
+
+	Dune::BetterL2Projection
+		::project( 0.0, vol, nextFunctions.discretePressure() );
+//	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
+	double meanPressure_discrete = Stuff::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+//	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
+
+	Dune::L2Norm< GridPartType > l2_Error( gridPart );
+
+	Logger().Info().Resume();
+	Logger().Info()
+//					<< "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
+//					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
+					<< "Mean pressure (discrete): " << meanPressure_discrete << std::endl
+					<< std::endl;
 
 	return runInfoVector;
 }
 
+void eocCheck( const RunInfoVector& runInfos )
+{
+	bool ups = false;
+	RunInfoVector::const_iterator it = runInfos.begin();
+	RunInfo last = *it;
+	++it;
+	for ( ; it != runInfos.end(); ++it ) {
+		ups = ( last.L2Errors[0] < it->L2Errors[0]
+			|| last.L2Errors[1] < it->L2Errors[1] );
+		last = *it;
+	}
+	if ( ups ) {
+		Logger().Err() 	<< 	"----------------------------------------------------------\n"
+						<<	"-                                                        -\n"
+						<<	"-                  negative EOC                          -\n"
+						<<	"-                                                        -\n"
+						<< 	"----------------------------------------------------------\n"
+						<< std::endl;
+	}
+}
 

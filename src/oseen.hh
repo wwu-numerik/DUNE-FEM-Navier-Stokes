@@ -858,16 +858,17 @@ namespace Oseen {
 					  ret[0] = -2*std::pow(time,3.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
 					  ret[1] = 0;//-2*std::pow(time,2.0)*v;// * Parameters().getParam( "viscosity", 1.0 );
 					  //grad p
-					  ret[0] += 1;
-					  ret[1] += time;
+					  ret[0] += time;
+					  ret[1] += 1;
 					  //conv
-					  ret[0] +=  std::pow(time,5.0)*x*y;
+					  ret[0] += 2* std::pow(time,5.0)*x*y;
 					  ret[1] +=  std::pow(time,5.0)*y*y;
 					  //dt u
 //					  ret[0] += std::pow(time,2.0)*3*y*y;
 //					  ret[1] += 2*time*x;
 
 //					  ret *=Parameters().getParam( "fscale", 1.0 );
+//					  ret *= 0;
 
 
 				  }
@@ -943,7 +944,7 @@ namespace Oseen {
 
 				void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 				{
-					dune_static_assert( dim_ == 2  , "Wrong world dim");
+//					dune_static_assert( dim_ == 2  , "Wrong world dim");
 					evaluateTimeVelocity( time, arg, ret );
 				}
 

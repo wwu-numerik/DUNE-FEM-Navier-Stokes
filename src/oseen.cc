@@ -278,6 +278,9 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	DiscreteStokesFunctionWrapperType nextFunctions(  "next_",
 					functionSpaceWrapper,
 					gridPart );
+	DiscreteStokesFunctionWrapperType tmpFunctions(  "tmp_",
+					functionSpaceWrapper,
+					gridPart );
 	DiscreteStokesFunctionWrapperType errorFunctions(  "error_",
 					functionSpaceWrapper,
 					gridPart );
@@ -342,6 +345,15 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
 	double meanPressure_discrete = Stuff::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+//	typedef OseenTraits::OseenModelTraits::PressureFunctionSpaceType
+//			PressureFunctionSpaceType;
+//	PressureFunctionSpaceType pressureFunctionSpace;
+//	Stuff::ConstantFunction<PressureFunctionSpaceType> vol(pressureFunctionSpace, meanPressure_discrete );
+//	Dune::BetterL2Projection
+//		::project( 0.0, vol, tmpFunctions.discretePressure() );
+//	nextFunctions.discretePressure() -= tmpFunctions.discretePressure();
+	double meanPressure_discrete_after = Stuff::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+
 	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 	Dune::L2Norm< GridPartType > l2_Error( gridPart );
@@ -351,10 +363,20 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	const double relative_l2_error_pressure		= l2_error_pressure / l2_Error.norm( exactSolution.discretePressure() );
 	const double relative_l2_error_velocity		= l2_error_velocity / l2_Error.norm( exactSolution.discreteVelocity() );
 
+//	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
+//	errorFunctions.discretePressure() -= nextFunctions.discretePressure();
+
+	const double l2_error_pressure_after				= l2_Error.norm( errorFunctions.discretePressure() );
+	const double relative_l2_error_pressure_after		= l2_error_pressure_after / l2_Error.norm( exactSolution.discretePressure() );
+
+
 	Logger().Info().Resume();
 	Logger().Info() << "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
+					<< "L2-Error Pressure after (abs|rel): " << std::setw(8) << l2_error_pressure_after << " | " << relative_l2_error_pressure_after << "\n"
 					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
-					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
+					<< "Mean pressure (exact|discrete|after): " << meanPressure_exact << " | "
+																<< meanPressure_discrete << " | "
+																<< meanPressure_discrete_after << std::endl
 					<< "GD: " << GD << "\n"
 					<< "lambda: " << lambda
 					<< "current time: " << timeprovider_.time()
