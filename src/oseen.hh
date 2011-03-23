@@ -1112,14 +1112,14 @@ namespace Oseen {
 	}//end namespace TimeDisc
 
 	namespace TrivialTestCase {
-		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		template < class FunctionSpaceImp, class TimeProviderImp >
+		class Force : public TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
-			  public:
-				  typedef Force< FunctionSpaceImp >
-					  ThisType;
-				  typedef Function < FunctionSpaceImp ,ThisType >
-					  BaseType;
+			public:
+				typedef Force< FunctionSpaceImp, TimeProviderImp >
+					ThisType;
+				typedef TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+					BaseType;
 				  typedef typename BaseType::DomainType
 					  DomainType;
 				  typedef typename BaseType::RangeType
@@ -1129,8 +1129,8 @@ namespace Oseen {
 				   *  \brief  constructor
 				   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
 				   **/
-				  Force( const double viscosity, const FunctionSpaceImp& space, const double alpha = 0.0 )
-					  : BaseType ( space ),
+				  Force( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space, const double  viscosity = 0.0, const double alpha = 0.0 )
+					  : BaseType ( timeprovider, space ),
 						viscosity_( viscosity ),
 						alpha_( alpha )
 				  {}
@@ -1139,7 +1139,7 @@ namespace Oseen {
 				  {}
 
 
-				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
+				  void evaluateTime( const double /*time*/, const DomainType& arg, RangeType& ret ) const
 				  {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
@@ -1153,8 +1153,8 @@ namespace Oseen {
 					  const double S_2y			= std::sin( 2 * P * y );
 					  const double C_x			= std::cos( P * x );
 					  const double C_y			= std::cos( P * y );
-					  ret[0] = x-1;
-					  ret[1] = y;
+					  ret[0] = -1;
+					  ret[1] = 0;
 				  }
 
 			  private:
@@ -1229,15 +1229,6 @@ namespace Oseen {
 				  static const int dim_ = FunctionSpaceImp::dimDomain;
 		};
 
-
-		/**
-		*  \brief  describes the dirichlet boundary data
-		*
-		*  \tparam DirichletTraitsImp
-		*          types like functionspace, range type, etc
-		*
-		*  \todo   extensive docu with latex
-		**/
 		template < class FunctionSpaceImp >
 		class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 		{
@@ -1417,6 +1408,8 @@ namespace Oseen {
 				const double lambda_;
 				double shift_;
 		};
+
+		NULLFUNCTION_TP(VelocityConvection)
 	}//end namespace TrivialTestCase
 
 #ifndef OSEEN_DATA_NAMESPACE
