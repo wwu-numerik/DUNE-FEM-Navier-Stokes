@@ -37,19 +37,16 @@
 
 #define MODEL_PROVIDES_LOCALFUNCTION 1
 
-#define NS Dune::NavierStokes::TESTCASE
-//#define NS Testing::AdapterFunctionsVisco
-//#define NS Testing::AdapterFunctionsVectorial
-//#define NS Testing::AdapterFunctionsScalar
-#define TESTING_NS NS
-#include "testing.hh"
-#include <dune/navier/testdata.hh>
+#ifndef NAVIER_DATA_NAMESPACE
+	#error "no data namspeace given"
+#endif
+#include "problems.hh"
 
 #include <vector>
 #include <string>
-
-#include <iostream>
 #include <cmath>
+#include <iostream>
+
 #include <dune/fem/misc/mpimanager.hh> // An initializer of MPI
 #include <dune/common/exceptions.hh> // We use exceptions
 #include <dune/grid/common/capabilities.hh>
@@ -81,8 +78,6 @@
 #include <dune/stuff/signals.hh>
 
 #include <dune/navier/thetascheme.hh>
-#include <dune/navier/testdata.hh>
-#include "testing.hh"
 
 #ifndef COMMIT
 	#define COMMIT "undefined"
@@ -259,10 +254,10 @@ class ThetaschemeRunner {
 		typedef Dune::NavierStokes::ThetaSchemeTraits<
 						CollectiveCommunicationType,
 						GridPartType,
-						NS::Force,
-						NS::DirichletData,
-						NS::Pressure,
-						NS::Velocity,
+						NAVIER_DATA_NAMESPACE::Force,
+						NAVIER_DATA_NAMESPACE::DirichletData,
+						NAVIER_DATA_NAMESPACE::Pressure,
+						NAVIER_DATA_NAMESPACE::Velocity,
 						1,//number of substeps
 						GridType::dimensionworld,
 						POLORDER,
@@ -276,10 +271,10 @@ class ThetaschemeRunner {
 		typedef Dune::NavierStokes::ThetaSchemeTraits<
 						CollectiveCommunicationType,
 						GridPartType,
-						NS::Force,
-						NS::DirichletData,
-						NS::Pressure,
-						NS::Velocity,
+						NAVIER_DATA_NAMESPACE::Force,
+						NAVIER_DATA_NAMESPACE::DirichletData,
+						NAVIER_DATA_NAMESPACE::Pressure,
+						NAVIER_DATA_NAMESPACE::Velocity,
 						3,//number of substeps
 						GridType::dimensionworld,
 						POLORDER,

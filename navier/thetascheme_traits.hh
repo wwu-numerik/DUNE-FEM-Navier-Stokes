@@ -136,7 +136,7 @@ namespace Dune {
 
 		template <	class CommunicatorImp,
 					class GridPartImp,
-					template < class > class AnalyticalForceImp,
+					template < class,class > class AnalyticalForceImp,
 					template < class > class AnalyticalDirichletDataImp,
 					template < class,class > class ExactPressureImp,
 					template < class,class > class ExactVelocityImp,

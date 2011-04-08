@@ -103,20 +103,20 @@ namespace Dune {
 					theta_values_( theta_values )
 				{
 
-					//						TESTING_NS
+					//						NAVIER_DATA_NAMESPACE
 					typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
 						VelocityFunctionSpaceType;
 					VelocityFunctionSpaceType continousVelocitySpace_;
 
-					typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+					typedef NAVIER_DATA_NAMESPACE::VelocityLaplace<	VelocityFunctionSpaceType,
 															TimeProviderType >
 							VelocityLaplace;
 					VelocityLaplace velocity_laplace( timeProvider_, continousVelocitySpace_ );
-					typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+					typedef NAVIER_DATA_NAMESPACE::VelocityConvection<	VelocityFunctionSpaceType,
 															TimeProviderType >
 						VelocityConvection;
 					VelocityConvection velocity_convection( timeProvider_, continousVelocitySpace_ );
-					typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+					typedef NAVIER_DATA_NAMESPACE::PressureGradient<	VelocityFunctionSpaceType,
 															TimeProviderType >
 						PressureGradient;
 					PressureGradient pressure_gradient( timeProvider_, continousVelocitySpace_ );
@@ -248,16 +248,16 @@ namespace Dune {
 								 force_( force )
 					{
 
-						//						TESTING_NS
+						//						NAVIER_DATA_NAMESPACE
 						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
 							VelocityFunctionSpaceType;
 						VelocityFunctionSpaceType continousVelocitySpace_;
 
-						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+						typedef NAVIER_DATA_NAMESPACE::VelocityLaplace<	VelocityFunctionSpaceType,
 																TimeProviderType >
 								VelocityLaplace;
 						VelocityLaplace velocity_laplace( timeProvider_, continousVelocitySpace_ );
-						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+						typedef NAVIER_DATA_NAMESPACE::VelocityConvection<	VelocityFunctionSpaceType,
 																TimeProviderType >
 							VelocityConvection;
 						VelocityConvection velocity_convection( timeProvider_, continousVelocitySpace_ );

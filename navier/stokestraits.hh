@@ -10,7 +10,7 @@ namespace Dune {
 		namespace NonlinearStep {
 			template <	class TimeProviderType,
 						class GridPartImp,
-						template < class > class AnalyticalForceFunctionType,
+						template < class,class > class AnalyticalForceFunctionType,
 						template <class, class, class, class> class ForceAdatperTemplateType,
 						template < class > class AnalyticalDirichletDataImp,
 						class ThetaValueArrayType,
@@ -108,7 +108,7 @@ namespace Dune {
 						DiscreteSigmaFunctionType;
 
 					//! function type for the analytical force
-					typedef AnalyticalForceFunctionType< VelocityFunctionSpaceType >
+					typedef AnalyticalForceFunctionType< VelocityFunctionSpaceType,TimeProviderType >
 						RealAnalyticalForceType;
 
 					typedef ForceAdatperTemplateType<	TimeProviderType,

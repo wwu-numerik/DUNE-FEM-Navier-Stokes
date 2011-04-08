@@ -233,29 +233,29 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 //	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
 
-	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
-	const double theta_ = 1.0;
-	const double d_t = 1.0;
-	const double operator_weight_beta_ = 1.0;
-	const double operator_weight_alpha_ = 1.0;
+//	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
+//	const double theta_ = 1.0;
+//	const double d_t = 1.0;
+//	const double operator_weight_beta_ = 1.0;
+//	const double operator_weight_alpha_ = 1.0;
 	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
 	const double oseen_viscosity = Parameters().getParam( "viscosity", 1.0 );
-	const double lambda = ( reynolds * 0.5 )
-						  - std::sqrt(
-								  ( std::pow( reynolds, 2 ) * 0.25 )
-								  + ( 4 * std::pow( M_PI, 2 ) )
-									  ) ;
-	const double pressure_C = ( std::exp( 3 * lambda ) - std::exp(-1  * lambda ) ) / ( - 8 * lambda );
+//	const double lambda = ( reynolds * 0.5 )
+//						  - std::sqrt(
+//								  ( std::pow( reynolds, 2 ) * 0.25 )
+//								  + ( 4 * std::pow( M_PI, 2 ) )
+//									  ) ;
+//	const double pressure_C = ( std::exp( 3 * lambda ) - std::exp(-1  * lambda ) ) / ( - 8 * lambda );
 
 //	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
 
-	Parameters().setParam( "lambda", lambda );
+//	Parameters().setParam( "lambda", lambda );
 	Parameters().setParam( "viscosity", oseen_viscosity );
 	Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-	stab_coeff.FactorFromParams( "D12", 0 );
-	stab_coeff.FactorFromParams( "C12", 0 );
-	stab_coeff.Add( "E12", 0.5 );
-	stab_coeff.FactorFromParams( "E12", 0.5 );
+//	stab_coeff.FactorFromParams( "D12", 0 );
+//	stab_coeff.FactorFromParams( "C12", 0 );
+//	stab_coeff.Add( "E12", 0.5 );
+//	stab_coeff.FactorFromParams( "E12", 0.5 );
 
 	typedef Dune::Oseen::Traits<
 			CollectiveCommunication,
@@ -299,8 +299,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 							::getInstance( timeprovider_,
 										   functionSpaceWrapper );
 
-	OseenTraits::OseenModelTraits::PressureFunctionSpaceType
-			continousPressureSpace;
+//	OseenTraits::OseenModelTraits::PressureFunctionSpaceType
+//			continousPressureSpace;
 	OseenTraits::OseenModelTraits::VelocityFunctionSpaceType
 			continousVelocitySpace;
 
@@ -312,7 +312,8 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						oseen_viscosity, /*viscosity*/
 						oseen_alpha, /*alpha*/
 						1,//Parameters().getParam( "cscale", 1.0 ),/*convection_scale_factor*/
-						Parameters().getParam( "pscale", 1.0 ) /*pressure_gradient_scale_factor*/);
+						1/*pressure_gradient_scale_factor*/);
+
 //	currentFunctions.assign( exactSolution );
 	currentFunctions.clear();
 	nextFunctions.clear();
@@ -378,7 +379,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 																<< meanPressure_discrete << " | "
 																<< meanPressure_discrete_after << std::endl
 					<< "GD: " << GD << "\n"
-					<< "lambda: " << lambda
+//					<< "lambda: " << lambda
 					<< "current time: " << timeprovider_.time()
 					<< std::endl;
 

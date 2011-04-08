@@ -340,8 +340,10 @@ namespace Dune {
 				{
 					//build rhs
 					const bool first_step = timeprovider_.timeStep() <= 2;
-					const typename Traits::AnalyticalForceType force ( viscosity_,
-																 currentFunctions_.discreteVelocity().space() );
+					const typename Traits::AnalyticalForceType force ( timeprovider_,
+																	   currentFunctions_.discreteVelocity().space() ,
+																	   viscosity_,
+																	   0.0 /*stokes alpha*/ );
 					const bool do_cheat = Parameters().getParam( "rhs_cheat", false );
 
 					if ( !Parameters().getParam( "parabolic", false )
@@ -539,7 +541,7 @@ namespace Dune {
 					VelocityFunctionSpaceType continousVelocitySpace_;
 
 					// ----
-					typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+					typedef NAVIER_DATA_NAMESPACE::VelocityLaplace<	VelocityFunctionSpaceType,
 																				typename Traits::TimeProviderType >
 							VelocityLaplace;
 					VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
@@ -547,11 +549,11 @@ namespace Dune {
 						::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
 					currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 
-					typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+					typedef NAVIER_DATA_NAMESPACE::VelocityConvection<	VelocityFunctionSpaceType,
 															typename Traits::TimeProviderType >
 						VelocityConvection;
 					VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
-					typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+					typedef NAVIER_DATA_NAMESPACE::PressureGradient<	VelocityFunctionSpaceType,
 															typename Traits::TimeProviderType >
 						PressureGradient;
 					PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
@@ -608,8 +610,10 @@ namespace Dune {
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
 
 					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
-					const typename Traits::AnalyticalForceType force ( viscosity_,
-																 currentFunctions_.discreteVelocity().space() );
+					const typename Traits::AnalyticalForceType force ( timeprovider_,
+																	   currentFunctions_.discreteVelocity().space(),
+																	   viscosity_,
+																	   0.0 /*stokes alpha*/ );
 
 					boost::scoped_ptr< typename Traits::StokesForceAdapterType >
 							ptr_stokesForce_vanilla ( first_stokes_step
@@ -636,14 +640,14 @@ namespace Dune {
 						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
 							VelocityFunctionSpaceType;
 						VelocityFunctionSpaceType continousVelocitySpace_;
-						typedef TESTING_NS::VelocityConvection<	VelocityFunctionSpaceType,
+						typedef NAVIER_DATA_NAMESPACE::VelocityConvection<	VelocityFunctionSpaceType,
 																typename Traits::TimeProviderType >
 							VelocityConvection;
 						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
 						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
 							::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
 //						// ----
-						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+						typedef NAVIER_DATA_NAMESPACE::VelocityLaplace<	VelocityFunctionSpaceType,
 																					typename Traits::TimeProviderType >
 								VelocityLaplace;
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
@@ -727,8 +731,10 @@ namespace Dune {
 					DiscretizationWeights discretization_weights(d_t_, viscosity_);
 
 
-					const typename Traits::AnalyticalForceType force ( viscosity_,
-																	  currentFunctions_.discreteVelocity().space() );
+					const typename Traits::AnalyticalForceType force ( timeprovider_,
+																	   currentFunctions_.discreteVelocity().space(),
+																	   viscosity_,
+																	   0.0 /*stokes alpha*/ );
 
 					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
 					if ( Parameters().getParam( "rhs_cheat", false ) ) {
@@ -736,14 +742,14 @@ namespace Dune {
 								VelocityFunctionSpaceType;
 						VelocityFunctionSpaceType continousVelocitySpace_;
 
-						typedef TESTING_NS::PressureGradient<	VelocityFunctionSpaceType,
+						typedef NAVIER_DATA_NAMESPACE::PressureGradient<	VelocityFunctionSpaceType,
 								typename Traits::TimeProviderType >
 								PressureGradient;
 						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
 						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
 								::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
 						// ----
-						typedef TESTING_NS::VelocityLaplace<	VelocityFunctionSpaceType,
+						typedef NAVIER_DATA_NAMESPACE::VelocityLaplace<	VelocityFunctionSpaceType,
 								typename Traits::TimeProviderType >
 								VelocityLaplace;
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
