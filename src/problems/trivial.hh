@@ -140,7 +140,7 @@ class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData <
 		template < class IntersectionType >
 		void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 		{
-			Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
 			VelocityEvaluate( lambda_, time, arg, ret);
 		}
 
@@ -194,7 +194,7 @@ class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< Functi
 
 		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 		{
-			Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+			dune_static_assert( dim_ == 2, "DirichletData_Unsuitable_WorldDim" );
 			VelocityEvaluate( lambda_, time, arg, ret);
 		}
 
@@ -249,7 +249,7 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 
 		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 		{
-			Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
 			const double x				= arg[0];
 			const double y				= arg[1];
 			const double v				= Parameters().getParam( "viscosity", 1.0 );
@@ -317,7 +317,7 @@ class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityL
 
 		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 		{
-			Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
 			ret = RangeType( 0 );
 		}
 
@@ -372,7 +372,7 @@ class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , Pressure
 
 		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 		{
-			Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
 			const double x				= arg[0];
 			const double y				= arg[1];
 			ret[0] = 2*x;
