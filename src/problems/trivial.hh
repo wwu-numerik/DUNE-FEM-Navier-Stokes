@@ -48,7 +48,7 @@ class Force : public Dune::TimeFunction < FunctionSpaceImp , Force< FunctionSpac
 			  ret[1] = -2*y;
 			  //conv
 			  ret[0] += -x;
-			  ret[1] += y;
+			  ret[1] += -y;
 		  }
 
 	  private:
@@ -281,8 +281,118 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 		double shift_;
 };
 
-NULLFUNCTION_TP(VelocityLaplace)
-NULLFUNCTION_TP(PressureGradient)
+template < class FunctionSpaceImp, class TimeProviderImp >
+class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+{
+	public:
+		typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+			ThisType;
+		typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			BaseType;
+		typedef typename BaseType::DomainType
+			DomainType;
+		typedef typename BaseType::RangeType
+			RangeType;
+
+		/**
+		*  \brief  constructor
+		*
+		*  doing nothing besides Base init
+		**/
+		VelocityLaplace(	const TimeProviderImp& timeprovider,
+					const FunctionSpaceImp& space,
+					const double parameter_a = M_PI /2.0 ,
+					const double parameter_d = M_PI /4.0)
+			: BaseType( timeprovider, space ),
+			lambda_( Parameters().getParam( "lambda", 0.0 ) )
+		{}
+
+		/**
+		*  \brief  destructor
+		*
+		*  doing nothing
+		**/
+		~VelocityLaplace()
+		{}
+
+		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+		{
+			Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+			ret = RangeType( 0 );
+		}
+
+	   /**
+		* \brief  evaluates the dirichlet data
+		* \param  arg
+		*         point to evaluate at
+		* \param  ret
+		*         value of dirichlet boundary data at given point
+		**/
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+
+	private:
+		static const int dim_ = FunctionSpaceImp::dimDomain ;
+		const double lambda_;
+};
+
+
+template < class FunctionSpaceImp, class TimeProviderImp >
+class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , PressureGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+{
+	public:
+		typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+			ThisType;
+		typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			BaseType;
+		typedef typename BaseType::DomainType
+			DomainType;
+		typedef typename BaseType::RangeType
+			RangeType;
+
+		/**
+		*  \brief  constructor
+		*
+		*  doing nothing besides Base init
+		**/
+		PressureGradient(	const TimeProviderImp& timeprovider,
+					const FunctionSpaceImp& space,
+					const double parameter_a = M_PI /2.0 ,
+					const double parameter_d = M_PI /4.0)
+			: BaseType( timeprovider, space ),
+			lambda_( Parameters().getParam( "lambda", 0.0 ) )
+		{}
+
+		/**
+		*  \brief  destructor
+		*
+		*  doing nothing
+		**/
+		~PressureGradient()
+		{}
+
+		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+		{
+			Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+			const double x				= arg[0];
+			const double y				= arg[1];
+			ret[0] = 2*x;
+			ret[1] = -2*y;
+		}
+
+	   /**
+		* \brief  evaluates the dirichlet data
+		* \param  arg
+		*         point to evaluate at
+		* \param  ret
+		*         value of dirichlet boundary data at given point
+		**/
+//					inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
+
+	private:
+		static const int dim_ = FunctionSpaceImp::dimDomain ;
+		const double lambda_;
+};
+
 
 }//end ns
 }//end ns

@@ -1,6 +1,11 @@
 #ifndef OSEEN_HH
 #define OSEEN_HH
 
+#ifndef OSEEN_DATA_NAMESPACE
+	#define OSEEN_DATA_NAMESPACE NavierProblems::Trivial
+#endif
+#include "problems.hh"
+
 #include <dune/stokes/discretestokesmodelinterface.hh>
 #include <dune/stokes/stokespass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
@@ -12,11 +17,6 @@
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
-
-#ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE NavierProblems::Trivial
-#endif
-#include "problems.hh"
 
 namespace Dune {
 namespace Oseen {

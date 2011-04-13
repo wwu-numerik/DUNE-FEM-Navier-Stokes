@@ -1,12 +1,12 @@
 #ifndef NAVIER_PROBLEMS_HH
 #define NAVIER_PROBLEMS_HH
 
-//#include "problems/timedisc.hh"
+#include "problems/timedisc.hh"
 #include "problems/trivial.hh"
-//#include "problems/taylor.hh"
-//#include "problems/testcase2d.hh"
-//#include "problems/testcase3d.hh"
-//#include "problems/cockburn.hh"
+#include "problems/taylor.hh"
+#include "problems/testcase2d.hh"
+#include "problems/testcase3d.hh"
+#include "problems/cockburn.hh"
 
 //#include <dune/fem/space/
 
