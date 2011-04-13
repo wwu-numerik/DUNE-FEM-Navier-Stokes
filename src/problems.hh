@@ -8,8 +8,6 @@
 #include "problems/testcase3d.hh"
 #include "problems/cockburn.hh"
 
-//#include <dune/fem/space/
-
 #if defined(NAVIER_DATA_NAMESPACE) || defined(OSEEN_DATA_NAMESPACE)
 	#if defined(NAVIER_DATA_NAMESPACE)
 		#define CHECKING_NS NAVIER_DATA_NAMESPACE
@@ -18,6 +16,7 @@
 	#endif
 namespace NavierProblems {
 namespace {
+	//! a dummy interface class that throws errors if we've forgotten to implement data funcs in given namespace
 	template < class FunctionSpaceImp, class TimeProviderImp >
 	struct Interface {
 		typedef CHECKING_NS::PressureGradient<FunctionSpaceImp, TimeProviderImp>
