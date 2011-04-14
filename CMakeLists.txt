@@ -122,7 +122,7 @@ ADD_DUNE_MODULES( common istl grid fem stuff stokes )
 
 LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" ${CCGNU_LIBRARY_DIRS} )
 
-FILE( GLOB header "src/*.hh" )
+FILE( GLOB_RECURSE header "src/*.hh" )
 FILE( GLOB_RECURSE navier "navier/*.hh" )
 FILE( GLOB_RECURSE oseen "oseen/*.hh" )
 FILE( GLOB_RECURSE stokes "../dune-stokes/stokes/*.hh" )

@@ -60,14 +60,15 @@ namespace Dune {
 			}
 			static ThetaSchemeDescription<1> forward_euler( double delta_t )
 			{
-				ThetaValueArray c = { 0.0f ,  1.0f ,  1.0f ,  0.0f  }  ;
+				//double braces to silence gcc warnigns (throughout this file)
+				ThetaValueArray c = {{ 0.0f ,  1.0f ,  1.0f ,  0.0f  }}  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
 				return ThetaSchemeDescription<1> ( a, delta_t, scheme_names[1] );
 			}
 			static ThetaSchemeDescription<1> backward_euler( double delta_t )
 			{
-				ThetaValueArray c = { 1.0f ,  0.0f ,  0.0f ,  1.0f  }  ;
+				ThetaValueArray c = {{ 1.0f ,  0.0f ,  0.0f ,  1.0f  }}  ;
 				ThetaArray a;
 				Stuff::fill_entirely( a, c );
 				return ThetaSchemeDescription<1> ( a, delta_t, scheme_names[2] );
@@ -80,9 +81,9 @@ namespace Dune {
 				const double eta			= 1.0 - tau;
 				typedef ThetaSchemeDescription<3>
 					ReturnType;
-				ReturnType::ThetaValueArray step_one	= { tau * theta,			eta * theta,			eta * theta,			tau * theta };
-				ReturnType::ThetaValueArray step_two	= { eta * theta_squigly,	tau * theta_squigly,	tau * theta_squigly,	eta * theta_squigly };
-				ReturnType::ThetaValueArray step_three	= { tau * theta,			eta * theta,			eta * theta,			tau * theta };
+				ReturnType::ThetaValueArray step_one	= {{ tau * theta,			eta * theta,			eta * theta,			tau * theta }};
+				ReturnType::ThetaValueArray step_two	= {{ eta * theta_squigly,	tau * theta_squigly,	tau * theta_squigly,	eta * theta_squigly }};
+				ReturnType::ThetaValueArray step_three	= {{ tau * theta,			eta * theta,			eta * theta,			tau * theta }};
 				ReturnType::ThetaArray a;
 				a[0] = step_one;
 				a[1] = step_two;
@@ -101,9 +102,9 @@ namespace Dune {
 				const double eta			= 1.0 - tau;
 				typedef ThetaSchemeDescription<3>
 					ReturnType;
-				ReturnType::ThetaValueArray step_one	= { tau * theta,			eta * theta,			theta,	0 };
-				ReturnType::ThetaValueArray step_two	= { eta * theta_squigly,	tau * theta_squigly,	0,		theta_squigly };
-				ReturnType::ThetaValueArray step_three	= { tau * theta,			eta * theta,			theta,	0 };
+				ReturnType::ThetaValueArray step_one	= {{ tau * theta,			eta * theta,			theta,	0 }};
+				ReturnType::ThetaValueArray step_two	= {{ eta * theta_squigly,	tau * theta_squigly,	0,		theta_squigly }};
+				ReturnType::ThetaValueArray step_three	= {{ tau * theta,			eta * theta,			theta,	0 }};
 				ReturnType::ThetaArray a;
 				a[0] = step_one;
 				a[1] = step_two;
