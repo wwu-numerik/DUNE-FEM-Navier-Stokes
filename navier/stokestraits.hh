@@ -10,9 +10,9 @@ namespace Dune {
 		namespace NonlinearStep {
 			template <	class TimeProviderType,
 						class GridPartImp,
-						template < class,class > class AnalyticalForceFunctionType,
-						template <class, class, class, class> class ForceAdatperTemplateType,
-						template < class > class AnalyticalDirichletDataImp,
+						template < class, class > class AnalyticalForceFunctionType,
+						template < class, class, class, class> class ForceAdatperTemplateType,
+						template < class, class > class AnalyticalDirichletDataImp,
 						class ThetaValueArrayType,
 						int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 			class DiscreteStokesModelTraits
@@ -121,10 +121,10 @@ namespace Dune {
 						AnalyticalForceType;
 
 					//! function type for the analytical dirichlet data
-					typedef typename Dune::NavierStokes::DirichletAdapterFunctionTraits< AnalyticalDirichletDataImp, TimeProviderType >
-										::template Implementation<VelocityFunctionSpaceType,GridPartImp >
-							AnalyticalDirichletDataTraitsImplementation;
-					typedef typename AnalyticalDirichletDataTraitsImplementation::AnalyticalDirichletDataType
+//					typedef typename Dune::NavierStokes::DirichletAdapterFunctionTraits< AnalyticalDirichletDataImp, TimeProviderType >
+//										::template Implementation<VelocityFunctionSpaceType,GridPartImp >
+//							AnalyticalDirichletDataTraitsImplementation;
+					typedef AnalyticalDirichletDataImp< VelocityFunctionSpaceType, TimeProviderType >
 						AnalyticalDirichletDataType;
 
 					/**

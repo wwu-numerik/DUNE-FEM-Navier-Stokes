@@ -114,9 +114,7 @@ namespace Dune {
 
 					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
 					typename Traits::StokesStartPassType stokesStartPass;
-					typename Traits::AnalyticalDirichletDataType oseenDirichletData =
-							Traits::OseenModelTraits::AnalyticalDirichletDataTraitsImplementation
-											::getInstance( timeprovider_,
+					typename Traits::AnalyticalDirichletDataType oseenDirichletData ( timeprovider_,
 														   functionSpaceWrapper_ );
 
 					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1), ValidateGreater<unsigned int>( 0 ) );

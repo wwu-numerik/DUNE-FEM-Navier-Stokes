@@ -29,7 +29,7 @@ namespace {
 			Velocity;
 		typedef CHECKING_NS::Force<FunctionSpaceImp, TimeProviderImp>
 			Force;
-		typedef CHECKING_NS::DirichletData<FunctionSpaceImp>
+		typedef CHECKING_NS::DirichletData<FunctionSpaceImp, TimeProviderImp>
 			DirichletData;
 	};
 }

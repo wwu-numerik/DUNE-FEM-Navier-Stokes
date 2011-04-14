@@ -23,8 +23,8 @@ namespace Oseen {
 
 		template <	class TimeProviderType,
 					class GridPartImp,
-					template < class,class > class ForceFuntionType,
-					template < class > class AnalyticalDirichletDataImp,
+					template < class, class > class ForceFuntionType,
+					template < class, class > class AnalyticalDirichletDataImp,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		class DiscreteModelTraits
 		{
@@ -125,11 +125,7 @@ namespace Oseen {
 				typedef AnalyticalForceFunctionType
 					AnalyticalForceType;
 
-				//! function type for the analytical dirichlet data
-				typedef typename Dune::NavierStokes::StokesStep::DirichletAdapterFunctionTraits< AnalyticalDirichletDataImp, TimeProviderType >
-									::template Implementation<VelocityFunctionSpaceType,GridPartImp >
-						AnalyticalDirichletDataTraitsImplementation;
-				typedef typename AnalyticalDirichletDataTraitsImplementation::AnalyticalDirichletDataType
+				typedef AnalyticalDirichletDataImp<VelocityFunctionSpaceType,TimeProviderType>
 					AnalyticalDirichletDataType;
 
 				typedef DiscreteVelocityFunctionType

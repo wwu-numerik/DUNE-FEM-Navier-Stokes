@@ -1,6 +1,7 @@
 #ifndef THETASCHEME_RUNNER_HH
 #define THETASCHEME_RUNNER_HH
 
+#include <dune/navier/thetascheme_traits.hh>
 #include <dune/navier/thetascheme.hh>
 #include <dune/navier/thetascheme_alt_split.hh>
 

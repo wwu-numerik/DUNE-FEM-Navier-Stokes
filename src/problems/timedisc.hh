@@ -64,7 +64,6 @@ public:
 		const double alpha = Parameters().getParam( "alpha", 1.0 );
 		RangeType u;
 		evaluateTimeVelocity( time, arg, u );
-		assert( time == 1.0 );
 		//					  ret[0] = std::pow(time,3.0)* arg[1] * arg[1];// * Parameters().getParam( "alpha", 1.0 ) ;
 		//					  ret[1] = std::pow(time,2.0)* arg[0];// * Parameters().getParam( "alpha", 1.0 ) ;
 		//					  ret *= alpha;
@@ -75,11 +74,13 @@ public:
 		ret[0] += time;
 		ret[1] += 1;
 		//conv
-		ret[0] += 2* std::pow(time,5.0)*x*y;
-		ret[1] +=  std::pow(time,5.0)*y*y;
+		if ( !Parameters().getParam( "navier_no_convection", false ) ) {
+			ret[0] += 2* std::pow(time,5.0)*x*y;
+			ret[1] +=  std::pow(time,5.0)*y*y;
+		}
 		//dt u
-		//					  ret[0] += std::pow(time,2.0)*3*y*y;
-		//					  ret[1] += 2*time*x;
+		ret[0] += std::pow(time,2.0)*3*y*y;
+		ret[1] += 2*time*x;
 
 		//					  ret *=Parameters().getParam( "fscale", 1.0 );
 		//					  ret *= 0;
@@ -93,42 +94,38 @@ private:
 	static const int dim_ = FunctionSpaceImp::dimDomain;
 };
 
-template < class FunctionSpaceImp >
-class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+template < class FunctionSpaceImp, class TimeProviderImp >
+class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 public:
-	typedef DirichletData< FunctionSpaceImp >
+	typedef DirichletData< FunctionSpaceImp, TimeProviderImp >
 		ThisType;
-	typedef Dune::Function< FunctionSpaceImp, ThisType >
+	typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 		BaseType;
 	typedef typename BaseType::DomainType
 		DomainType;
 	typedef typename BaseType::RangeType
 		RangeType;
 
-	DirichletData( const FunctionSpaceImp& space,
-				   const double parameter_a = M_PI /2.0 ,
-				   const double parameter_d = M_PI /4.0)
-		: BaseType( space ),
-		  parameter_a_( parameter_a ),
-		  parameter_d_( parameter_d )
+	/**
+	  *  \brief  constructor
+	  *  \param  viscosity,alpha   dummies
+	  **/
+	DirichletData( const TimeProviderImp& timeprovider,
+				   const FunctionSpaceImp& space,
+				   const double /*viscosity*/ = 0.0,
+				   const double /*alpha*/ = 0.0 )
+		: BaseType ( timeprovider, space )
 	{}
 
 	~DirichletData()
 	{}
 
 	template < class IntersectionType >
-	void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection*/ ) const
+	void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection*/ ) const
 	{
 		evaluateTimeVelocity( time, arg, ret );
 	}
-
-	inline void evaluate( const DomainType& arg, RangeType& ret ) const { assert(false); }
-
-private:
-	static const int dim_ = FunctionSpaceImp::dimDomain ;
-	const double parameter_a_;
-	const double parameter_d_;
 };
 
 template < class FunctionSpaceImp, class TimeProviderImp >
@@ -158,7 +155,7 @@ public:
 
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 	{
-		//					dune_static_assert( dim_ == 2  , "Wrong world dim");
+		dune_static_assert( FunctionSpaceImp::dimDomain == 2  , "Wrong world dim");
 		evaluateTimeVelocity( time, arg, ret );
 	}
 
@@ -200,7 +197,6 @@ public:
 	}
 
 private:
-	static const int dim_ = FunctionSpaceImp::dimDomain ;
 	const double parameter_a_;
 	const double parameter_d_;
 };

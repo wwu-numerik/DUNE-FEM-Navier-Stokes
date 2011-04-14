@@ -132,7 +132,7 @@ public:
 	template < class IntersectionType >
 	void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 	{
-		Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( lambda_, time, arg, ret);
 	}
 
@@ -161,13 +161,13 @@ private:
  *
  *  \todo   extensive docu with latex
  **/
-template < class FunctionSpaceImp >
-class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+template < class FunctionSpaceImp, class TimeProviderImp >
+class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 public:
-	typedef DirichletData< FunctionSpaceImp >
+	typedef DirichletData< FunctionSpaceImp, TimeProviderImp >
 		ThisType;
-	typedef Dune::Function< FunctionSpaceImp, ThisType >
+	typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 		BaseType;
 	typedef typename BaseType::DomainType
 		DomainType;
@@ -175,15 +175,14 @@ public:
 		RangeType;
 
 	/**
-   *  \brief  constructor
-   *
-   *  doing nothing besides Base init
-   **/
-	DirichletData( const FunctionSpaceImp& space,
-				   const double parameter_a = M_PI /2.0 ,
-				   const double parameter_d = M_PI /4.0)
-		: BaseType( space ),
-		  lambda_( Parameters().getParam( "lambda", 0.0 ) )
+	  *  \brief  constructor
+	  *  \param  viscosity,alpha   dummies
+	  **/
+	DirichletData( const TimeProviderImp& timeprovider,
+				   const FunctionSpaceImp& space,
+				   const double /*viscosity*/ = 0.0,
+				   const double /*alpha*/ = 0.0 )
+		: BaseType ( timeprovider, space )
 	{}
 
 	/**
@@ -195,24 +194,11 @@ public:
 	{}
 
 	template < class IntersectionType >
-	void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+	void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 	{
-		Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
-		VelocityEvaluate( lambda_, time, arg, ret);
+		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
+		VelocityEvaluate( 0.0, time, arg, ret);
 	}
-
-	/**
-   * \brief  evaluates the dirichlet data
-   * \param  arg
-   *         point to evaluate at
-   * \param  ret
-   *         value of dirichlet boundary data at given point
-   **/
-	inline void evaluate( const DomainType& arg, RangeType& ret ) const {assert(false);}
-
-private:
-	static const int dim_ = FunctionSpaceImp::dimDomain ;
-	const double lambda_;
 };
 
 template < class FunctionSpaceImp, class TimeProviderImp >
@@ -251,7 +237,7 @@ public:
 
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 	{
-		Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( lambda_, time, arg, ret);
 	}
 
@@ -309,7 +295,7 @@ public:
 
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 	{
-		Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		const double x			= arg[0];
 		const double y			= arg[1];
 		const double e_2lambda_x= std::exp( 2 * lambda_ * x );

@@ -214,9 +214,7 @@ namespace Dune {
 //					stab_coeff.print( Logger().Info() );
 					}
 
-					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
-							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-											::getInstance( timeprovider_,
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData ( timeprovider_,
 														   functionSpaceWrapper_ );
 
 					typename Traits::StokesModelType
@@ -297,9 +295,7 @@ namespace Dune {
 				{
 					typename Traits::StokesStartPassType stokesStartPass;
 
-					typename Traits::AnalyticalDirichletDataType stokesDirichletData =
-							Traits::StokesModelTraits::AnalyticalDirichletDataTraitsImplementation
-							::getInstance( timeprovider_,
+					typename Traits::AnalyticalDirichletDataType stokesDirichletData ( timeprovider_,
 										  functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 //					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {

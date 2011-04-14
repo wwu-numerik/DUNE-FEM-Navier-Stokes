@@ -294,9 +294,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
 
 	OseenTraits::StartPassType startPass;
-	OseenTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData =
-			OseenTraits::OseenModelTraits ::AnalyticalDirichletDataTraitsImplementation
-							::getInstance( timeprovider_,
+	OseenTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData( timeprovider_,
 										   functionSpaceWrapper );
 
 //	OseenTraits::OseenModelTraits::PressureFunctionSpaceType
