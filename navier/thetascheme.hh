@@ -130,9 +130,11 @@ namespace Dune {
 					unsigned int i = 0;
 					do
 					{
-						bool abort_loop = Parameters().getParam( "parabolic", false );
+						const bool do_convection_disc = ! ( Parameters().getParam( "navier_no_convection", false )
+															|| Parameters().getParam( "parabolic", false ) );
+						bool abort_loop = !do_convection_disc;
 						typename BaseType::DiscreteVelocityFunctionType beta = currentFunctions_.discreteVelocity();
-						if ( !Parameters().getParam( "parabolic", false )
+						if ( do_convection_disc
 								&& ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/) )
 						{
 							beta *= 3.0;
@@ -140,25 +142,31 @@ namespace Dune {
 							beta *= 0.5;
 							abort_loop = true; // linCN only needs a single "iteration"
 						}
+						else if ( !do_convection_disc )
+							beta.clear();
+
 						typename Traits::OseenModelType
 								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
 											do_cheat ? *ptr_oseenForce : *ptr_oseenForceVanilla,
 											oseenDirichletData,
 											theta_values[0] * dt_n / reynolds_, /*viscosity*/
 											1.0f, /*alpha*/
+//											do_convection_disc ? theta_values[0] * dt_n : 0.0, /*convection_scale_factor*/
 											theta_values[0] * dt_n, /*convection_scale_factor*/
 											theta_values[0] * dt_k/*pressure_gradient_scale_factor*/
 						                   );
+
 						typename Traits::OseenPassType oseenPass( stokesStartPass,
 												oseenModel,
 												gridPart_,
 												functionSpaceWrapper_,
 												beta /*beta*/,
-												!Parameters().getParam( "parabolic", false ) /*do_oseen_disc*/ );
+												do_convection_disc /*do_oseen_disc*/ );
 						if ( timeprovider_.timeStep() <= 2 && i < 1)
 							oseenPass.printInfo();
 						if ( Parameters().getParam( "silent_stokes", true ) )
 							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
+						currentFunctions_.clear();
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 						Logger().Info().Resume( Logging::LogStream::default_suspend_priority + 10 );
 
