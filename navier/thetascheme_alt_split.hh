@@ -89,21 +89,21 @@ namespace Dune {
 						Profiler::ScopedTiming fullstep_time("full_step");
 						RunInfo info_dummy;
 						//stokes step A
-						DiscreteVelocityFunctionType u_n( "u_n", dummyFunctions_.discreteVelocity().space() );
+						typename BaseType::DiscreteVelocityFunctionType u_n( "u_n", dummyFunctions_.discreteVelocity().space() );
 						u_n.assign( currentFunctions_.discreteVelocity() );
 						stokesStep( scheme_params_.step_sizes_[0], scheme_params_.thetas_[0] );
-						nextStep( 0, info_dummy );
+						BaseType::nextStep( 0, info_dummy );
 
 						Parameters().setParam( "reduced_oseen_solver", true );
 						//Nonlinear step
 						nonlinearStep( scheme_params_.step_sizes_[1], scheme_params_.thetas_[1], u_n );
-						nextStep( 1, info_dummy );
+						BaseType::nextStep( 1, info_dummy );
 						Parameters().setParam( "reduced_oseen_solver", false );
 
 						//stokes step B
 						info = stokesStep( scheme_params_.step_sizes_[2], scheme_params_.thetas_[2] );
 					}
-					nextStep( 2, info );
+					BaseType::nextStep( 2, info );
 
 					return info;
 				}
@@ -122,7 +122,7 @@ namespace Dune {
 
 				RunInfo stokesStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/ ) const
 				{
-					DiscretizationWeights discretization_weights(d_t_, viscosity_);
+					DiscretizationWeights discretization_weights(BaseType::d_t_, viscosity_);
 
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
@@ -155,7 +155,7 @@ namespace Dune {
 					dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
 //					if ( do_cheat ) //do cheat rhs assembly unconditionally, below we'll choose according to do_cheat which rhs to put into the model
 					{
-						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+						typedef typename BaseType::DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
 							VelocityFunctionSpaceType;
 						VelocityFunctionSpaceType continousVelocitySpace_;
 						typedef NAVIER_DATA_NAMESPACE::VelocityConvection<	VelocityFunctionSpaceType,
@@ -236,7 +236,7 @@ namespace Dune {
 											false );
 
 					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
-					setUpdateFunctions();
+					BaseType::setUpdateFunctions();
 					RunInfo info;
 					stokesPass.getRuninfo( info );
 					if ( Parameters().getParam( "silent_stokes", true ) )
@@ -244,9 +244,11 @@ namespace Dune {
 					return info;
 				}
 
-				void nonlinearStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/, const DiscreteVelocityFunctionType& u_n )
+				void nonlinearStep( const double /*dt_k*/,
+									const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/,
+									const typename BaseType::DiscreteVelocityFunctionType& u_n )
 				{
-					DiscretizationWeights discretization_weights(d_t_, viscosity_);
+					DiscretizationWeights discretization_weights(BaseType::d_t_, viscosity_);
 
 
 					const typename Traits::AnalyticalForceType force ( timeprovider_,
@@ -256,7 +258,7 @@ namespace Dune {
 
 					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
 					if ( Parameters().getParam( "rhs_cheat", false ) ) {
-						typedef typename DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
+						typedef typename BaseType::DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
 								VelocityFunctionSpaceType;
 						VelocityFunctionSpaceType continousVelocitySpace_;
 
@@ -291,7 +293,7 @@ namespace Dune {
 				template < class T >
 				void nonlinearStepSingle(	const T& nonlinearForce,
 											const DiscretizationWeights& discretization_weights,
-											const DiscreteVelocityFunctionType& u_n)
+											const typename BaseType::DiscreteVelocityFunctionType& u_n )
 				{
 					typename Traits::StokesStartPassType stokesStartPass;
 
@@ -314,8 +316,8 @@ namespace Dune {
 
 //					stab_coeff.print( Logger().Info() );
 
-					DiscreteVelocityFunctionType beta( "beta", dummyFunctions_.discreteVelocity().space() );
-					DiscreteVelocityFunctionType tmp( "tmp", dummyFunctions_.discreteVelocity().space() );
+					typename BaseType::DiscreteVelocityFunctionType beta( "beta", dummyFunctions_.discreteVelocity().space() );
+					typename BaseType::DiscreteVelocityFunctionType tmp( "tmp", dummyFunctions_.discreteVelocity().space() );
 					tmp.assign( u_n );
 					const double theta = discretization_weights.theta;
 					tmp *= (2.0*theta) / (1.0 - theta);
@@ -342,7 +344,6 @@ namespace Dune {
 
 
 				}
-	#endif
 		};
 	}//end namespace NavierStokes
 }//end namespace Dune
