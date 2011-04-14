@@ -241,7 +241,7 @@ public:
 
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 	{
-		Dune::CompileTimeChecker< ( dim_ == 2 ) > DirichletData_Unsuitable_WorldDim;
+		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( lambda_, time, arg, ret);
 	}
 
@@ -299,7 +299,7 @@ public:
 
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 	{
-		Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
+		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		const double x				= arg[0];
 		const double y				= arg[1];
 		const double v				= Parameters().getParam( "viscosity", 1.0 );

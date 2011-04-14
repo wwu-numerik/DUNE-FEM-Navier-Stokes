@@ -3,7 +3,6 @@
 
 #include <dune/stokes/discretestokesmodelinterface.hh>
 #include <dune/navier/rhsadapter.hh>
-#include <dune/fem/space/fvspace/fvspace.hh>
 
 namespace Dune {
 	namespace NavierStokes {

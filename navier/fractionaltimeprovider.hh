@@ -79,7 +79,7 @@ namespace Dune {
 					}
 
 					//! equivalent of t_{k+1}
-					const double subTime( ) const
+					double subTime( ) const
 					{
 						double current = BaseType::time();
 						for ( int i = 0; i < current_substep_; ++i )
@@ -88,20 +88,20 @@ namespace Dune {
 					}
 
 					//! equivalent of t_{k}
-					const double previousSubTime( ) const
+					double previousSubTime( ) const
 					{
 						const double t = subTime() - theta_scheme_parameter_.step_sizes_[current_substep_-1];
 						return Stuff::clamp( t, double(0.0), t);
 					}
 					//! equivalent of t_{k+2}??
-					const double nextSubTime( ) const
+					double nextSubTime( ) const
 					{
 						assert( false ); //currently produces wring results on the interval bounds
 						const double t = subTime() + theta_scheme_parameter_.step_sizes_[current_substep_];
 						return Stuff::clamp( t, double(0.0), t);
 					}
 
-					const double time () const
+					double time () const
 					{
 						return subTime();
 					}
@@ -128,8 +128,8 @@ namespace Dune {
 						return theta_scheme_parameter_.step_sizes_[current_substep_];
 					}
 
-					const double startTime()	const { return startTime_;	}
-					const double endTime()		const { return endTime_;	}
+					double startTime()	const { return startTime_;	}
+					double endTime()	const { return endTime_;	}
 
 					int timeStep () const
 					{

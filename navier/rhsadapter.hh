@@ -7,59 +7,6 @@
 
 namespace Dune {
 	namespace NavierStokes {
-//		template < class TimeProviderType, class AnalyticalDirichletType >
-//			class DirichletAdapterFunction :
-//					public Function< typename AnalyticalDirichletType::FunctionSpaceType,
-//									DirichletAdapterFunction<TimeProviderType, AnalyticalDirichletType > >
-//			{
-//				protected:
-//					typedef DirichletAdapterFunction<TimeProviderType, AnalyticalDirichletType >
-//							ThisType;
-//					typedef Function< typename AnalyticalDirichletType::FunctionSpaceType, ThisType >
-//							BaseType;
-//					const TimeProviderType& timeProvider_;
-//					const AnalyticalDirichletType gd_;
-//				public:
-//					DirichletAdapterFunction( const TimeProviderType& timeProvider,
-//										  const typename AnalyticalDirichletType::FunctionSpaceType space )
-//						: BaseType( space ),
-//						timeProvider_( timeProvider ),
-//						gd_( space )
-//					{}
-
-//					template < class IntersectionIteratorType >
-//					inline void evaluate( const typename AnalyticalDirichletType::DomainType& arg,
-//										  typename AnalyticalDirichletType::RangeType& ret,
-//										  const IntersectionIteratorType intIt ) const
-//					{
-//						const double time = timeProvider_.subTime();
-//						gd_.evaluate( time, arg, ret, intIt );
-//					}
-
-//					inline void evaluate(	const typename AnalyticalDirichletType::DomainType& arg,
-//											typename AnalyticalDirichletType::RangeType& ret ) const
-//					{
-//						NEEDS_IMPLEMENTATION
-//					}
-
-//			};
-//			template < template < class > class DiricheltDataImp,
-//						class TimeProviderType >
-//			struct DirichletAdapterFunctionTraits {
-
-//				template < class FunctionSpaceImp, class GridPartImp >
-//				struct Implementation {
-//					typedef DirichletAdapterFunction< TimeProviderType, DiricheltDataImp< FunctionSpaceImp > >
-//						AnalyticalDirichletDataType;
-
-//					template <class DiscreteStokesFunctionWrapper >
-//					static AnalyticalDirichletDataType getInstance( const TimeProviderType& timeProvider, const DiscreteStokesFunctionWrapper& wrapper ) {
-//						return 	AnalyticalDirichletDataType( timeProvider, wrapper.discreteVelocitySpace() );
-//					}
-//				};
-//			};
-
-
 		namespace OseenStep {
 		/** \brief take previous step solution \f$u_{k-1}\f$ and analytical RHS to form function to be passed to either StokesStep
 		  * given analytical force \f$f_{ana}\f$ and discrete function \f$u\f$ representing previous time step's velocity solution,

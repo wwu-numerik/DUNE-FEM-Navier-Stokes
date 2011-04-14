@@ -10,69 +10,25 @@ namespace Dune {
 			protected:
 				typedef ThetaSchemeBase< Traits >
 					BaseType;
-//				typedef typename Traits::CommunicatorType
-//					CommunicatorType;
-//				typedef typename Traits::ExactSolutionType
-//					ExactSolutionType;
-//				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
-//											typename Traits::DiscreteStokesFunctionWrapperType,
-//											ExactSolutionType,
-//											typename Traits::DiscreteStokesFunctionWrapperType>
-//					TupleSerializerType1;
-//				typedef typename TupleSerializerType1::TupleType
-//					OutputTupleType1;
-//				typedef TimeAwareDataWriter<	typename Traits::TimeProviderType,
-//												typename Traits::GridPartType::GridType,
-//												OutputTupleType1 >
-//					DataWriterType1;
-//				typedef CheckPointer< typename Traits::GridPartType::GridType,
-//									  OutputTupleType1 >
-//					CheckPointerType;
-//				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType >
-//					TupleSerializerType2;
-//				typedef typename TupleSerializerType2::TupleType
-//					OutputTupleType2;
-//				typedef TimeAwareDataWriter<	typename Traits::TimeProviderType,
-//												typename Traits::GridPartType::GridType,
-//												OutputTupleType2 >
-//					DataWriterType2;
-//				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
-//					DiscreteVelocityFunctionType;
-//				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType
-//					DiscretePressureFunctionType;
-
 				using BaseType::gridPart_;
 				using BaseType::scheme_params_;
 
 		protected:
-//				CommunicatorType& communicator_;
 				using BaseType::timeprovider_;
 				using BaseType::functionSpaceWrapper_;
 				using BaseType::currentFunctions_;
 				using BaseType::nextFunctions_;
-//				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
 				using BaseType::exactSolution_;
 				using BaseType::dummyFunctions_;
-//				mutable typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
 				using BaseType::rhsFunctions_;
-//				OutputTupleType1& data_tuple_1;
-//				DataWriterType1 dataWriter1_;
-//				CheckPointerType check_pointer_;
-//				DataWriterType2 dataWriter2_;
-//				const typename Traits::OseenPassType::Traits::DiscreteSigmaFunctionSpaceType sigma_space_;
 				using BaseType::rhsDatacontainer_;
 				using BaseType::lastFunctions_;
-
-//				typedef Stuff::L2Error< typename Traits::GridPartType >
-//					L2ErrorType;
 				using BaseType::l2Error_;
 
 
 			public:
 				using BaseType::viscosity_;
-//				const double d_t_;
 				using BaseType::reynolds_;
-//				double current_max_gridwidth_;
 
 			public:
 				ThetaSchemeAltSplitting( typename Traits::GridPartType gridPart,
