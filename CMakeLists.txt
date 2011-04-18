@@ -7,12 +7,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_CURRENT_SOURCE_D
 include(DuneUtils)
 include(UseDoxygen)
 
-FIND_PACKAGE(Boost 1.35.0 REQUIRED)
-INCLUDE_DIR(${Boost_INCLUDE_DIR})
-FIND_PACKAGE( PkgConfig )
-pkg_check_modules( CCGNU REQUIRED libccgnu2 )
-ADD_CXX_FLAGS( "${CCGNU_CFLAGS}" )
-
 #----------------------------------------------------------------------------------------------------
 # General Settings
 #----------------------------------------------------------------------------------------------------
@@ -75,16 +69,12 @@ SET( DIRICHLET_DATA
 	"DIRICHLET_DATA implementation for default dirichlet traits" )
 
 SET( ALUGRID_BASE_PATH
-	"/share/dune/Modules/modules_x86_64/ALUGrid-1.22" CACHE STRING
+	"/opt/dune/modules/alugrid/alugrid-1.22" CACHE STRING
 	"ALUGRID_BASE_PATH" )
 
 SET( UGGRID_BASE_PATH
 	"/share/dune/Modules/modules_x86_64/ug" CACHE STRING
 	"UGGRID_BASE_PATH" )
-
-SET( CUSTOM_FLAGS
-	"-Wall -Wextra -pedantic -O3 -fomit-frame-pointer -funroll-loops -fno-strict-aliasing -std=c++0x -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE LIST
-	"CUSTOM FLAGS")
 
 SET( ENABLE_PARALELL
 	0 CACHE BOOL
