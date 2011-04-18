@@ -83,7 +83,7 @@ SET( UGGRID_BASE_PATH
 	"UGGRID_BASE_PATH" )
 
 SET( CUSTOM_FLAGS
-	"-Wall -O3 -fomit-frame-pointer -funroll-loops -fno-strict-aliasing -std=c++0x -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE LIST
+	"-Wall -Wextra -pedantic -O3 -fomit-frame-pointer -funroll-loops -fno-strict-aliasing -std=c++0x -DDNDEBUG -g -ggdb -DENABLE_ADAPTIVE=0 -DADAPTIVE_SOLVER -DUSE_BFG_CG_SCHEME" CACHE LIST
 	"CUSTOM FLAGS")
 
 SET( ENABLE_PARALELL
