@@ -43,7 +43,7 @@ namespace Dune {
 										const AnalyticalForceType& force,
 										const double reynolds,
 										const ThetaValuesType& theta_values,
-										int polOrd = -1 )
+										int /*polOrd*/ = -1 )
 					: BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 					timeProvider_( timeProvider ),
 					force_( force ),
@@ -91,7 +91,7 @@ namespace Dune {
 										const double reynolds,
 										const ThetaValuesType& theta_values,
 										const RhsContainerType& rhs_container,
-										int polOrd = -1 )
+										int /*polOrd*/ = -1 )
 					: BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 					timeProvider_( timeProvider ),
 					force_( force ),
@@ -190,7 +190,7 @@ namespace Dune {
 												   const DiscreteVelocityFunctionType& velocity,
 												   const AnalyticalForceType& force,
 												   const DiscretizationWeightsType& weights,
-												   int polOrd = -1 )
+												   int /*polOrd*/ = -1 )
 								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 								 timeProvider_( timeProvider ),
 								 force_( force )
@@ -228,7 +228,7 @@ namespace Dune {
 												   const AnalyticalForceType& force,
 												   const DiscretizationWeightsType& weights,
 												   const RhsContainerType& rhs_container,
-												   int polOrd = -1 )
+												   int /*polOrd*/ = -1 )
 								 : BaseType( "stokes-ana-rhsdapater" , velocity.space()),
 								 timeProvider_( timeProvider ),
 								 force_( force )
@@ -350,7 +350,7 @@ namespace Dune {
 										  const AnalyticalForceType& force,
 										  const DiscretizationWeightsType& weights,
 										  const RhsContainerType& rhs_container,
-										  int polOrd = -1)
+										  int /*polOrd */= -1)
 						: BaseType( "nonlinear-rhsdapater" , velocity.space()),
 						timeProvider_( timeProvider )
 					{

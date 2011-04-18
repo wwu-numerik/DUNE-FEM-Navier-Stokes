@@ -96,29 +96,30 @@ SET ( METIS_DIR
 
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h )
 #needs to come first to include correct config.h
-INCLUDE_DIR( ${dune-navier-stokes_BINARY_DIR} ${dune-navier-stokes_SOURCE_DIR} )
+INCLUDE_DIR( ${dune-navier-stokes_BINARY_DIR} )
+INCLUDE_DIR( ${dune-navier-stokes_SOURCE_DIR} )
+INCLUDE_DIR( ${dune-navier-stokes_SOURCE_DIR}/.. )
 
 IF( ${GRIDTYPE} STREQUAL "UGGRID" )
-	ADD_CXX_FLAGS( -I${UGGRID_BASE_PATH}/include -DENABLE_UG )
+	ADD_CXX_FLAGS( -isystem$${UGGRID_BASE_PATH}/include -DENABLE_UG )
 	LINK_DIRECTORIES( ${UGGRID_BASE_PATH}/lib/ )
 	SET( UGLIBS "ugS3" "ugS2" "devS")
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
 
-ADD_CXX_FLAGS( ${CUSTOM_FLAGS} )
-ADD_CXX_FLAGS( 
-	-I${ALUGRID_BASE_PATH}/include
-	-I${ALUGRID_BASE_PATH}/include/serial 
-	-I${ALUGRID_BASE_PATH}/include/duneinterface -DENABLE_ALUGRID )
+ADD_CXX_FLAGS( ${CUSTOM_FLAGS} -DENABLE_ALUGRID )
+INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include )
+INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/serial  )
+INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/duneinterface  )
 
 IF ( ENABLE_PARALELL )
 	LINK_DIRECTORIES( ${METIS_DIR} )
 	Set ( ParaLIBS "-lparmetis -lmetis" )
-	ADD_CXX_FLAGS( -I${ALUGRID_BASE_PATH}/include/parallel
-					-DMPIPP_H -DENABLE_MPI=1
-					)
+	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/parallel )
+	ADD_CXX_FLAGS( -DMPIPP_H -DENABLE_MPI=1 )
 ENDIF ( ENABLE_PARALELL )
 
-ADD_DUNE_MODULES( common istl grid fem stuff stokes )
+ADD_DUNE_MODULES( common istl grid fem )
+ADD_MY_MODULES( stuff stokes )
 
 LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" ${CCGNU_LIBRARY_DIRS} )
 
@@ -147,3 +148,4 @@ ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
 
 HEADERCHECK( ${header} ${oseen} ${navier} )
+ADD_DEFINITIONS( ${MY_CXX_FLAGS} )

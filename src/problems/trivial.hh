@@ -64,10 +64,10 @@ class Force : public Dune::TimeFunction < FunctionSpaceImp , Force< FunctionSpac
 };
 
 template < class DomainType, class RangeType >
-void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& arg, RangeType& ret)
+void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& /*arg*/, RangeType& ret)
 {
-	const double x				= arg[0];
-	const double y				= arg[1];
+//	const double x				= arg[0];
+//	const double y				= arg[1];
 	ret[0] = 2*time;
 	ret[1] = 0;
 }
@@ -173,8 +173,8 @@ class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< Functi
 		**/
 		Velocity(	const TimeProviderImp& timeprovider,
 					const FunctionSpaceImp& space,
-					const double parameter_a = M_PI /2.0 ,
-					const double parameter_d = M_PI /4.0)
+					const double /*parameter_a*/ = M_PI /2.0 ,
+					const double /*parameter_d */= M_PI /4.0)
 			: BaseType( timeprovider, space ),
 			lambda_( Parameters().getParam( "lambda", 0.0 ) )
 		{}
@@ -227,8 +227,8 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 	   **/
 	  Pressure( const TimeProviderImp& timeprovider,
 				const FunctionSpaceImp& space,
-				const double parameter_a = M_PI /2.0 ,
-				const double parameter_d = M_PI /4.0)
+				const double /*parameter_a*/ = M_PI /2.0 ,
+				const double /*parameter_d*/ = M_PI /4.0)
 		  : BaseType( timeprovider, space ),
 		  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
 		  shift_(0.0)
@@ -246,11 +246,11 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 		{
 			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
 			const double x				= arg[0];
-			const double y				= arg[1];
-			const double v				= Parameters().getParam( "viscosity", 1.0 );
-			const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
-			const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
-			const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
+//			const double y				= arg[1];
+//			const double v				= Parameters().getParam( "viscosity", 1.0 );
+//			const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
+//			const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
+//			const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
 
 			ret = (0.5-x)*time;
 		}

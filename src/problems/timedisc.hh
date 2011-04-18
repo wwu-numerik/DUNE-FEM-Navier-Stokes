@@ -61,7 +61,6 @@ public:
 		const double x			= arg[0];
 		const double y			= arg[1];
 		const double v			= viscosity_;
-		const double alpha = Parameters().getParam( "alpha", 1.0 );
 		RangeType u;
 		evaluateTimeVelocity( time, arg, u );
 		//					  ret[0] = std::pow(time,3.0)* arg[1] * arg[1];// * Parameters().getParam( "alpha", 1.0 ) ;
@@ -190,7 +189,7 @@ public:
 	~PressureGradient()
 	{}
 
-	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+	void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
 	{
 		ret[0] = 1;
 		ret[1] = time;

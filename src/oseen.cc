@@ -197,7 +197,7 @@ int main( int argc, char** argv )
 #endif
 }
 
-RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
