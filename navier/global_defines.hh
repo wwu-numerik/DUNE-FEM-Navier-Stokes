@@ -16,11 +16,13 @@
 	#define OLD_DUNE_GRID_VERSION
 #endif
 
-#if (GRIDDIM==3)
+#if (GRIDDIM==3) //why ??
 	#define MODEL_PROVIDES_LOCALFUNCTION 1
+#else
+	#define MODEL_PROVIDES_LOCALFUNCTION 0
 #endif
 
-#define MODEL_PROVIDES_LOCALFUNCTION 1
+
 
 #ifndef NAVIER_DATA_NAMESPACE
 	#error "no data namspeace given"

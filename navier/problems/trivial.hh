@@ -296,8 +296,8 @@ class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityL
 		**/
 		VelocityLaplace(	const TimeProviderImp& timeprovider,
 					const FunctionSpaceImp& space,
-					const double parameter_a = M_PI /2.0 ,
-					const double parameter_d = M_PI /4.0)
+					const double /*parameter_a*/ = M_PI /2.0 ,
+					const double /*parameter_d*/ = M_PI /4.0)
 			: BaseType( timeprovider, space ),
 			lambda_( Parameters().getParam( "lambda", 0.0 ) )
 		{}
@@ -310,7 +310,7 @@ class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityL
 		~VelocityLaplace()
 		{}
 
-		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+		void evaluateTime( const double /*time*/, const DomainType& /*arg*/, RangeType& ret ) const
 		{
 			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
 			ret = RangeType( 0 );
@@ -351,8 +351,8 @@ class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , Pressure
 		**/
 		PressureGradient(	const TimeProviderImp& timeprovider,
 					const FunctionSpaceImp& space,
-					const double parameter_a = M_PI /2.0 ,
-					const double parameter_d = M_PI /4.0)
+					const double /*parameter_a*/ = M_PI /2.0 ,
+					const double /*parameter_d*/ = M_PI /4.0)
 			: BaseType( timeprovider, space ),
 			lambda_( Parameters().getParam( "lambda", 0.0 ) )
 		{}
@@ -365,11 +365,11 @@ class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , Pressure
 		~PressureGradient()
 		{}
 
-		void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+		void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
 		{
 			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
-			const double x				= arg[0];
-			const double y				= arg[1];
+//			const double x				= arg[0];
+//			const double y				= arg[1];
 			ret[0] = -1*time;
 			ret[1] = 0;
 		}

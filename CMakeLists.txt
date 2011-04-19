@@ -110,6 +110,7 @@ ENDIF ( ENABLE_PARALELL )
 
 ADD_DUNE_MODULES( common istl grid fem )
 ADD_MY_MODULES( stuff stokes )
+INCLUDE_SYS_DIR( ${dune-navier-stokes_SOURCE_DIR}/../dune-stokes/stokes/oemsolver/ )
 
 LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" ${CCGNU_LIBRARY_DIRS} )
 

@@ -57,12 +57,6 @@
 
 #include "oseen.hh"
 
-#ifndef COMMIT
-	#define COMMIT "undefined"
-#endif
-
-static const std::string commit_string (COMMIT);
-
 #if ENABLE_MPI
 		typedef Dune::CollectiveCommunication< MPI_Comm > CollectiveCommunication;
 #else

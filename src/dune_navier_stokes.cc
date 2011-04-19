@@ -15,7 +15,7 @@
 	#warning ("UGGRID in debug mode is likely to produce a segfault")
 #endif
 
-#include "problems.hh"
+#include <dune/navier/problems.hh>
 
 #include <vector>
 #include <string>
