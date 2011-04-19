@@ -4,16 +4,11 @@
  *  \brief  brief
  **/
 
-#include "cmake_config.h"
+#include <dune/navier/global_defines.hh>
 
 #include <cstdio>
 #if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)
 	#warning ("USE_PARDG_ODE_SOLVER enabled, might conflict with custom solvers")
-#endif
-
-//the adaption manager might be troublesome with certain gridparts/spaces, so we needed a easy way to disable it
-#ifndef ENABLE_ADAPTIVE
-	#define ENABLE_ADAPTIVE 1
 #endif
 
 #if defined(UGGRID) && defined(DEBUG)
@@ -22,13 +17,6 @@
 
 #if ! defined(TESTCASE)
 	#define TESTCASE TestCase3D
-#endif
-
-#define TESTCASE_NAME "TESTCASE"
-
-#if ( ( defined(SGRID) || defined(ALUGRID_SIMPLEX) ||  defined(ALUGRID_CUBE) ) && ( GRIDDIM == 3 ) ) || defined(UGGRID) || defined(YASPGRID)
-	//this is no mistake, ALU is indeed only incompatible in 3d
-	#define OLD_DUNE_GRID_VERSION
 #endif
 
 #define USE_GRPAE_VISUALISATION (HAVE_GRAPE && !defined( AORTA_PROBLEM ))
@@ -72,12 +60,6 @@
 #include <dune/stuff/signals.hh>
 
 #include "oseen.hh"
-
-#ifndef COMMIT
-	#define COMMIT "undefined"
-#endif
-
-static const std::string commit_string (COMMIT);
 
 #if ENABLE_MPI
 		typedef Dune::CollectiveCommunication< MPI_Comm > CollectiveCommunication;
@@ -197,7 +179,7 @@ int main( int argc, char** argv )
 #endif
 }
 
-RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
@@ -234,18 +216,18 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
 
 	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
-	const double theta_ = 1.0;
+//	const double theta_ = 1.0;
 	const double d_t = 1.0;
-	const double operator_weight_beta_ = 1.0;
-	const double operator_weight_alpha_ = 1.0;
-	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
+//	const double operator_weight_beta_ = 1.0;
+//	const double operator_weight_alpha_ = 1.0;
+//	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
 	const double oseen_viscosity = Parameters().getParam( "viscosity", 1.0 );
 	const double lambda = ( reynolds * 0.5 )
 						  - std::sqrt(
 								  ( std::pow( reynolds, 2 ) * 0.25 )
 								  + ( 4 * std::pow( M_PI, 2 ) )
 									  ) ;
-	const double pressure_C = ( std::exp( 3 * lambda ) - std::exp(-1  * lambda ) ) / ( - 8 * lambda );
+//	const double pressure_C = ( std::exp( 3 * lambda ) - std::exp(-1  * lambda ) ) / ( - 8 * lambda );
 
 //	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
 
@@ -286,7 +268,7 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					functionSpaceWrapper );
 	exactSolution.project();
 //	exactSolution.exactPressure().setShift( pressure_C );
-	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
+//	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
 
 //	currentFunctions.assign( exactSolution );
 	currentFunctions.clear();
@@ -294,16 +276,16 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 	typedef OseenTraits::OseenModelTraits::PressureFunctionSpaceType
 			PressureFunctionSpaceType;
-	PressureFunctionSpaceType pressureFunctionSpace;
-	Stuff::VolumeDiffFunction<PressureFunctionSpaceType> vol(pressureFunctionSpace, -12.8430582392842 );
+//	PressureFunctionSpaceType pressureFunctionSpace;
+//	Stuff::VolumeDiffFunction<PressureFunctionSpaceType> vol(pressureFunctionSpace, -12.8430582392842 );
 
-	Dune::BetterL2Projection
-		::project( 0.0, vol, nextFunctions.discretePressure() );
+//	Dune::BetterL2Projection
+//		::project( 0.0, vol, nextFunctions.discretePressure() );
 //	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
 	double meanPressure_discrete = Stuff::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
 //	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
-	Dune::L2Norm< GridPartType > l2_Error( gridPart );
+//	Dune::L2Norm< GridPartType > l2_Error( gridPart );
 
 	Logger().Info().Resume();
 	Logger().Info()
