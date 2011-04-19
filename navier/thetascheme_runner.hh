@@ -4,6 +4,7 @@
 #include <dune/navier/thetascheme_traits.hh>
 #include <dune/navier/thetascheme.hh>
 #include <dune/navier/thetascheme_alt_split.hh>
+#include <dune/navier/global_defines.hh>
 
 template < class GridPartType, class CollectiveCommunicationType >
 class ThetaschemeRunner {
@@ -16,7 +17,7 @@ class ThetaschemeRunner {
 						NAVIER_DATA_NAMESPACE::Pressure,
 						NAVIER_DATA_NAMESPACE::Velocity,
 						1,//number of substeps
-						GridType::dimensionworld,
+						GridPartType::GridType::dimensionworld,
 						POLORDER,
 						VELOCITY_POLORDER,
 						PRESSURE_POLORDER >
@@ -33,7 +34,7 @@ class ThetaschemeRunner {
 						NAVIER_DATA_NAMESPACE::Pressure,
 						NAVIER_DATA_NAMESPACE::Velocity,
 						3,//number of substeps
-						GridType::dimensionworld,
+						GridPartType::GridType::dimensionworld,
 						POLORDER,
 						VELOCITY_POLORDER,
 						PRESSURE_POLORDER >

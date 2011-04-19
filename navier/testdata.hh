@@ -3,6 +3,8 @@
 
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/functions.hh>
+#include <dune/stuff/parametercontainer.hh>
+#include <dune/fem/misc/validator.hh>
 
 namespace Dune {
 	namespace NavierStokes {

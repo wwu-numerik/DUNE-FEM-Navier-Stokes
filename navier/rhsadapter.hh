@@ -4,6 +4,7 @@
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/stuff/printing.hh>
 #include <dune/stuff/customprojection.hh>
+#include <dune/navier/problems.hh>
 
 namespace Dune {
 	namespace NavierStokes {

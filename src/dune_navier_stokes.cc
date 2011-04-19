@@ -4,42 +4,17 @@
  *  \brief  brief
  **/
 
-#include "cmake_config.h"
+#include <dune/navier/global_defines.hh>
 
 #include <cstdio>
 #if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)
 	#warning ("USE_PARDG_ODE_SOLVER enabled, might conflict with custom solvers")
 #endif
 
-//the adaption manager might be troublesome with certain gridparts/spaces, so we needed a easy way to disable it
-#ifndef ENABLE_ADAPTIVE
-	#define ENABLE_ADAPTIVE 1
-#endif
-
 #if defined(UGGRID) && defined(DEBUG)
 	#warning ("UGGRID in debug mode is likely to produce a segfault")
 #endif
 
-#if ! defined(TESTCASE)
-	#define TESTCASE TestCase3D
-#endif
-
-#define TESTCASE_NAME "TESTCASE"
-
-#if ( ( defined(SGRID) || defined(ALUGRID_SIMPLEX) ||  defined(ALUGRID_CUBE) ) && ( GRIDDIM == 3 ) ) || defined(UGGRID) || defined(YASPGRID)
-	//this is no mistake, ALU is indeed only incompatible in 3d
-	#define OLD_DUNE_GRID_VERSION
-#endif
-
-#if (GRIDDIM==3)
-	#define MODEL_PROVIDES_LOCALFUNCTION 1
-#endif
-
-#define MODEL_PROVIDES_LOCALFUNCTION 1
-
-#ifndef NAVIER_DATA_NAMESPACE
-	#error "no data namspeace given"
-#endif
 #include "problems.hh"
 
 #include <vector>
@@ -78,12 +53,6 @@
 #include <dune/stuff/signals.hh>
 
 #include <dune/navier/thetascheme_runner.hh>
-
-#ifndef COMMIT
-	#define COMMIT "undefined"
-#endif
-
-static const std::string commit_string (COMMIT);
 
 #if ENABLE_MPI
 		typedef Dune::CollectiveCommunication< MPI_Comm > CollectiveCommunication;

@@ -1,6 +1,8 @@
 #ifndef CONV_DIFF_HH
 #define CONV_DIFF_HH
 
+#include <dune/navier/global_defines.hh>
+
 #ifndef CONVDIFF_DATA_NAMESPACE
 //	#define CONVDIFF_DATA_NAMESPACE Dune::ConvDiff::AdapterFunctionsVectorial
 	#define CONVDIFF_DATA_NAMESPACE Dune::ConvDiff::TimeDisc

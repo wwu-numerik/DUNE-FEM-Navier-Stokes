@@ -3,6 +3,7 @@
 
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
+#include <dune/stuff/parametercontainer.hh>
 
 namespace NavierProblems {
 namespace Cockburn {

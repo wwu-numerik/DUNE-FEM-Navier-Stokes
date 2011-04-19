@@ -1,9 +1,11 @@
 #ifndef FRACTIONALTIMEPROVIDER_HH
 #define FRACTIONALTIMEPROVIDER_HH
 
+#include <dune/common/deprecated.hh>
 #include <dune/fem/solver/timeprovider.hh>
 #include <dune/fem/misc/femtimer.hh>
 #include <dune/stuff/misc.hh>
+#include <dune/stuff/math.hh>
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 

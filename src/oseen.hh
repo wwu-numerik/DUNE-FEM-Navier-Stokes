@@ -1,10 +1,8 @@
 #ifndef OSEEN_HH
 #define OSEEN_HH
 
-#ifndef OSEEN_DATA_NAMESPACE
-	#define OSEEN_DATA_NAMESPACE NavierProblems::Trivial
-#endif
-#include "problems.hh"
+#include <dune/navier/global_defines.hh>
+#include <dune/navier/problems.hh>
 
 #include <dune/stokes/discretestokesmodelinterface.hh>
 #include <dune/stokes/stokespass.hh>

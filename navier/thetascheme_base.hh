@@ -5,6 +5,7 @@
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/h1norm.hh>
+#include <dune/fem/misc/gridwidth.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/tuple.hh>
 #include <dune/stuff/customprojection.hh>
@@ -17,6 +18,7 @@
 #include <algorithm>
 
 #include <dune/navier/thetascheme_traits.hh>
+#include <dune/navier/global_defines.hh>
 
 namespace Dune {
 	namespace NavierStokes {
@@ -261,7 +263,7 @@ namespace Dune {
 						info.inner_solver_accuracy	= Parameters().getParam( "inner_absLimit", 1e-4 );
 						info.bfg_tau				= Parameters().getParam( "bfg-tau", 0.1 );
 
-						info.problemIdentifier	= TESTCASE_NAME;
+						info.problemIdentifier	= NAVIER_DATA_NAMESPACE::identifier;
 						info.algo_id			= scheme_params_.algo_id;
 						info.extra_info			= (boost::format("%s on %s") % COMMIT % std::getenv("HOSTNAME") ).str();
 
