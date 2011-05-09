@@ -76,7 +76,7 @@ typedef std::vector<std::string>
 			the set of coefficients to be used in the run. Default is used in all run types but StabRun().
 
 **/
-RunInfoTimeMap singleRun(	CollectiveCommunication& mpicomm,
+Stuff::RunInfoTimeMap singleRun(	CollectiveCommunication& mpicomm,
 							const int refine_level_factor,
 							const int scheme_type );
 //! output alert for neg. EOC
@@ -130,7 +130,7 @@ int main( int argc, char** argv )
 
 	int err = 0;
 	const unsigned int minref = Parameters().getParam( "minref", 0, Dune::ValidateNotLess<int>(0) );
-	RunInfoTimeMapMap rf;
+	Stuff::RunInfoTimeMapMap rf;
 	const int runtype = Parameters().getParam( "runtype", 5 );
 	switch( runtype ) {
 		case 8: {
@@ -217,7 +217,7 @@ int main( int argc, char** argv )
 	return err;
 }
 
-RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
+Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					const int refine_level_factor, const int scheme_type )
 {
 	Profiler::ScopedTiming pf_t( "SingleRun" );

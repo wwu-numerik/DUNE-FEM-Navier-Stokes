@@ -46,11 +46,11 @@ typedef std::vector<std::string>
 			the set of coefficients to be used in the run. Default is used in all run types but StabRun().
 
 **/
-RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor  );
 
 //! output alert for neg. EOC
-void eocCheck( const RunInfoVector& runInfos );
+void eocCheck( const Stuff::RunInfoVector& runInfos );
 
 /**
  *  \brief  main function
@@ -109,7 +109,7 @@ int main( int argc, char** argv )
 		// ensures maxref>=minref
 		const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
 		profiler().Reset( maxref - minref + 1 );
-		RunInfoVectorMap rf;
+		Stuff::RunInfoVectorMap rf;
 		for ( unsigned int ref = minref;
 			  ref <= maxref;
 			  ++ref )
@@ -144,13 +144,13 @@ int main( int argc, char** argv )
 #endif
 }
 
-RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
 	Logging::LogStream& infoStream = Logger().Info();
 	Logging::LogStream& debugStream = Logger().Dbg();
-	RunInfoVector runInfoVector;
+	Stuff::RunInfoVector runInfoVector;
 
 
 	/* ********************************************************************** *
@@ -375,11 +375,11 @@ RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	return runInfoVector;
 }
 
-void eocCheck( const RunInfoVector& runInfos )
+void eocCheck( const Stuff::RunInfoVector& runInfos )
 {
 	bool ups = false;
-	RunInfoVector::const_iterator it = runInfos.begin();
-	RunInfo last = *it;
+	Stuff::RunInfoVector::const_iterator it = runInfos.begin();
+	Stuff::RunInfo last = *it;
 	++it;
 	for ( ; it != runInfos.end(); ++it ) {
 		ups = ( last.L2Errors[0] < it->L2Errors[0]

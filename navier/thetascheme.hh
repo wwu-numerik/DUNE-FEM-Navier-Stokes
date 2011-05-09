@@ -40,10 +40,10 @@ namespace Dune {
 				{}
 
 
-				virtual RunInfo full_timestep()
+				virtual Stuff::RunInfo full_timestep()
 				{
 					Profiler::ScopedTiming fullstep_time("full_step");
-					RunInfo info;
+					Stuff::RunInfo info;
 					for ( int i=0; i < Traits::substep_count; ++i )
 					{
 						const double dt_k = scheme_params_.step_sizes_[i];

@@ -160,7 +160,7 @@ namespace Dune {
 					Logger().Info() << scheme_params_;
 				}
 
-				void nextStep( const int step, RunInfo& info )
+				void nextStep( const int step, Stuff::RunInfo& info )
 				{
 					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
 					lastFunctions_.assign( currentFunctions_ );
@@ -291,15 +291,15 @@ namespace Dune {
 					//the guard dtor sets current time to t_0 + dt_k
 				}
 
-				RunInfoTimeMap run()
+				Stuff::RunInfoTimeMap run()
 				{
-					RunInfoTimeMap runInfoMap;
+					Stuff::RunInfoTimeMap runInfoMap;
 					Init();
 
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
 						assert( timeprovider_.time() > 0.0 );
-						RunInfo info = full_timestep();
+						Stuff::RunInfo info = full_timestep();
 						const double real_time = timeprovider_.subTime();
 						try {
 							nextStep( Traits::substep_count -1 , info );
@@ -310,7 +310,7 @@ namespace Dune {
 							runInfoMap[real_time] = info;
 							for( ;timeprovider_.time() <= timeprovider_.endTime(); ) {
 								timeprovider_.nextFractional();
-								runInfoMap[timeprovider_.subTime()] = RunInfo::dummy();
+								runInfoMap[timeprovider_.subTime()] = Stuff::RunInfo::dummy();
 							}
 							return runInfoMap;
 						}
@@ -321,7 +321,7 @@ namespace Dune {
 					return runInfoMap;
 				}
 
-				virtual RunInfo full_timestep() = 0;
+				virtual Stuff::RunInfo full_timestep() = 0;
 
 				void setUpdateFunctions() const
 				{

@@ -51,7 +51,7 @@ class ThetaschemeRunner {
 			comm_(comm)
 		{}
 
-		RunInfoTimeMap run(const int scheme_type)
+		Stuff::RunInfoTimeMap run(const int scheme_type)
 		{
 			const double dt_ = Parameters().getParam( "fem.timeprovider.dt", double(0.1) );
 			switch ( scheme_type ) {

@@ -38,12 +38,12 @@ namespace Dune {
 					: BaseType( gridPart, scheme_params, comm )
 				{}
 
-				virtual RunInfo full_timestep()
+				virtual Stuff::RunInfo full_timestep()
 				{
-					RunInfo info;
+					Stuff::RunInfo info;
 					{
 						Profiler::ScopedTiming fullstep_time("full_step");
-						RunInfo info_dummy;
+						Stuff::RunInfo info_dummy;
 						//stokes step A
 						typename BaseType::DiscreteVelocityFunctionType u_n( "u_n", dummyFunctions_.discreteVelocity().space() );
 						u_n.assign( currentFunctions_.discreteVelocity() );
@@ -76,7 +76,7 @@ namespace Dune {
 					{}
 				};
 
-				RunInfo stokesStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/ ) const
+				Stuff::RunInfo stokesStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/ ) const
 				{
 					DiscretizationWeights discretization_weights(BaseType::d_t_, viscosity_);
 
@@ -191,7 +191,7 @@ namespace Dune {
 
 					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 					BaseType::setUpdateFunctions();
-					RunInfo info;
+					Stuff::RunInfo info;
 					stokesPass.getRuninfo( info );
 					if ( Parameters().getParam( "silent_stokes", true ) )
 						Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
