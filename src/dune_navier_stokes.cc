@@ -260,6 +260,7 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	}
 	return RunInfoTimeMap();
 #endif
+	return 0;
 }
 
 bool setSchemeTypeFromString()
