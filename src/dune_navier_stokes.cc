@@ -258,9 +258,8 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	catch (...){
 		std::cerr << "Unknown exception thrown!" << std::endl;
 	}
-	return RunInfoTimeMap();
 #endif
-	return 0;
+	return Stuff::RunInfoTimeMap();
 }
 
 bool setSchemeTypeFromString()
