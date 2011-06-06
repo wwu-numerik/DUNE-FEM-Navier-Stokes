@@ -170,7 +170,7 @@ namespace Dune {
 
 					//error calc
 					if ( Parameters().getParam( "calculate_errors", true ) ) {
-						Profiler::ScopedTiming error_time("error_calc");
+						Stuff::Profiler::ScopedTiming error_time("error_calc");
 
 						errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
@@ -331,7 +331,7 @@ namespace Dune {
 
 				void writeData()
 				{
-					Profiler::ScopedTiming io_time("IO");
+					Stuff::Profiler::ScopedTiming io_time("IO");
 					dataWriter1_.write();
 					dataWriter2_.write();
 //					check_pointer_.write( timeprovider_.time(), timeprovider_.timeStep() );

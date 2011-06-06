@@ -42,7 +42,7 @@ namespace Dune {
 				{
 					Stuff::RunInfo info;
 					{
-						Profiler::ScopedTiming fullstep_time("full_step");
+						Stuff::Profiler::ScopedTiming fullstep_time("full_step");
 						Stuff::RunInfo info_dummy;
 						//stokes step A
 						typename BaseType::DiscreteVelocityFunctionType u_n( "u_n", dummyFunctions_.discreteVelocity().space() );

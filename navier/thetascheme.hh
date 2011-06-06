@@ -42,7 +42,7 @@ namespace Dune {
 
 				virtual Stuff::RunInfo full_timestep()
 				{
-					Profiler::ScopedTiming fullstep_time("full_step");
+					Stuff::Profiler::ScopedTiming fullstep_time("full_step");
 					Stuff::RunInfo info;
 					for ( int i=0; i < Traits::substep_count; ++i )
 					{
@@ -169,7 +169,7 @@ namespace Dune {
 						Logger().Info().Resume( Logging::LogStream::default_suspend_priority + 10 );
 
 						{
-							Profiler::ScopedTiming error_time("error_calc");
+							Stuff::Profiler::ScopedTiming error_time("error_calc");
 							const typename BaseType::L2ErrorType::Errors new_error_velocity
 									= l2Error_.get( nextFunctions_.discreteVelocity(), exactSolution_at_next_time.discreteVelocity() );
 							const typename BaseType::L2ErrorType::Errors new_error_pressure

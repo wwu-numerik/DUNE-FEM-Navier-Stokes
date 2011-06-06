@@ -220,7 +220,7 @@ int main( int argc, char** argv )
 Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					const int refine_level_factor, const int scheme_type )
 {
-	Profiler::ScopedTiming pf_t( "SingleRun" );
+	Stuff::Profiler::ScopedTiming pf_t( "SingleRun" );
 	Logging::LogStream& infoStream = Logger().Info();
 	Logging::LogStream& debugStream = Logger().Dbg();
 
