@@ -163,10 +163,10 @@ namespace Dune {
 						if ( timeprovider_.timeStep() <= 2 && i < 1)
 							oseenPass.printInfo();
 						if ( Parameters().getParam( "silent_stokes", true ) )
-							Logger().Info().Suspend( Logging::LogStream::default_suspend_priority + 10 );
+							Logger().Info().Suspend( Stuff::Logging::LogStream::default_suspend_priority + 10 );
 						currentFunctions_.clear();
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
-						Logger().Info().Resume( Logging::LogStream::default_suspend_priority + 10 );
+						Logger().Info().Resume( Stuff::Logging::LogStream::default_suspend_priority + 10 );
 
 						{
 							Stuff::Profiler::ScopedTiming error_time("error_calc");

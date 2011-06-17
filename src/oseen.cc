@@ -180,8 +180,8 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
-	Logging::LogStream& infoStream = Logger().Info();
-	Logging::LogStream& debugStream = Logger().Dbg();
+	Stuff::Logging::LogStream& infoStream = Logger().Info();
+	Stuff::Logging::LogStream& debugStream = Logger().Dbg();
 	Stuff::RunInfoVector runInfoVector;
 
 
@@ -268,7 +268,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 					functionSpaceWrapper );
 	exactSolution.project();
 //	exactSolution.exactPressure().setShift( pressure_C );
-	Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
+	Stuff::Logging::MatlabLogStream& matlabLogStream = Logger().Matlab();
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
 

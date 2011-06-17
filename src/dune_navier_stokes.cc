@@ -138,7 +138,7 @@ int main( int argc, char** argv )
 			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
-			Stuff::LoopTimer<int,Logging::LogStream> loop_timer( current_step, dt_steps, Logger().Info() );
+			Stuff::LoopTimer<int,Stuff::Logging::LogStream> loop_timer( current_step, dt_steps, Logger().Info() );
 			for ( double viscosity = Parameters().getParam( "viscosity", 0.1, Dune::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
 				  ++loop_timer )
@@ -157,7 +157,7 @@ int main( int argc, char** argv )
 			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
 			profiler().Reset( dt_steps - 1 );
 			int current_step = 0;
-			Stuff::LoopTimer<int,Logging::LogStream,Stuff::QuadraticWeights> loop_timer( current_step, dt_steps, Logger().Info() );
+			Stuff::LoopTimer<int,Stuff::Logging::LogStream,Stuff::QuadraticWeights> loop_timer( current_step, dt_steps, Logger().Info() );
 			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1, Dune::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
 				  ++loop_timer )
@@ -175,7 +175,7 @@ int main( int argc, char** argv )
 			Logger().Info() << "Scheme runs\n";
 			profiler().Reset( 4 );
 			int current_scheme = 2;
-			Stuff::LoopTimer<int,Logging::LogStream> loop_timer( current_scheme, 5, Logger().Info() );
+			Stuff::LoopTimer<int,Stuff::Logging::LogStream> loop_timer( current_scheme, 5, Logger().Info() );
 			for ( ;
 				  current_scheme < 6;
 				  ++loop_timer )
@@ -196,7 +196,7 @@ int main( int argc, char** argv )
 			profiler().Reset( maxref - minref + 1 );
 			Logger().Info() << "Grid refine runs\n";
 			unsigned int ref = minref;
-			Stuff::LoopTimer<unsigned int,Logging::LogStream,Stuff::LinearWeights> loop_timer( ref, maxref - minref + 1, Logger().Info() );
+			Stuff::LoopTimer<unsigned int,Stuff::Logging::LogStream,Stuff::LinearWeights> loop_timer( ref, maxref - minref + 1, Logger().Info() );
 			for ( ;
 				  ref <= maxref;
 				  ++loop_timer )
@@ -221,8 +221,8 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					const int refine_level_factor, const int scheme_type )
 {
 	Stuff::Profiler::ScopedTiming pf_t( "SingleRun" );
-	Logging::LogStream& infoStream = Logger().Info();
-	Logging::LogStream& debugStream = Logger().Dbg();
+	Stuff::Logging::LogStream& infoStream = Logger().Info();
+	Stuff::Logging::LogStream& debugStream = Logger().Dbg();
 
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;

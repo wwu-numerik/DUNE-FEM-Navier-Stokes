@@ -81,7 +81,7 @@ namespace Dune {
 					DiscretizationWeights discretization_weights(BaseType::d_t_, viscosity_);
 
 					if ( Parameters().getParam( "silent_stokes", true ) )
-						Logger().Suspend( Logging::LogStream::default_suspend_priority + 1 );
+						Logger().Suspend( Stuff::Logging::LogStream::default_suspend_priority + 1 );
 
 					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
 					const typename Traits::AnalyticalForceType force ( timeprovider_,
@@ -194,7 +194,7 @@ namespace Dune {
 					Stuff::RunInfo info;
 					stokesPass.getRuninfo( info );
 					if ( Parameters().getParam( "silent_stokes", true ) )
-						Logger().Resume( Logging::LogStream::default_suspend_priority + 1 );
+						Logger().Resume( Stuff::Logging::LogStream::default_suspend_priority + 1 );
 					return info;
 				}
 
