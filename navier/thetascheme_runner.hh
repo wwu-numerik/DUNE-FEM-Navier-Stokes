@@ -53,7 +53,7 @@ class ThetaschemeRunner {
 
 		Stuff::RunInfoTimeMap run(const int scheme_type)
 		{
-			const double dt_ = Parameters().getParam( "fem.timeprovider.dt", double(0.1) );
+			const double dt_ = Parameters().getParam( "fem.timeprovider.dt", double(0.1), Dune::ValidateGreater<double>( 0.0 ) );
 			switch ( scheme_type ) {
 				case 1: return OneStepThetaSchemeType(grid_part_,
 													  OneStepThetaSchemeDescriptionType::forward_euler( dt_ ) )
