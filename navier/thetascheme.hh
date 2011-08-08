@@ -143,8 +143,14 @@ namespace Dune {
 						else if ( !do_convection_disc )
 							beta.clear();
 
+						Dune::StabilizationCoefficients stab_coeff  =
+								Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
+						stab_coeff.FactorFromParams( "C11" );
+						stab_coeff.FactorFromParams( "C12" );
+						stab_coeff.FactorFromParams( "D11" );
+						stab_coeff.FactorFromParams( "D12" );
 						typename Traits::OseenModelType
-								oseenModel( Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients(),
+								oseenModel( stab_coeff,
 											do_cheat ? *ptr_oseenForce : *ptr_oseenForceVanilla,
 											oseenDirichletData,
 											theta_values[0] * dt_n / reynolds_, /*viscosity*/
@@ -165,6 +171,10 @@ namespace Dune {
 						if ( Parameters().getParam( "silent_stokes", true ) )
 							Logger().Info().Suspend( Stuff::Logging::LogStream::default_suspend_priority + 10 );
 						currentFunctions_.clear();
+						if ( Parameters().getParam( "clear_u" , true ) )
+							nextFunctions_.discreteVelocity().clear();
+						if ( Parameters().getParam( "clear_p" , true ) )
+							nextFunctions_.discretePressure().clear();
 						oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 						Logger().Info().Resume( Stuff::Logging::LogStream::default_suspend_priority + 10 );
 

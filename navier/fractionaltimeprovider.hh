@@ -65,8 +65,9 @@ namespace Dune {
 						: BaseType( comm ),
 						startTime_ ( Parameter :: getValue( "fem.timeprovider.starttime", //this is somewhat duplicated in empty basetype ctor
 															   (double)0.0 ) ),
-						endTime_ ( Parameter :: getValue( "fem.timeprovider.endtime",
-															   (double)1.0 ) ),
+						endTime_ ( Parameter :: getValidValue( "fem.timeprovider.endtime",
+															   (double)1.0 ,
+																ValidateGreater<double>(startTime_) ) ),
 						theta_scheme_parameter_( theta_scheme_parameter ),
 						current_substep_( -1 ),
 						total_stepcount_estimate_( -1 )
