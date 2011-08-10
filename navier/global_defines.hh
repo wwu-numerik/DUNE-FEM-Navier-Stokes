@@ -5,6 +5,9 @@
 	#include "cmake_config.h"
 #endif
 
+//gcc header cyclic dependency error workaround
+namespace std { class type_info; }
+
 #define TESTCASE_NAME "TESTCASE"
 
 #if ! defined(TESTCASE)

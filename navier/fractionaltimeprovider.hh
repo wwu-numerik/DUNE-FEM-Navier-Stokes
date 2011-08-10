@@ -76,7 +76,7 @@ namespace Dune {
 														 (double)0.1,
 														 //assure  dt is in (0,endTime_ - startTime_]
 														 ValidateInterval<double,false,true>( 0.0, endTime_ - startTime_) );
-						init( dt_ );
+						BaseType::init( dt_ );
 						total_stepcount_estimate_ = long( std::ceil( ( endTime_ - startTime_ ) / dt_ ) );
 						step_timer_.start();
 					}

@@ -39,7 +39,7 @@ namespace Dune {
 				}
 
 				void project() {
-					projectInto( velocity_, pressure_ );
+					BaseType::projectInto( velocity_, pressure_ );
 				}
 
 				const typename TraitsType::ExactVelocityType& exactVelocity() const
