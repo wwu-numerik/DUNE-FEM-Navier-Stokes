@@ -84,6 +84,7 @@ SET ( METIS_DIR
 	"/share/dune/Modules/modules_x86_64/ParMetis-3.1.1" CACHE STRING
 	"metis toplevel directory" )
 
+SET_CONFIGHEADER_VARS()
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h )
 #needs to come first to include correct config.h
 INCLUDE_DIR( ${dune-navier-stokes_BINARY_DIR} )
@@ -96,10 +97,12 @@ IF( ${GRIDTYPE} STREQUAL "UGGRID" )
 	SET( UGLIBS "ugS3" "ugS2" "devS")
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
 
-ADD_CXX_FLAGS( ${CUSTOM_FLAGS} -DENABLE_ALUGRID )
-INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include )
-INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/serial  )
-INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/duneinterface  )
+IF( ${ALUGRID_FOUND} )
+	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include )
+	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/serial  )
+	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/duneinterface  )
+	SET( ALUGRID_LIBS "alugrid" )
+ENDIF( ${ALUGRID_FOUND} )	
 
 IF ( ENABLE_PARALELL )
 	LINK_DIRECTORIES( ${METIS_DIR} )
@@ -122,7 +125,7 @@ FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 
-set( COMMON_LIBS "fem" "grid" "common" ${BLAS_LIB} "alugrid" ${UGLIBS} ${ParaLIBS} ${CCGNU_LIBRARIES} "boost_date_time" "boost_filesystem")
+set( COMMON_LIBS "fem" "grid" "common" ${BLAS_LIB} ${ALUGRID_LIBS} ${UGLIBS} ${ParaLIBS} ${CCGNU_LIBRARIES} "boost_date_time" "boost_filesystem")
 set( COMMON_HEADER ${header} ${stokes} ${stuff} ${navier} ${DUNE_HEADERS} )
 set_source_files_properties( ${COMMON_HEADER} PROPERTIES HEADER_FILE_ONLY 1 )
 
@@ -140,3 +143,4 @@ TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
 
 HEADERCHECK( ${header} ${oseen} ${navier} )
 ADD_DEFINITIONS( ${MY_CXX_FLAGS} )
+ADD_CPPCHECK( ${CMAKE_CURRENT_SOURCE_DIR}/src/dune_navier_stokes.cc ${COMMON_HEADER} )
