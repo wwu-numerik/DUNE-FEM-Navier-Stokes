@@ -169,7 +169,7 @@ namespace Dune {
 					const bool last_substep = ( step == ( Traits::ThetaSchemeDescriptionType::numberOfSteps_ -1) );
 
 					//error calc
-					if ( Parameters().getParam( "calculate_errors", true ) ) {
+					if ( NAVIER_DATA_NAMESPACE::hasExactSolution && Parameters().getParam( "calculate_errors", true ) ) {
 						Stuff::Profiler::ScopedTiming error_time("error_calc");
 
 						errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );

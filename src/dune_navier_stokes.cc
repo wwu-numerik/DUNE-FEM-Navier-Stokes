@@ -210,8 +210,11 @@ int main( int argc, char** argv )
 	}
 	profiler().OutputMap( mpicomm, rf );
 
-	Stuff::TimeSeriesOutput out( rf );
-	out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
+	if ( NAVIER_DATA_NAMESPACE::hasExactSolution && Parameters().getParam( "calculate_errors", true ) )
+	{
+	    Stuff::TimeSeriesOutput out( rf );
+	    out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
+	}
 
 	Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
 	return err;
@@ -245,7 +248,7 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 #ifdef NDEBUG
 	}
 	catch (Dune::Exception &e){
-		std::cerr << "Dune reported error: " << e << std::endl;
+		std::cerr << "Dune reported error: " << e.what() << std::endl;
 	}
 	catch ( std::bad_alloc& b ) {
 		std::cerr << "Memory allocation failed: " << b.what() ;
