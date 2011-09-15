@@ -8,7 +8,7 @@
 namespace NavierProblems {
 namespace TwoDee {
 
-static const std::string identifier = "Testcase3D";
+static const std::string identifier = "Testcase2D";
 static const bool hasExactSolution	= true;
 
 template < class FunctionSpaceImp, class TimeProviderImp >
