@@ -88,10 +88,6 @@ static const bool hasExactSolution	= false;
 			{
 			    normal *= 0.0;
 			}
-			else if ( arg[2] >= z_max )
-			{
-			    normal *= -1;
-			}
 			ret = normal;
 			ret *= gd_factor;
 		    }
