@@ -157,7 +157,7 @@ int main( int argc, char** argv )
 
 #ifdef NDEBUG
   catch (Dune::Exception &e){
-	std::cerr << "Dune reported error: " << e << std::endl;
+	std::cerr << "Dune reported error: " << e.what() << std::endl;
   }
   catch ( std::bad_alloc& b ) {
 	  std::cerr << "Memory allocation failed: " << b.what() ;
@@ -313,6 +313,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 							exactSolution.discreteVelocity(),
 							true );
 	nextFunctions.clear();
+	currentFunctions.clear();
 	oseenPass.printInfo();
 	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, &convection );
 
@@ -385,6 +386,8 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 					   gridPart.grid(),
 					   out );
 	dt.write();
+	errorFunctions.discreteVelocity().write_ascii( "test.ascii" );
+	errorFunctions.discreteVelocity().write_xdr( "test.xdr" );
 
 	return runInfoVector;
 }
