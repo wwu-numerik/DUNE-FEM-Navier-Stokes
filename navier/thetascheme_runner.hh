@@ -26,6 +26,10 @@ class ThetaschemeRunner {
 			OneStepThetaSchemeType;
 		typedef typename OneStepThetaSchemeTraitsType::ThetaSchemeDescriptionType
 			OneStepThetaSchemeDescriptionType;
+		typedef Dune::NavierStokes::DataOnlyScheme<OneStepThetaSchemeTraitsType>
+			DataOnlySchemeType;
+		typedef typename OneStepThetaSchemeTraitsType::ThetaSchemeDescriptionType
+			DataOnlySchemeDescriptionType;
 		typedef Dune::NavierStokes::ThetaSchemeTraits<
 						CollectiveCommunicationType,
 						GridPartType,
@@ -80,6 +84,9 @@ class ThetaschemeRunner {
 					else
 						return ThreeStepThetaSchemeType(grid_part_,
 												  ThreeStepThetaSchemeDescriptionType::fs1( dt_ ) )
+								.run();
+				case 0: return DataOnlySchemeType(grid_part_,
+								  DataOnlySchemeDescriptionType::crank_nicholson( dt_ ) )
 								.run();
 			}
 		}

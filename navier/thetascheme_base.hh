@@ -401,6 +401,26 @@ namespace Dune {
 
 
 		};
+		template < class Traits >
+		class DataOnlyScheme : public ThetaSchemeBase< Traits > {
+			protected:
+				typedef ThetaSchemeBase< Traits >
+					BaseType;
+				using BaseType::timeprovider_;
+			public:
+				DataOnlyScheme( typename Traits::GridPartType gridPart,
+							 const typename Traits::ThetaSchemeDescriptionType& scheme_params,
+							 typename BaseType::CommunicatorType comm			= Dune::MPIManager::helper().getCommunicator()
+							)
+					: BaseType( gridPart, scheme_params, comm )
+				{}
+
+				virtual Stuff::RunInfo full_timestep()
+				{
+				    timeprovider_.printRemainderEstimate( Logger().Info() );
+				    return Stuff::RunInfo();
+				}
+		};
 	}//end namespace NavierStokes
 }//end namespace Dune
 
