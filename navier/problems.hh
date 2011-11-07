@@ -15,6 +15,7 @@
 #include "problems/testcase3d.hh"
 #include "problems/cockburn.hh"
 #include "problems/real_bvp.hh"
+#include "problems/2dtube.hh"
 
 namespace NavierProblems {
 namespace {
