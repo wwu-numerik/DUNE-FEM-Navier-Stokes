@@ -3,7 +3,9 @@
  *
  *  \brief  brief
  **/
-
+#ifdef HAVE_CMAKE_CONFIG
+	#include "cmake_config.h"
+#endif
 #include <dune/navier/global_defines.hh>
 
 #include <cstdio>
@@ -26,13 +28,14 @@
 #include <dune/common/exceptions.hh> // We use exceptions
 #include <dune/grid/common/capabilities.hh>
 
-//!ATTENTION: undef's GRIDDIM
-#include <dune/grid/io/file/dgfparser/dgfgridtype.hh> // for the grid
+#include <dune/grid/utility/gridtype.hh>
+typedef Dune::GridSelector::GridType
+    GridType;
 
 #include <dune/fem/solver/oemsolver/oemsolver.hh>
 #include <dune/fem/space/dgspace.hh>
 #include <dune/fem/space/combinedspace.hh>
-#include <dune/fem/space/dgspace/dgadaptiveleafgridpart.hh>
+#include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 #include <dune/fem/pass/pass.hh>
 #include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
 #include <dune/fem/misc/gridwidth.hh>
