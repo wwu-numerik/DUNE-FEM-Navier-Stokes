@@ -249,7 +249,8 @@ namespace Dune {
 						info.d11			= Pair( stabil_coeff.Power( "D11" ), stabil_coeff.Factor( "D11" ) );
 						info.d12			= Pair( stabil_coeff.Power( "D12" ), stabil_coeff.Factor( "D12" ) );
 						info.bfg			= Parameters().getParam( "do-bfg", true );
-						info.gridname		= gridPart_.grid().name();
+						//TODO gridname
+//						info.gridname		= gridPart_.grid().name();
 						info.refine_level	= Parameters().getParam( "minref", 0, Dune::ValidateNotLess<int>(0) );
 
 						info.polorder_pressure	= Traits::OseenModelTraits::pressureSpaceOrder;

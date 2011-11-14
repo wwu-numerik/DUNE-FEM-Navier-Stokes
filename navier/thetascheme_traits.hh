@@ -1,7 +1,6 @@
 #ifndef THETASCHEME_TRAITS_HH
 #define THETASCHEME_TRAITS_HH
 
-#include <dune/common/fixedarray.hh>
 #include <dune/stokes/discretestokesmodelinterface.hh>
 #include <dune/stokes/stokespass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
