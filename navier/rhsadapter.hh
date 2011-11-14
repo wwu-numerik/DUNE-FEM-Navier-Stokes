@@ -270,13 +270,13 @@ namespace Dune {
 
 			template < class TimeProviderType, class AnalyticalDirichletType >
 			class DirichletAdapterFunction :
-					public Function< typename AnalyticalDirichletType::FunctionSpaceType,
+					public Fem::Function< typename AnalyticalDirichletType::FunctionSpaceType,
 									DirichletAdapterFunction<TimeProviderType, AnalyticalDirichletType > >
 			{
 				protected:
 					typedef DirichletAdapterFunction<TimeProviderType, AnalyticalDirichletType >
 							ThisType;
-					typedef Function< typename AnalyticalDirichletType::FunctionSpaceType, ThisType >
+					typedef Fem::Function< typename AnalyticalDirichletType::FunctionSpaceType, ThisType >
 							BaseType;
 					const TimeProviderType& timeProvider_;
 					const AnalyticalDirichletType gd_;

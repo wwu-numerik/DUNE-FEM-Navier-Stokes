@@ -11,12 +11,12 @@ namespace Dune {
 
 		namespace TestCase3D {
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 				  public:
 					  typedef Force< FunctionSpaceImp >
 						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
+					  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 						  BaseType;
 					  typedef typename BaseType::DomainType
 						  DomainType;
@@ -68,12 +68,12 @@ namespace Dune {
 
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
@@ -364,12 +364,12 @@ namespace Dune {
 		namespace TestCase2D {
 			static const double pi_factor = M_PI;//controls number of vortices
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 				  public:
 					  typedef Force< FunctionSpaceImp >
 						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
+					  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 						  BaseType;
 					  typedef typename BaseType::DomainType
 						  DomainType;
@@ -443,12 +443,12 @@ namespace Dune {
 			}
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
@@ -718,12 +718,12 @@ namespace Dune {
 		namespace TestCase2DAnimation {
 			static const double pi_factor = M_PI;//controls number of vortices
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 					  public:
 							  typedef Force< FunctionSpaceImp >
 									  ThisType;
-							  typedef Function < FunctionSpaceImp ,ThisType >
+							  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 									  BaseType;
 							  typedef typename BaseType::DomainType
 									  DomainType;
@@ -751,12 +751,12 @@ namespace Dune {
 			};
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 							ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 							BaseType;
 					typedef typename BaseType::DomainType
 							DomainType;
@@ -818,12 +818,12 @@ namespace Dune {
 
 		namespace TrivialTestCase {
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 				  public:
 					  typedef Force< FunctionSpaceImp >
 						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
+					  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 						  BaseType;
 					  typedef typename BaseType::DomainType
 						  DomainType;
@@ -868,12 +868,12 @@ namespace Dune {
 			};
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
@@ -1055,12 +1055,12 @@ namespace Dune {
 
 		namespace GreenTaylor {
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 				  public:
 					  typedef Force< FunctionSpaceImp >
 						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
+					  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 						  BaseType;
 					  typedef typename BaseType::DomainType
 						  DomainType;
@@ -1104,12 +1104,12 @@ namespace Dune {
 			}
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
@@ -1235,12 +1235,12 @@ namespace Dune {
 			NULLFUNCTION_TP(Pressure)
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
@@ -1286,12 +1286,12 @@ namespace Dune {
 
 		namespace TimeDisc {
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 				  public:
 					  typedef Force< FunctionSpaceImp >
 						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
+					  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 						  BaseType;
 					  typedef typename BaseType::DomainType
 						  DomainType;
@@ -1351,12 +1351,12 @@ namespace Dune {
 			};
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
@@ -1579,12 +1579,12 @@ namespace Dune {
 
 		namespace TimeDiscConst {
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 				  public:
 					  typedef Force< FunctionSpaceImp >
 						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
+					  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 						  BaseType;
 					  typedef typename BaseType::DomainType
 						  DomainType;
@@ -1645,12 +1645,12 @@ namespace Dune {
 			};
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
@@ -1889,12 +1889,12 @@ namespace Dune {
 			}
 
 			template < class FunctionSpaceImp >
-			class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+			class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 			{
 				  public:
 					  typedef Force< FunctionSpaceImp >
 						  ThisType;
-					  typedef Function < FunctionSpaceImp ,ThisType >
+					  typedef Fem::Function < FunctionSpaceImp ,ThisType >
 						  BaseType;
 					  typedef typename BaseType::DomainType
 						  DomainType;
@@ -1938,12 +1938,12 @@ namespace Dune {
 			}
 
 			template < class FunctionSpaceImp >
-			class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+			class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 			{
 				public:
 					typedef DirichletData< FunctionSpaceImp >
 						ThisType;
-					typedef Function< FunctionSpaceImp, ThisType >
+					typedef Fem::Function< FunctionSpaceImp, ThisType >
 						BaseType;
 					typedef typename BaseType::DomainType
 						DomainType;
