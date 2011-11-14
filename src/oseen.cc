@@ -361,7 +361,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 					<< "current time: " << timeprovider_.time()
 					<< std::endl;
 
-	typedef Dune::Tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
+	typedef Dune::tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
 							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,

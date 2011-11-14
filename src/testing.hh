@@ -1830,7 +1830,7 @@ namespace AdapterFunctionsVisco {
 
 template < class T1, class T2, class T3 >
 struct TupleSerializer {
-	typedef Dune::Tuple<	const typename T1::DiscreteVelocityFunctionType*,
+	typedef Dune::tuple<	const typename T1::DiscreteVelocityFunctionType*,
 							const typename T1::DiscretePressureFunctionType*,
 							const typename T2::DiscreteVelocityFunctionType*,
 							const typename T2::DiscretePressureFunctionType*,
