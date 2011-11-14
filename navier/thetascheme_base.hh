@@ -134,11 +134,8 @@ namespace Dune {
 								 data_tuple_1
 								),
 					check_pointer_(	gridPart_.grid(),
-									"myGridName",
 									data_tuple_1,
-									timeprovider_.startTime(),
-									timeprovider_.endTime(),
-									static_cast<const LoadBalancerInterface*>( 0 )
+									timeprovider_
 								  ),
 					dataWriter2_( timeprovider_,
 								 gridPart_.grid(),
