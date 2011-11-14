@@ -6,21 +6,20 @@
 /* the git tag / commit we build from */
 #define COMMIT "@COMMIT@"
 
-
-#include "config.h"
-#undef HAVE_ALUGRID
-#define HAVE_ALUGRID @ALUGRID_FOUND@
 #define @GRIDTYPE@
 #define GRIDDIM @GRIDDIM@
-#define DIRICHLET_DATA @DIRICHLET_DATA@
+#define HAVE_ALUGRID 1
+#cmakedefine @ENABLE_ALUGRID@ 
+
+#include "config.h"
+
+#define PROBLEM_NAMESPACE @PROBLEM_NAMESPACE@
 #define POLORDER @POLORDER@
 #define PRESSURE_POLORDER @PRESSUREPOLORDER@
 #define VELOCITY_POLORDER @VELOCITYPOLORDER@
 #define INNER_CG_SOLVERTYPE @INNER_CG_SOLVERTYPE@
 #define OUTER_CG_SOLVERTYPE @OUTER_CG_SOLVERTYPE@
-#if HAVE_ALUGRID
-	#define ENABLE_ALUGRID HAVE_ALUGRID
-#endif
+
 #define NAVIER_DATA_NAMESPACE @NAVIER_DATA_NAMESPACE@
 #define OSEEN_DATA_NAMESPACE @OSEEN_DATA_NAMESPACE@
 
@@ -28,4 +27,9 @@
 	#define DNDEBUG
 #endif
 
-#endif	/* DUNE_NAVIER_STOKES_CONFIG_H */
+//compiler quirks workarounds
+#ifdef __clang__
+	class type_info;
+#endif
+
+#endif	/* DUNE_STOKES_CONFIG_H */
