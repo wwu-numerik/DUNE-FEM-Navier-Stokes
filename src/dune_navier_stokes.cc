@@ -99,7 +99,7 @@ int main( int argc, char** argv )
 	Stuff::Signals::installSignalHandler();
 	Dune::MPIManager::initialize(argc, argv);
 	//assert( Dune::Capabilities::isParallel< GridType >::v );
-	CollectiveCommunication mpicomm( Dune::MPIManager::helper().getCommunicator() );
+	CollectiveCommunication mpicomm;//( Dune::MPIManager::helper().getCommunicator() );
 
 	/* ********************************************************************** *
 	 * initialize all the stuff we need                                       *

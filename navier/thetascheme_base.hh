@@ -410,7 +410,7 @@ namespace Dune {
 			public:
 				DataOnlyScheme( typename Traits::GridPartType gridPart,
 							 const typename Traits::ThetaSchemeDescriptionType& scheme_params,
-							 typename BaseType::CommunicatorType comm			= Dune::MPIManager::helper().getCommunicator()
+							 typename BaseType::CommunicatorType comm			= typename BaseType::CommunicatorType()
 							)
 					: BaseType( gridPart, scheme_params, comm )
 				{}
