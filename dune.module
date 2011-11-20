@@ -4,7 +4,7 @@
 
 #Name of the module
 Module:dune-navier-stokes
-Version:0.1
+Version:0.2
 Maintainer:rene.milk@uni-muenster.de
 #depending on 
-Depends:dune-common dune-fem dune-grid dune-stokes dune-stuff
+Depends: dune-common (>= 2.1) dune-grid (>= 2.1) dune-istl (>= 2.1) dune-fem (>= 1.2) dune-stuff (>= 0.2) dune-stokes (>= 0.2)
