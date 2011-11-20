@@ -15,12 +15,12 @@ namespace Testing {
 namespace AdapterFunctions {
 
 	template < class FunctionSpaceImp >
-	class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+    class Force : public Dune::Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 	{
 		  public:
 			  typedef Force< FunctionSpaceImp >
 				  ThisType;
-			  typedef Dune::Function < FunctionSpaceImp ,ThisType >
+              typedef Dune::Fem::Function < FunctionSpaceImp ,ThisType >
 				  BaseType;
 			  typedef typename BaseType::DomainType
 				  DomainType;
@@ -72,12 +72,12 @@ namespace AdapterFunctions {
 	*  \todo   extensive docu with latex
 	**/
 	template < class FunctionSpaceImp >
-	class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+    class DirichletData : public Dune::Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 	{
 		public:
 			typedef DirichletData< FunctionSpaceImp >
 				ThisType;
-			typedef Dune::Function< FunctionSpaceImp, ThisType >
+            typedef Dune::Fem::Function< FunctionSpaceImp, ThisType >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -392,12 +392,12 @@ namespace AdapterFunctions {
 namespace AdapterFunctionsScalar {
 
 	template < class FunctionSpaceImp >
-	class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+    class Force : public Dune::Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 	{
 		  public:
 			  typedef Force< FunctionSpaceImp >
 				  ThisType;
-			  typedef Dune::Function < FunctionSpaceImp ,ThisType >
+              typedef Dune::Fem::Function < FunctionSpaceImp ,ThisType >
 				  BaseType;
 			  typedef typename BaseType::DomainType
 				  DomainType;
@@ -473,12 +473,12 @@ namespace AdapterFunctionsScalar {
 	*  \todo   extensive docu with latex
 	**/
 	template < class FunctionSpaceImp >
-	class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+    class DirichletData : public Dune::Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 	{
 		public:
 			typedef DirichletData< FunctionSpaceImp >
 				ThisType;
-			typedef Dune::Function< FunctionSpaceImp, ThisType >
+            typedef Dune::Fem::Function< FunctionSpaceImp, ThisType >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -822,12 +822,12 @@ namespace AdapterFunctionsVectorial {
 	};
 
 	template < class FunctionSpaceImp >
-	class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+    class Force : public Dune::Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 	{
 		  public:
 			  typedef Force< FunctionSpaceImp >
 				  ThisType;
-			  typedef Dune::Function < FunctionSpaceImp ,ThisType >
+              typedef Dune::Fem::Function < FunctionSpaceImp ,ThisType >
 				  BaseType;
 			  typedef typename BaseType::DomainType
 				  DomainType;
@@ -912,12 +912,12 @@ namespace AdapterFunctionsVectorial {
 	*  \todo   extensive docu with latex
 	**/
 	template < class FunctionSpaceImp >
-	class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+    class DirichletData : public Dune::Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 	{
 		public:
 			typedef DirichletData< FunctionSpaceImp >
 				ThisType;
-			typedef Dune::Function< FunctionSpaceImp, ThisType >
+            typedef Dune::Fem::Function< FunctionSpaceImp, ThisType >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1401,12 +1401,12 @@ namespace AdapterFunctionsVisco {
 	};
 
 	template < class FunctionSpaceImp >
-	class Force : public Dune::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+    class Force : public Dune::Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 	{
 		  public:
 			  typedef Force< FunctionSpaceImp >
 				  ThisType;
-			  typedef Dune::Function < FunctionSpaceImp ,ThisType >
+              typedef Dune::Fem::Function < FunctionSpaceImp ,ThisType >
 				  BaseType;
 			  typedef typename BaseType::DomainType
 				  DomainType;
@@ -1498,12 +1498,12 @@ namespace AdapterFunctionsVisco {
 	*  \todo   extensive docu with latex
 	**/
 	template < class FunctionSpaceImp >
-	class DirichletData : public Dune::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+    class DirichletData : public Dune::Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 	{
 		public:
 			typedef DirichletData< FunctionSpaceImp >
 				ThisType;
-			typedef Dune::Function< FunctionSpaceImp, ThisType >
+            typedef Dune::Fem::Function< FunctionSpaceImp, ThisType >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;

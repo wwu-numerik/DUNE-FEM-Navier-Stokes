@@ -119,7 +119,10 @@ public:
 
 	~DirichletData()
 	{}
-
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+    {
+        evaluateTimeVelocity( time, arg, ret );
+    }
 	template < class IntersectionType >
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection*/ ) const
 	{
