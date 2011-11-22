@@ -48,3 +48,4 @@ dependencies.m4
 config.lt
 libtool
 results/
+.*swp
