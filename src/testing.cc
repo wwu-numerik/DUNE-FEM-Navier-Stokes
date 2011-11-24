@@ -77,12 +77,12 @@ int main( int argc, char** argv )
 #endif
 }
 
-Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
+Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
 	profiler().StartTiming( "SingleRun" );
-	Logging::LogStream& infoStream = Logger().Info();
-	Logging::LogStream& debugStream = Logger().Dbg();
+	Stuff::Logging::LogStream& infoStream = Logger().Info();
+	Stuff::Logging::LogStream& debugStream = Logger().Dbg();
 	Stuff::RunInfoVector runInfoVector;
 
 
@@ -146,8 +146,8 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 			PRESSURE_POLORDER >
 		OseenTraits;
 
-	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
-	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
+//	CollectiveCommunication comm;// = Dune::MPIManager::helper().getCommunicator();
+	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), mpicomm );
 	OseenTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
 	typedef OseenTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
@@ -194,25 +194,3 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& /*mpicomm*/,
 
 	return runInfoVector;
 }
-
-void eocCheck( const Stuff::RunInfoVector& runInfos )
-{
-	bool ups = false;
-	Stuff::RunInfoVector::const_iterator it = runInfos.begin();
-	Stuff::RunInfo last = *it;
-	++it;
-	for ( ; it != runInfos.end(); ++it ) {
-		ups = ( last.L2Errors[0] < it->L2Errors[0]
-			|| last.L2Errors[1] < it->L2Errors[1] );
-		last = *it;
-	}
-	if ( ups ) {
-		Logger().Err() 	<< 	"----------------------------------------------------------\n"
-						<<	"-                                                        -\n"
-						<<	"-                  negative EOC                          -\n"
-						<<	"-                                                        -\n"
-						<< 	"----------------------------------------------------------\n"
-						<< std::endl;
-	}
-}
-
