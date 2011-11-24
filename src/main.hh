@@ -9,6 +9,7 @@
 #ifdef HAVE_CMAKE_CONFIG
     #include "cmake_config.h"
 #endif
+#include <dune/grid/utility/gridtype.hh>
 #include <dune/navier/global_defines.hh>
 
 #include <cstdio>
@@ -29,7 +30,7 @@
 #include <dune/common/exceptions.hh> // We use exceptions
 #include <dune/grid/common/capabilities.hh>
 
-#include <dune/grid/utility/gridtype.hh>
+
 typedef Dune::GridSelector::GridType
     GridType;
 
@@ -93,7 +94,7 @@ void eocCheck( const Stuff::RunInfoVector& runInfos )
 CollectiveCommunication init( int argc, char** argv )
 {
     Dune::MPIManager::initialize(argc, argv);
-    assert( Dune::Capabilities::isParallel< GridType >::v );
+//    assert( Dune::Capabilities::isParallel< GridType >::v );
 
 
     /* ********************************************************************** *

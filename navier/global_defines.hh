@@ -1,10 +1,6 @@
 #ifndef DUNE_NAVIERSTOKES_GLOBAL_DEFINES_HH
 #define DUNE_NAVIERSTOKES_GLOBAL_DEFINES_HH
 
-#ifdef HAVE_CMAKE_CONFIG
-	#include "cmake_config.h"
-#endif
-
 //gcc header cyclic dependency error workaround
 namespace std { class type_info; }
 
@@ -14,10 +10,10 @@ namespace std { class type_info; }
 	#define TESTCASE TestCase3D
 #endif
 
-#if ( ( defined(SGRID) || defined(ALUGRID_SIMPLEX) ||  defined(ALUGRID_CUBE) ) && ( GRIDDIM == 3 ) ) || defined(UGGRID) || defined(YASPGRID)
-	//this is no mistake, ALU is indeed only incompatible in 3d
-	#define OLD_DUNE_GRID_VERSION
-#endif
+//#if ( ( defined(SGRID) || defined(ALUGRID_SIMPLEX) ||  defined(ALUGRID_CUBE) ) && ( GRIDDIM == 3 ) ) || defined(UGGRID) || defined(YASPGRID)
+//	//this is no mistake, ALU is indeed only incompatible in 3d
+//	#define OLD_DUNE_GRID_VERSION
+//#endif
 
 #define MODEL_PROVIDES_LOCALFUNCTION 0
 

@@ -69,7 +69,7 @@ SET( DIRICHLET_DATA
 	"DIRICHLET_DATA implementation for default dirichlet traits" )
 
 SET( ALUGRID_BASE_PATH
-	"/opt/dune/modules/alugrid/alugrid-1.22" CACHE STRING
+	"/opt/dune/modules/alugrid/alugrid-1.23" CACHE STRING
 	"ALUGRID_BASE_PATH" )
 
 SET( UGGRID_BASE_PATH
@@ -103,6 +103,24 @@ IF( ${ALUGRID_FOUND} )
 	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/duneinterface  )
 	SET( ALUGRID_LIBS "alugrid" )
 ENDIF( ${ALUGRID_FOUND} )	
+
+SET( ENABLE_ALUGRID OFF )
+IF( ${GRIDTYPE} MATCHES "ALUGRID" )
+#	IF( ${ALUGRID_FOUND} )
+#		MESSAGE( FATAL ) 
+#	ENDIF( ${ALUGRID_FOUND} )	
+	INCLUDE_SYS_DIR( 	${GRAPE_PATH} 
+						${ALUGRID_BASE_PATH}/include 
+						${ALUGRID_BASE_PATH}/include/serial 
+						${ALUGRID_BASE_PATH}/include/duneinterface )
+	LINK_DIRECTORIES( "${ALUGRID_BASE_PATH}/lib"  )
+	SET( ALULIBS "alugrid" )
+	SET( ENABLE_ALUGRID ON )
+	IF ( ENABLE_PARALELL )
+		INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/parallel )
+	ENDIF ( ENABLE_PARALELL )
+	ADD_CXX_FLAGS( "-DENABLE_ALUGRID" )
+ENDIF( ${GRIDTYPE} MATCHES "ALUGRID" )
 
 IF ( ENABLE_PARALELL )
 	LINK_DIRECTORIES( ${METIS_DIR} )

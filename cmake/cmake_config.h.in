@@ -9,10 +9,6 @@
 #define @GRIDTYPE@
 #define GRIDDIM @GRIDDIM@
 
-#ifdef HAVE_ALUGRID
-#   undef HAVE_ALUGRID
-#endif
-#define HAVE_ALUGRID 1
 #cmakedefine @ENABLE_ALUGRID@ 
 
 #include "config.h"
