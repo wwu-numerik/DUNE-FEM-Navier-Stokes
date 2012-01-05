@@ -19,7 +19,7 @@ struct SetupCheck {
     std::stringstream err;
     template < class Scheme, class GridPart , class ...Rest >
     bool check( Scheme* /*scheme*/, const GridPart& gridPart, const Rest&... rest ) {
-        Stuff::GridDimensions< typename GridPart::GridType > grid_dim( gridPart );
+        Stuff::GridDimensions< typename GridPart::GridType > grid_dim( gridPart.grid() );
         bool ok = grid_dim.coord_limits[0].min() == -1
                 && grid_dim.coord_limits[1].min() == -1
                 && grid_dim.coord_limits[0].max() == 1
@@ -154,12 +154,12 @@ public:
 	{}
 
 	template < class IntersectionType >
-	void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 	{
 		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( 0.0, time, arg, ret);
 	}
-    void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
     {
         VelocityEvaluate( 0.0, time, arg, ret);
     }
@@ -199,21 +199,14 @@ public:
 	{}
 
 	template < class IntersectionType >
-	void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 	{
 		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( lambda_, time, arg, ret);
 	}
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, time, arg, ret);}
 
-	/**
-   * \brief  evaluates the dirichlet data
-   * \param  arg
-   *         point to evaluate at
-   * \param  ret
-   *         value of dirichlet boundary data at given point
-   **/
-	inline void evaluate( const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, 0, arg, ret);}
+//    inline void evaluateTime( const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, 0, arg, ret);}
 
 private:
 	static const int dim_ = FunctionSpaceImp::dimDomain ;
