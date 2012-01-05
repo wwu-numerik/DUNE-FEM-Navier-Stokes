@@ -19,7 +19,8 @@ struct SetupCheck {
     std::stringstream err;
     template < class Scheme, class GridPart , class ...Rest >
     bool check( Scheme* /*scheme*/, const GridPart& gridPart, const Rest&... rest ) {
-        Stuff::GridDimensions< typename GridPart::GridType > grid_dim( gridPart.grid() );
+        typedef typename GridPart::GridType GG;
+        Stuff::GridDimensions< GG > grid_dim( gridPart.grid() );
         bool ok = grid_dim.coord_limits[0].min() == -1
                 && grid_dim.coord_limits[1].min() == -1
                 && grid_dim.coord_limits[0].max() == 1
@@ -37,6 +38,25 @@ struct SetupCheck {
         return err.str();
     }
 };
+
+NULLFUNCTION_TP(VelocityLaplace)
+NULLFUNCTION_TP(PressureGradient)
+
+template < class DomainType, class RangeType >
+void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& arg, RangeType& ret)
+{
+    const double x1 = arg[0];
+    const double x2 = arg[1];
+    const double exp_of_x1 = std::exp( x1 );
+    const double sin_of_x2 = std::sin( x2 );
+    const double cos_of_x2 = std::cos( x2 );
+    //return
+    ret[0] = x2 * cos_of_x2;
+    ret[0] += sin_of_x2;
+    ret[0] *= -1.0 * exp_of_x1;
+    ret[1] = exp_of_x1 * x2 * sin_of_x2;
+}
+
 
 template < class FunctionSpaceImp, class TimeProviderImp >
 class Force : public Dune::TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
@@ -98,29 +118,8 @@ private:
 	static const int dim_ = FunctionSpaceImp::dimDomain;
 };
 
-template < class DomainType, class RangeType >
-void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& arg, RangeType& ret)
-{
-	const double x1 = arg[0];
-	const double x2 = arg[1];
-	const double exp_of_x1 = std::exp( x1 );
-	const double sin_of_x2 = std::sin( x2 );
-	const double cos_of_x2 = std::cos( x2 );
-	//return
-	ret[0] = x2 * cos_of_x2;
-	ret[0] += sin_of_x2;
-	ret[0] *= -1.0 * exp_of_x1;
-	ret[1] = exp_of_x1 * x2 * sin_of_x2;
-}
 
-/**
- *  \brief  describes the dirichlet boundary data
- *
- *  \tparam DirichletTraitsImp
- *          types like functionspace, range type, etc
- *
- *  \todo   extensive docu with latex
- **/
+//! gd
 template < class FunctionSpaceImp, class TimeProviderImp >
 class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {

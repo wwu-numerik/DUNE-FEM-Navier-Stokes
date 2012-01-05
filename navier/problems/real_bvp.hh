@@ -27,6 +27,7 @@ namespace BVP_A {
 
 static const std::string identifier = "BVP";
 static const bool hasExactSolution	= false;
+ALLGOOD_SETUPCHECK;
 
 template < class FunctionSpaceImp, class TimeProviderImp >
 class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
