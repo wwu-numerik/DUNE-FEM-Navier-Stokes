@@ -156,7 +156,7 @@ namespace Dune {
 				{
 					Logger().Info() << scheme_params_;
                     NAVIER_DATA_NAMESPACE::SetupCheck ch;
-                    bool ok = ch.check( this, gridPart_, scheme_params_, timeprovider_, functionSpaceWrapper_ );
+                    bool ok = ch.check( this, gridPart_, Parameters(), scheme_params_, timeprovider_, functionSpaceWrapper_ );
                     if ( !ok )
                         DUNE_THROW( InvalidStateException, ch.error() );
 				}

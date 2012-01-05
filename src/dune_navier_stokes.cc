@@ -148,14 +148,11 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
-	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
-	infoStream << "  - max grid width: " << grid_width << std::endl;
+    const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
+    infoStream << (boost::format("  - max grid width: %f\n") % grid_width) << std::endl;
 
-#ifdef NDEBUG
 	try {
-#endif
 		return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run( scheme_type );
-#ifdef NDEBUG
 	}
 	catch (Dune::Exception &e){
 		std::cerr << "Dune reported error: " << e.what() << std::endl;
@@ -171,7 +168,6 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	catch (...){
 		std::cerr << "Unknown exception thrown!" << std::endl;
 	}
-#endif
 	return Stuff::RunInfoTimeMap();
 }
 

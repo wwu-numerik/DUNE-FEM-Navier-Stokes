@@ -4,6 +4,7 @@
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/grid.hh>
+#include <dune/stuff/math.hh>
 #include <dune/stuff/parametercontainer.hh>
 #include "common.hh"
 
@@ -16,26 +17,28 @@ static const bool hasExactSolution	= true;
 static const double P			=  M_PI;//pi_factor;
 
 struct SetupCheck {
-    std::stringstream err;
-    template < class Scheme, class GridPart , class ...Rest >
-    bool check( Scheme* /*scheme*/, const GridPart& gridPart, const Rest&... rest ) {
-        typedef typename GridPart::GridType GG;
-        Stuff::GridDimensions< GG > grid_dim( gridPart.grid() );
-        bool ok = grid_dim.coord_limits[0].min() == -1
-                && grid_dim.coord_limits[1].min() == -1
-                && grid_dim.coord_limits[0].max() == 1
-                && grid_dim.coord_limits[1].max() == 1 ;
-        err << boost::format( "grid dimension %f,%f - %f,%f\n" )
+    std::string err;
+    template < class Scheme, class GridPart , class P, class ...Rest >
+    bool check( Scheme* /*scheme*/, const GridPart& gridPart, P& p, const Rest&... rest ) {
+        Stuff::GridDimensions< typename GridPart::GridType > grid_dim( gridPart.grid() );
+        bool ok =  Stuff::aboutEqual( grid_dim.coord_limits[0].min(), -1. )
+                && Stuff::aboutEqual( grid_dim.coord_limits[1].min(), -1. )
+                && Stuff::aboutEqual( grid_dim.coord_limits[0].max(), 1. )
+                && Stuff::aboutEqual( grid_dim.coord_limits[1].max(), 1. );
+        err = ( boost::format( "\n******\nSetupCheck Failed!\ngrid dimension %f,%f - %f,%f\n" )
                 % grid_dim.coord_limits[0].min()
                 % grid_dim.coord_limits[1].min()
                 % grid_dim.coord_limits[0].max()
-                % grid_dim.coord_limits[1].max();
-        ok &= Parameters().getParam( "viscosity", -1 ) == 1.0 ;
-        err << boost::format( "viscosity %f" ) % Parameters().getParam( "viscosity", -1 );
+                % grid_dim.coord_limits[1].max() ).str();
+        if (!ok)
+            return false;
+        const double v = p.getParam( "viscosity", -10.0 );
+        ok = Stuff::aboutEqual( v, 1.0 );
+        err = ( boost::format( "viscosity %f\n" ) % v ).str();
         return ok;
     }
     std::string error() {
-        return err.str();
+        return err;
     }
 };
 
