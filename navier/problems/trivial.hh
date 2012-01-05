@@ -149,6 +149,10 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
 			VelocityEvaluate( 0.0, time, arg, ret);
 		}
 
+        void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+        {
+            VelocityEvaluate( 0.0, time, arg, ret);
+        }
 	private:
 		  static const int dim_ = FunctionSpaceImp::dimDomain ;
 };

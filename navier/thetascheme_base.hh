@@ -62,7 +62,7 @@ namespace Dune {
 				const typename Traits::ThetaSchemeDescriptionType& scheme_params_;
 
 		protected:
-				CommunicatorType& communicator_;
+                CommunicatorType communicator_;
 				typename Traits::TimeProviderType timeprovider_;
 				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
 				mutable typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;

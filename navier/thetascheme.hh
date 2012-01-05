@@ -161,8 +161,7 @@ namespace Dune {
 											theta_values[0] * dt_k/*pressure_gradient_scale_factor*/
 						                   );
 
-						typename Traits::OseenPassType oseenPass( stokesStartPass,
-												oseenModel,
+                        typename Traits::OseenPassType oseenPass( oseenModel,
 												gridPart_,
 												functionSpaceWrapper_,
 												beta /*beta*/,

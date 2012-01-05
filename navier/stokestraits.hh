@@ -66,14 +66,48 @@ namespace Dune {
 						DiscreteStokesFunctionSpaceWrapperType;
 
 				private:
+                    //! function space type for sigma
+                    typedef Dune::MatrixFunctionSpace<  double,
+                                                        double,
+                                                        gridDim,
+                                                        gridDim,
+                                                        gridDim >
+                        SigmaFunctionSpaceType;
 
-					//! discrete function type for the velocity
-					typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
-						DiscreteVelocityFunctionType;
+                    //! discrete function space type for sigma
+                    typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
+                                                                GridPartImp,
+                                                                sigmaSpaceOrder >
+                        DiscreteSigmaFunctionSpaceType;
 
-					//! discrete function type for the pressure
-					typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
-						DiscretePressureFunctionType;
+
+                #if STOKES_USE_ISTL
+                        //! discrete function type for the velocity
+                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+                            DiscreteVelocityFunctionType;
+
+                        //! discrete function type for the pressure
+                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+                            DiscretePressureFunctionType;
+
+                    public:
+                        //! discrete function type for sigma
+                        typedef Dune::BlockVectorDiscreteFunction< DiscreteSigmaFunctionSpaceType >
+                            DiscreteSigmaFunctionType;
+                #else
+                        //! discrete function type for the velocity
+                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+                            DiscreteVelocityFunctionType;
+
+                        //! discrete function type for the pressure
+                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+                            DiscretePressureFunctionType;
+
+                    public:
+                        //! discrete function type for sigma
+                        typedef Dune::AdaptiveDiscreteFunction< DiscreteSigmaFunctionSpaceType >
+                            DiscreteSigmaFunctionType;
+                #endif
 
 				public:
 
@@ -84,28 +118,7 @@ namespace Dune {
 								DiscretePressureFunctionType > >
 						DiscreteStokesFunctionWrapperType;
 
-				private:
-
-					//! function space type for sigma
-					typedef Dune::MatrixFunctionSpace<  double,
-														double,
-														gridDim,
-														gridDim,
-														gridDim >
-						SigmaFunctionSpaceType;
-
-					//! discrete function space type for sigma
-					typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
-																GridPartImp,
-																sigmaSpaceOrder >
-						DiscreteSigmaFunctionSpaceType;
-
 				public:
-
-					//! discrete function type for sigma
-					typedef Dune::AdaptiveDiscreteFunction< DiscreteSigmaFunctionSpaceType >
-						DiscreteSigmaFunctionType;
-
 					//! function type for the analytical force
 					typedef AnalyticalForceFunctionType< VelocityFunctionSpaceType,TimeProviderType >
 						RealAnalyticalForceType;

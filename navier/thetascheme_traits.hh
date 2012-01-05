@@ -262,13 +262,13 @@ namespace Dune {
 			typedef Dune::DiscreteStokesModelDefault< OseenModelAltRhsTraits >
 				OseenModelAltRhsType;
 
-			typedef Dune::StokesPass< OseenModelType,StokesStartPassType, 0 >
+            typedef Dune::StokesPass< OseenModelType >
 				OseenPassType;
-			typedef Dune::StokesPass< StokesModelType,StokesStartPassType, 0 >
+            typedef Dune::StokesPass< StokesModelType >
 				StokesPassType;
-			typedef Dune::StokesPass< NonlinearModelType,StokesStartPassType, 0 >
+            typedef Dune::StokesPass< NonlinearModelType >
 				NonlinearPassType;
-			typedef Dune::StokesPass< OseenModelAltRhsType,StokesStartPassType, 0 >
+            typedef Dune::StokesPass< OseenModelAltRhsType >
 				OseenPassAltRhsType;
 		};
 	}

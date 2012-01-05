@@ -199,6 +199,10 @@ public:
 		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( 0.0, time, arg, ret);
 	}
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+    {
+        VelocityEvaluate( 0.0, time, arg, ret);
+    }
 };
 
 template < class FunctionSpaceImp, class TimeProviderImp >

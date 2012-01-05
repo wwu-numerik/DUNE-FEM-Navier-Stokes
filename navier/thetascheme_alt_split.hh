@@ -181,9 +181,7 @@ namespace Dune {
 										1.0, /*alpha*/
 										0.0,/*convection_scale_factor*/
 										discretization_weights.theta_times_delta_t /*pressure_gradient_scale_factor*/);
-					typename Traits::StokesStartPassType stokesStartPass;
-					typename Traits::StokesPassType stokesPass( stokesStartPass,
-											stokesModel,
+                    typename Traits::StokesPassType stokesPass( stokesModel,
 											gridPart_,
 											functionSpaceWrapper_,
 											dummyFunctions_.discreteVelocity(),
@@ -286,8 +284,7 @@ namespace Dune {
 										1.0, /*alpha*/
 										discretization_weights.one_neg_two_theta_dt, /*convection_scale_factor*/
 										0.0 /*pressure_gradient_scale_factor*/ );
-					typename Traits::NonlinearPassType oseenPass( stokesStartPass,
-															 stokesModel,
+                    typename Traits::NonlinearPassType oseenPass( stokesModel,
 															 gridPart_,
 															 functionSpaceWrapper_,
 															 beta,
