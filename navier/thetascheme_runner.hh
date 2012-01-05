@@ -53,7 +53,9 @@ class ThetaschemeRunner {
 		ThetaschemeRunner( const GridPartType& grid_part, CollectiveCommunicationType& comm )
 			:grid_part_(grid_part),
 			comm_(comm)
-		{}
+        {
+
+        }
 
 		Stuff::RunInfoTimeMap run(const int scheme_type)
 		{

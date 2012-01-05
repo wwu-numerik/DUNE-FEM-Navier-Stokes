@@ -4,6 +4,7 @@
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/parametercontainer.hh>
+#include "common.hh"
 
 namespace NavierProblems {
 namespace TimeDisc {
@@ -11,6 +12,7 @@ namespace TimeDisc {
 static const std::string identifier = "TimeDisc";
 static const bool hasExactSolution	= true;
 
+ALLGOOD_SETUPCHECK;
 
 template < class DomainType, class RangeType >
 static void evaluateTimeVelocity( const double time, const DomainType& arg, RangeType& ret )

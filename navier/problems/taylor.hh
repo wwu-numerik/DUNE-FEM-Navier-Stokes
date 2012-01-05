@@ -4,13 +4,14 @@
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/parametercontainer.hh>
+#include "common.hh"
 
 namespace NavierProblems {
 namespace Taylor {
 
 static const std::string identifier = "Taylor";
 static const bool hasExactSolution	= true;
-
+ALLGOOD_SETUPCHECK;
 static const double P			=  M_PI;//pi_factor;
 
 template < class FunctionSpaceImp, class TimeProviderImp >

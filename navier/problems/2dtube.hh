@@ -5,6 +5,7 @@
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/parametercontainer.hh>
 #include <dune/stokes/boundarydata.hh>
+#include "common.hh"
 
 namespace NavierProblems {
 
@@ -12,6 +13,7 @@ namespace TwoDeeTube {
 
 static const std::string identifier = "TwoDeeTube";
 static const bool hasExactSolution	= false;
+ALLGOOD_SETUPCHECK;
 
 template < class FunctionSpaceImp, class TimeProviderImp >
 class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >

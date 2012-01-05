@@ -5,12 +5,15 @@
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/parametercontainer.hh>
 #include <dune/stokes/boundarydata.hh>
+#include "common.hh"
 
 namespace NavierProblems {
 
 namespace Null {
 static const std::string identifier = "NULL";
 static const bool hasExactSolution	= true;
+ALLGOOD_SETUPCHECK;
+
     NULLFUNCTION_TP(PressureGradient)
     NULLFUNCTION_TP(Pressure)
     NULLFUNCTION_TP(VelocityConvection)

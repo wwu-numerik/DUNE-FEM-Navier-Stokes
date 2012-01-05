@@ -3,7 +3,9 @@
 
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
+#include <dune/stuff/grid.hh>
 #include <dune/stuff/parametercontainer.hh>
+#include "common.hh"
 
 namespace NavierProblems {
 namespace Cockburn {
@@ -12,6 +14,29 @@ static const std::string identifier = "Cockburn";
 static const bool hasExactSolution	= true;
 
 static const double P			=  M_PI;//pi_factor;
+
+struct SetupCheck {
+    std::stringstream err;
+    template < class Scheme, class GridPart , class ...Rest >
+    bool check( Scheme* /*scheme*/, const GridPart& gridPart, const Rest&... rest ) {
+        Stuff::GridDimensions< typename GridPart::GridType > grid_dim( gridPart );
+        bool ok = grid_dim.coord_limits[0].min() == -1
+                && grid_dim.coord_limits[1].min() == -1
+                && grid_dim.coord_limits[0].max() == 1
+                && grid_dim.coord_limits[1].max() == 1 ;
+        err << boost::format( "grid dimension %f,%f - %f,%f\n" )
+                % grid_dim.coord_limits[0].min()
+                % grid_dim.coord_limits[1].min()
+                % grid_dim.coord_limits[0].max()
+                % grid_dim.coord_limits[1].max();
+        ok &= Parameters().getParam( "viscosity", -1 ) == 1.0 ;
+        err << boost::format( "viscosity %f" ) % Parameters().getParam( "viscosity", -1 );
+        return ok;
+    }
+    std::string error() {
+        return err.str();
+    }
+};
 
 template < class FunctionSpaceImp, class TimeProviderImp >
 class Force : public Dune::TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >

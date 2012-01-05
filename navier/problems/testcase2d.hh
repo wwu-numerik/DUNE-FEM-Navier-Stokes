@@ -4,12 +4,14 @@
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/parametercontainer.hh>
+#include "common.hh"
 
 namespace NavierProblems {
 namespace TwoDee {
 
 static const std::string identifier = "Testcase2D";
 static const bool hasExactSolution	= true;
+ALLGOOD_SETUPCHECK;
 
 template < class FunctionSpaceImp, class TimeProviderImp >
 class Force : public Dune::TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
