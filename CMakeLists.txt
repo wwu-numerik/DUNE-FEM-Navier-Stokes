@@ -1,4 +1,4 @@
-PROJECT(dune-navier-stokes)
+PROJECT(dune_navier)
 
 #set minimum cmake version
 cmake_minimum_required(VERSION 2.6)
@@ -22,12 +22,16 @@ EXECUTE_PROCESS(
 )
 
 #----------------------------------------------------------------------------------------------------
-# Options, that can be changed be the User in order to customise dune-navier-stokes
+# Options, that can be changed be the User in order to customise dune_navier
 #----------------------------------------------------------------------------------------------------
 SET( BLAS_LIB
 	"blas" CACHE STRING
 	"" )
 
+SET( USE_ISTL
+	0 CACHE STRING
+	"Use fem-wrapped istl matrix" )
+		
 SET( GRIDTYPE
 	"YASPGRID" CACHE STRING
 	"GRIDTYPE" )
@@ -52,13 +56,13 @@ SET( VELOCITYPOLORDER
 	"2" CACHE STRING
 	"Velocity POLORDER" )
 
-SET( INNER_CG_SOLVERTYPE
-	"OEMBICGSTABOp" CACHE STRING
+SET( INNER_SOLVER
+	"CG" CACHE STRING
 	"INNER_CG_SOLVERTYPE" )
 
-SET( OUTER_CG_SOLVERTYPE
-	"OEMBICGSTABOp" CACHE STRING
-	"OUTER_CG_SOLVERTYPE" )
+SET( OUTER_SOLVER
+	"CG" CACHE STRING
+	"OUTER_CG_SOLVERTYP" )
 
 SET( OSEEN_DATA_NAMESPACE
 	"NavierProblems::Trivial" CACHE STRING
@@ -69,7 +73,7 @@ SET( DIRICHLET_DATA
 	"DIRICHLET_DATA implementation for default dirichlet traits" )
 
 SET( ALUGRID_BASE_PATH
-	"/opt/dune/modules/alugrid/alugrid-1.23" CACHE STRING
+	"/opt/dune/modules/alugrid/alugrid-1.50" CACHE STRING
 	"ALUGRID_BASE_PATH" )
 
 SET( UGGRID_BASE_PATH
@@ -87,12 +91,13 @@ SET ( METIS_DIR
 SET_CONFIGHEADER_VARS()
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h )
 #needs to come first to include correct config.h
-INCLUDE_DIR( ${dune-navier-stokes_BINARY_DIR} )
-INCLUDE_DIR( ${dune-navier-stokes_SOURCE_DIR} )
-INCLUDE_DIR( ${dune-navier-stokes_SOURCE_DIR}/.. )
+INCLUDE_DIR( ${dune_navier_BINARY_DIR} )
+INCLUDE_DIR( ${dune_navier_SOURCE_DIR} )
+INCLUDE_DIR( ${dune_navier_SOURCE_DIR}/.. )
 
 IF( ${GRIDTYPE} STREQUAL "UGGRID" )
-	ADD_CXX_FLAGS( -isystem$${UGGRID_BASE_PATH}/include -DENABLE_UG )
+	ADD_CXX_FLAGS( -DENABLE_UG )
+	INCLUDE_SYS_DIR( ${UGGRID_BASE_PATH}/include )
 	LINK_DIRECTORIES( ${UGGRID_BASE_PATH}/lib/ )
 	SET( UGLIBS "ugS3" "ugS2" "devS")
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
@@ -129,9 +134,27 @@ IF ( ENABLE_PARALELL )
 	ADD_CXX_FLAGS( -DMPIPP_H -DENABLE_MPI=1 )
 ENDIF ( ENABLE_PARALELL )
 
-ADD_DUNE_MODULES( common istl grid fem )
+SET( USE_OMP "0" )
+IF( ENABLE_OMP )
+	ADD_CXX_FLAGS( -fopenmp -DUSE_OMP=1)
+	LIST( APPEND ParaLIBS "-fopenmp" )
+ELSE( ENABLE_OMP )
+	ADD_CXX_FLAGS( -DUSE_OMP=0)
+ENDIF( ENABLE_OMP )
+
+IF( USE_ISTL )
+	SET( OUTER_CG_SOLVERTYPE "ISTL${OUTER_SOLVER}Op" )
+	SET( INNER_CG_SOLVERTYPE "ISTL${INNER_SOLVER}Op" )
+ELSE( USE_ISTL )
+	SET( OUTER_CG_SOLVERTYPE "OEM${OUTER_SOLVER}Op" )
+	SET( INNER_CG_SOLVERTYPE "OEM${INNER_SOLVER}Op" )
+ENDIF( USE_ISTL )
+
+CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h )
+
+ADD_DUNE_MODULES( common istl grid fem geometry )
 ADD_MY_MODULES( stuff stokes )
-INCLUDE_SYS_DIR( ${dune-navier-stokes_SOURCE_DIR}/../dune-stokes/stokes/oemsolver/ )
+INCLUDE_SYS_DIR( ${dune_navier_SOURCE_DIR}/../dune-stokes/stokes/oemsolver/ )
 ADD_CXX_FLAGS( ${CUSTOM_FLAGS} )
 
 LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" ${CCGNU_LIBRARY_DIRS} )
@@ -144,7 +167,7 @@ FILE( GLOB stokes_src1 "../dune-stokes/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-stokes/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 
-set( COMMON_LIBS "dunefem" "dunegrid" "dunecommon" ${BLAS_LIB} ${ALUGRID_LIBS} ${UGLIBS} ${ParaLIBS} ${CCGNU_LIBRARIES} "boost_date_time" "boost_filesystem" "boost_system" )
+set( COMMON_LIBS "dunefem" "dunegrid" "dunecommon" "dunegeometry" ${BLAS_LIB} ${ALUGRID_LIBS} ${UGLIBS} ${ParaLIBS} ${CCGNU_LIBRARIES} "boost_date_time" "boost_filesystem" "boost_system" )
 set( COMMON_HEADER ${header} ${stokes} ${stuff} ${navier} ${DUNE_HEADERS} )
 set_source_files_properties( ${COMMON_HEADER} PROPERTIES HEADER_FILE_ONLY 1 )
 
@@ -153,6 +176,7 @@ TARGET_LINK_LIBRARIES(testing ${COMMON_LIBS} )
 
 ADD_EXECUTABLE(navier src/dune_navier_stokes.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(navier ${COMMON_LIBS} )
+
 
 ADD_EXECUTABLE(oseen src/oseen.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(oseen ${COMMON_LIBS} )
@@ -163,3 +187,12 @@ TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
 HEADERCHECK( ${header} ${oseen} ${navier} )
 ADD_DEFINITIONS( ${MY_CXX_FLAGS} )
 ADD_CPPCHECK( ${CMAKE_CURRENT_SOURCE_DIR}/src/dune_navier_stokes.cc ${COMMON_HEADER} )
+
+SET( PROBLEMS TwoDeeTube Cockburn Null Taylor TwoDee ThreeDee TimeDisc Trivial )
+
+FOREACH( problem ${PROBLEMS} )
+	SET( targetName nv_${problem} )
+	ADD_EXECUTABLE(${targetName} ${dune_navier_SOURCE_DIR}/src/dune_navier_stokes.cc ${COMMON_HEADER} )
+	TARGET_LINK_LIBRARIES( ${targetName} ${COMMON_LIBS} )
+	set_target_properties(${targetName} PROPERTIES COMPILE_FLAGS -DNAVIER_DATA_NAMESPACE=NavierProblems::${problem} )
+ENDFOREACH( problem )
