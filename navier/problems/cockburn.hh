@@ -18,8 +18,8 @@ static const double P			=  M_PI;//pi_factor;
 
 struct SetupCheck {
     std::string err;
-    template < class Scheme, class GridPart , class P, class ...Rest >
-    bool check( Scheme* /*scheme*/, const GridPart& gridPart, P& p, const Rest&... rest ) {
+    template < class Scheme, class GridPart , class ...Rest >
+    bool operator()( Scheme* /*scheme*/, const GridPart& gridPart, const Rest&... /*rest*/ ) {
         Stuff::GridDimensions< typename GridPart::GridType > grid_dim( gridPart.grid() );
         bool ok =  Stuff::aboutEqual( grid_dim.coord_limits[0].min(), -1. )
                 && Stuff::aboutEqual( grid_dim.coord_limits[1].min(), -1. )
@@ -32,7 +32,7 @@ struct SetupCheck {
                 % grid_dim.coord_limits[1].max() ).str();
         if (!ok)
             return false;
-        const double v = p.getParam( "viscosity", -10.0 );
+        const double v = Parameters().getParam( "viscosity", -10.0 );
         ok = Stuff::aboutEqual( v, 1.0 );
         err = ( boost::format( "viscosity %f\n" ) % v ).str();
         return ok;

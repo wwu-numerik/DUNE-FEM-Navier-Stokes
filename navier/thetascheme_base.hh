@@ -155,10 +155,9 @@ namespace Dune {
 					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
 				{
 					Logger().Info() << scheme_params_;
-                    NAVIER_DATA_NAMESPACE::SetupCheck ch;
-                    bool ok = ch.check( this, gridPart_, Parameters(), scheme_params_, timeprovider_, functionSpaceWrapper_ );
-                    if ( !ok )
-                        DUNE_THROW( InvalidStateException, ch.error() );
+                    NAVIER_DATA_NAMESPACE::SetupCheck check;
+                    if ( !check( this, gridPart_, scheme_params_, timeprovider_, functionSpaceWrapper_ ) )
+                        DUNE_THROW( InvalidStateException, check.error() );
 				}
 
 				void nextStep( const int step, Stuff::RunInfo& info )
