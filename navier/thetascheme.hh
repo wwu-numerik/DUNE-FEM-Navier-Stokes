@@ -113,7 +113,6 @@ namespace Dune {
 					exactSolution_.atTime( timeprovider_.subTime(), exactSolution_at_next_time  );
 
 					rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
-					typename Traits::StokesStartPassType stokesStartPass;
 					typename Traits::AnalyticalDirichletDataType oseenDirichletData ( timeprovider_,functionSpaceWrapper_ );
 					Dune::BetterL2Projection
 						::project( timeprovider_, oseenDirichletData, dummyFunctions_.discreteVelocity());
