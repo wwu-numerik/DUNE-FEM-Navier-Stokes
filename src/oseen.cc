@@ -170,7 +170,6 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discretePressure(), "p_exakt", matlabLogStream );
 	Stuff::printDiscreteFunctionMatlabStyle( exactSolution.discreteVelocity(), "u_exakt", matlabLogStream );
 
-	OseenTraits::StartPassType startPass;
 	OseenTraits::OseenModelTraits::AnalyticalDirichletDataType stokesDirichletData( timeprovider_,
 										   functionSpaceWrapper );
 
@@ -204,12 +203,17 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 	OseenTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
 	OseenTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
-	OseenTraits::OseenPassType oseenPass( startPass,
-							stokesModel,
+    auto& beta = exactSolution.discreteVelocity();
+    typedef OSEEN_DATA_NAMESPACE::Beta< OseenTraits::OseenModelTraits::VelocityFunctionSpaceType, OseenTraits::TimeProviderType >
+            ContBetaType;
+    ContBetaType beta_cont( timeprovider_, continousVelocitySpace );
+    Dune::BetterL2Projection::project( timeprovider_, beta_cont, beta );
+
+    OseenTraits::OseenPassType oseenPass( stokesModel,
 							gridPart,
 							functionSpaceWrapper,
-							exactSolution.discreteVelocity(),
-							true );
+                            beta,
+                            true /*do_osseen_disc*/);
 	nextFunctions.clear();
 	currentFunctions.clear();
 	oseenPass.printInfo();

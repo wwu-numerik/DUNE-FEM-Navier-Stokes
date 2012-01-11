@@ -169,9 +169,7 @@ namespace Oseen {
 			OseenModelTraits;
 		typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
 			OseenModelType;
-		typedef Dune::StartPass< typename OseenModelTraits::DiscreteStokesFunctionWrapperType, -1 >
-			StartPassType;
-		typedef Dune::StokesPass< OseenModelType,StartPassType >
+        typedef Dune::StokesPass< OseenModelType >
 			OseenPassType;
 
 		typedef OSEEN_DATA_NAMESPACE::Pressure< typename OseenModelTraits::PressureFunctionSpaceType,
