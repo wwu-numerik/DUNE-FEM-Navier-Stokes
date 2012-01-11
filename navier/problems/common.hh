@@ -7,7 +7,7 @@
 #ifndef ALLGOOD_SETUPCHECK
 #define ALLGOOD_SETUPCHECK struct SetupCheck { \
     template < typename ...Types > \
-    bool operator()( const Types&... args ) { return true; } \
+    bool operator()( const Types&... /*args*/ ) { return true; } \
     std::string error() { return "";} }
 #endif
 

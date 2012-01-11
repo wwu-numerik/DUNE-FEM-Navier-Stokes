@@ -23,7 +23,7 @@ NV_RUNTIME_FUNC(PressureGradient);
 NV_RUNTIME_FUNC(Beta);
 
 template < class DomainType, class RangeType >
-void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& arg, RangeType& ret)
+void VelocityEvaluate( const double /*lambda*/, const double /*time*/, const DomainType& arg, RangeType& ret)
 {
     const double x				= arg[0];
     const double y				= arg[1];

@@ -145,12 +145,12 @@ public:
 	{}
 
 	template < class IntersectionType >
-	void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 	{
 		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( 0.0, time, arg, ret);
 	}
-    void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
     {
         VelocityEvaluate( 0.0, time, arg, ret);
     }
@@ -160,13 +160,13 @@ class VelocityConvection :  public Dune::TimeFunction < FunctionSpaceImp , Veloc
 {
 public:
 	typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
-	ThisType;
+        ThisType;
 	typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
-	BaseType;
+        BaseType;
 	typedef typename BaseType::DomainType
-	DomainType;
+        DomainType;
 	typedef typename BaseType::RangeType
-	RangeType;
+        RangeType;
 
 	/**
    *  \brief  constructor
@@ -175,8 +175,8 @@ public:
    **/
 	VelocityConvection(	const TimeProviderImp& timeprovider,
 						const FunctionSpaceImp& space,
-						const double parameter_a = M_PI /2.0 ,
-						const double parameter_d = M_PI /4.0)
+                        const double /*parameter_a*/ = M_PI /2.0 ,
+                        const double /*parameter_d*/ = M_PI /4.0)
 		: BaseType( timeprovider, space ),
 		  lambda_( Parameters().getParam( "lambda", 0.0 ) )
 	{}
@@ -190,21 +190,14 @@ public:
 	{}
 
 	template < class IntersectionType >
-	void evaluate( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& /*intersection */) const
 	{
 		dune_static_assert( FunctionSpaceImp::dimDomain == 2, "__CLASS__ evaluate not implemented for world dimension");
 		VelocityEvaluate( lambda_, time, arg, ret);
 	}
-	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, time, arg, ret);}
-
-	/**
-   * \brief  evaluates the dirichlet data
-   * \param  arg
-   *         point to evaluate at
-   * \param  ret
-   *         value of dirichlet boundary data at given point
-   **/
-	inline void evaluate( const DomainType& arg, RangeType& ret ) const {VelocityEvaluate( lambda_, 0, arg, ret);}
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const {
+        VelocityEvaluate( lambda_, time, arg, ret);
+    }
 
 private:
 	const double lambda_;
@@ -230,8 +223,8 @@ public:
    **/
 	Velocity(	const TimeProviderImp& timeprovider,
 				const FunctionSpaceImp& space,
-				const double parameter_a = M_PI /2.0 ,
-				const double parameter_d = M_PI /4.0)
+                const double /*parameter_a*/ = M_PI /2.0 ,
+                const double /*parameter_d*/ = M_PI /4.0)
 		: BaseType( timeprovider, space ),
 		  lambda_( Parameters().getParam( "lambda", 0.0 ) )
 	{}
@@ -287,8 +280,8 @@ public:
 	 **/
 	Pressure( const TimeProviderImp& timeprovider,
 			  const FunctionSpaceImp& space,
-			  const double parameter_a = M_PI /2.0 ,
-			  const double parameter_d = M_PI /4.0)
+              const double /*parameter_a*/ = M_PI /2.0 ,
+              const double /*parameter_d*/ = M_PI /4.0)
 		: BaseType( timeprovider, space ),
 		  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
 		  shift_(0.0)
@@ -335,6 +328,8 @@ private:
 	double shift_;
 };
 
+NULLFUNCTION_TP(VelocityLaplace)
+NULLFUNCTION_TP(PressureGradient)
 }//end ns
 }//end ns
 
