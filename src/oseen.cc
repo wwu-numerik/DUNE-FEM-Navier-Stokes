@@ -1,5 +1,7 @@
 #include "main.hh"
 
+#define STOKES_CONV_ONLY 1
+
 /** \brief one single application of the discretisation and solver
 
 	\param  mpicomm
@@ -203,7 +205,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 	OseenTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
 	OseenTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
-    auto& beta = exactSolution.discreteVelocity();
+    auto beta = exactSolution.discreteVelocity();
     typedef OSEEN_DATA_NAMESPACE::Beta< OseenTraits::OseenModelTraits::VelocityFunctionSpaceType, OseenTraits::TimeProviderType >
             ContBetaType;
     ContBetaType beta_cont( timeprovider_, continousVelocitySpace );
@@ -217,7 +219,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 	nextFunctions.clear();
 	currentFunctions.clear();
 	oseenPass.printInfo();
-	oseenPass.apply( currentFunctions, nextFunctions, &rhs_container, &convection );
+    oseenPass.apply( currentFunctions, nextFunctions, &rhs_container );
 
 	errorFunctions.discretePressure().assign( exactSolution.discretePressure() );
 	errorFunctions.discretePressure() -= nextFunctions.discretePressure();
