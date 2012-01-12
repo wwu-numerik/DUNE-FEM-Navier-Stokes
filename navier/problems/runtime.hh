@@ -22,15 +22,6 @@ NV_RUNTIME_FUNC(VelocityLaplace);
 NV_RUNTIME_FUNC(PressureGradient);
 NV_RUNTIME_FUNC(Beta);
 
-template < class DomainType, class RangeType >
-void VelocityEvaluate( const double /*lambda*/, const double /*time*/, const DomainType& arg, RangeType& ret)
-{
-    const double x				= arg[0];
-    const double y				= arg[1];
-    ret[0] = x;
-    ret[1] = 0;
-}
-
 template < class FunctionSpaceImp, class TimeProviderImp >
 class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
                                                               DirichletData< FunctionSpaceImp,TimeProviderImp >,
@@ -45,6 +36,8 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
                 DomainType;
             typedef typename BaseType::RangeType
                 RangeType;
+            typedef Velocity< FunctionSpaceImp, TimeProviderImp >
+                VelocityType;
         /**
         *  \brief  constructor
         *
@@ -54,14 +47,10 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
                    const FunctionSpaceImp& space,
                    const double  /*viscosity*/ = 0.0,
                    const double /*alpha*/ = 0.0 )
-            : BaseType ( timeprovider, space )
+            : BaseType ( timeprovider, space ),
+              velocity_( timeprovider, space )
         {}
 
-        /**
-        *  \brief  destructor
-        *
-        *  doing nothing
-        **/
         ~DirichletData()
         {}
 
@@ -69,16 +58,15 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
         void evaluateTime( const double time, const DomainType& arg,
                            RangeType& ret, const IntersectionType& /*intersection */) const
         {
-            dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
-            VelocityEvaluate( 0.0, time, arg, ret);
+            velocity_.evaluateTime( time, arg, ret );
         }
 
         void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
         {
-            VelocityEvaluate( 0.0, time, arg, ret);
+            velocity_.evaluateTime( time, arg, ret );
         }
     private:
-          static const int dim_ = FunctionSpaceImp::dimDomain ;
+          const VelocityType velocity_;
 };
 
 }//end ns

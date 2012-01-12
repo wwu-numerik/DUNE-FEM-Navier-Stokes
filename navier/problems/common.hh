@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <dune/stuff/runtimefunction.hh>
 
 #ifndef ALLGOOD_SETUPCHECK
 #define ALLGOOD_SETUPCHECK struct SetupCheck { \
