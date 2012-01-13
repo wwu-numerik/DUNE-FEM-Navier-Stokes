@@ -52,13 +52,13 @@ typedef Dune::GridSelector::GridType
 #include <dune/stuff/misc.hh>
 #include <dune/stuff/logging.hh>
 #include <dune/stuff/parametercontainer.hh>
-#include <dune/stuff/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
 #include <dune/stuff/signals.hh>
 #include <dune/stuff/runinfo.hh>
 
 #include <dune/navier/thetascheme_runner.hh>
+#include <dune/navier/fractionaldatawriter.hh>
 
 #if ENABLE_MPI
         typedef Dune::CollectiveCommunication< MPI_Comm > CollectiveCommunication;

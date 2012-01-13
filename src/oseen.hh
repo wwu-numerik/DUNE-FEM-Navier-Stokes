@@ -11,7 +11,7 @@
 #include <dune/navier/exactsolution.hh>
 #include <dune/navier/thetascheme_traits.hh>
 #include <dune/fem/misc/mpimanager.hh>
-#include <dune/stuff/datawriter.hh>
+#include <dune/navier/fractionaldatawriter.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>

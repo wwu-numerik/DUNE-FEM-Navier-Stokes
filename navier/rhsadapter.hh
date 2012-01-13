@@ -297,8 +297,8 @@ namespace Dune {
 						gd_.evaluate( time, arg, ret, intIt );
 					}
 
-					inline void evaluate(	const typename AnalyticalDirichletType::DomainType& arg,
-											typename AnalyticalDirichletType::RangeType& ret ) const
+                    inline void evaluate(	const typename AnalyticalDirichletType::DomainType& /*arg*/,
+                                            typename AnalyticalDirichletType::RangeType& /*ret*/ ) const
 					{
 						NEEDS_IMPLEMENTATION
 					}

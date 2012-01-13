@@ -46,7 +46,7 @@ NULLFUNCTION_TP(VelocityLaplace)
 NULLFUNCTION_TP(PressureGradient)
 
 template < class DomainType, class RangeType >
-void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& arg, RangeType& ret)
+void VelocityEvaluate( const double /*lambda*/, const double /*time*/, const DomainType& arg, RangeType& ret)
 {
     const double x1 = arg[0];
     const double x2 = arg[1];
@@ -292,8 +292,8 @@ public:
 	 **/
 	Pressure( const TimeProviderImp& timeprovider,
 			  const FunctionSpaceImp& space,
-			  const double parameter_a = M_PI /2.0 ,
-			  const double parameter_d = M_PI /4.0)
+              const double /*parameter_a*/ = M_PI /2.0 ,
+              const double /*parameter_d*/ = M_PI /4.0)
 		: BaseType( timeprovider, space ),
 		  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
 		  shift_(0.0)

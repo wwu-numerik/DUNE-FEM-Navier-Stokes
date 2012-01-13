@@ -12,7 +12,6 @@
 namespace Dune {
 	namespace NavierStokes {
 
-
 		template< class SchemeParameterType, class CommProvider = DefaultCollectiveCommunicationType >
 		class FractionalTimeProvider : public TimeProvider < CommProvider > {
 					typedef FractionalTimeProvider< SchemeParameterType, CommProvider >

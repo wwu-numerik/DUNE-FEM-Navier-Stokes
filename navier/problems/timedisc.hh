@@ -308,7 +308,7 @@ public:
 		evaluateTimeVelocity( time, arg, ret );
 	}
 
-	inline void jacobianTime (	const double time,	const DomainType& arg,
+    inline void jacobianTime (	const double time,	const DomainType& /*arg*/,
 								typename BaseType::BaseType::JacobianRangeType& ret ) const
 	{
 		ret[0][0] = 0;

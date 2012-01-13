@@ -214,8 +214,8 @@ static const bool hasExactSolution	= false;
        **/
 	    Velocity(	const TimeProviderImp& timeprovider,
 				    const FunctionSpaceImp& space,
-				    const double parameter_a = M_PI /2.0 ,
-				    const double parameter_d = M_PI /4.0)
+                    const double /*parameter_a*/ = M_PI /2.0 ,
+                    const double /*parameter_d*/ = M_PI /4.0)
 		    : BaseType( timeprovider, space ),
 		      lambda_( Parameters().getParam( "lambda", 0.0 ) )
 	    {}

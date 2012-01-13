@@ -274,7 +274,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*
 						>
 		OutputTupleType;
-	typedef Dune::TimeAwareDataWriter<	OseenTraits::TimeProviderType,
+    typedef Dune::NavierStokes::TimeAwareDataWriter<	OseenTraits::TimeProviderType,
 										GridPartType::GridType,
 										OutputTupleType >
 		DataWriterType;

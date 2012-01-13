@@ -262,7 +262,7 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 		}
 
 		template < class DiscreteFunctionSpace >
-		void setShift( const DiscreteFunctionSpace& space )
+        void setShift( const DiscreteFunctionSpace& /*space*/ )
 		{
 //					shift_ = -1 * Stuff::meanValue( *this, space );
 		}

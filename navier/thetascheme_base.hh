@@ -6,7 +6,6 @@
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/h1norm.hh>
 #include <dune/fem/misc/gridwidth.hh>
-#include <dune/stuff/datawriter.hh>
 #include <dune/stuff/tuple.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/stuff/error.hh>
@@ -18,6 +17,7 @@
 #include <algorithm>
 
 #include <dune/navier/thetascheme_traits.hh>
+#include <dune/navier/fractionaldatawriter.hh>
 #include <dune/navier/global_defines.hh>
 
 namespace Dune {
