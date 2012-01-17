@@ -18,10 +18,10 @@
 #include <dune/fem/misc/gridwidth.hh>
 #include <dune/fem/misc/l2error.hh>
 
-#include <dune/stokes/discretestokesfunctionspacewrapper.hh>
-#include <dune/stokes/discretestokesmodelinterface.hh>
-#include <dune/stokes/stokespass.hh>
-#include <dune/stokes/boundarydata.hh>
+#include <dune/oseen/discretestokesfunctionspacewrapper.hh>
+#include <dune/oseen/discretestokesmodelinterface.hh>
+#include <dune/oseen/stokespass.hh>
+#include <dune/oseen/boundarydata.hh>
 
 #include <dune/stuff/printing.hh>
 #include <dune/stuff/femeoc.hh>
@@ -2122,8 +2122,8 @@ namespace ConvDiff {
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
-#include <dune/stokes/discretestokesmodelinterface.hh>
-#include <dune/stokes/stokespass.hh>
+#include <dune/oseen/discretestokesmodelinterface.hh>
+#include <dune/oseen/stokespass.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/stuff/datawriter.hh>
 #include <dune/stuff/functions.hh>

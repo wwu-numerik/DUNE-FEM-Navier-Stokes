@@ -4,7 +4,7 @@
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/parametercontainer.hh>
-#include <dune/stokes/boundarydata.hh>
+#include <dune/oseen/boundarydata.hh>
 #include "common.hh"
 
 namespace NavierProblems {

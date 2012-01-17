@@ -1,8 +1,8 @@
 #ifndef THETASCHEME_TRAITS_HH
 #define THETASCHEME_TRAITS_HH
 
-#include <dune/stokes/discretestokesmodelinterface.hh>
-#include <dune/stokes/stokespass.hh>
+#include <dune/oseen/discretestokesmodelinterface.hh>
+#include <dune/oseen/stokespass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>

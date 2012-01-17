@@ -42,10 +42,10 @@ typedef Dune::GridSelector::GridType
 #include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
 #include <dune/fem/misc/gridwidth.hh>
 
-#include <dune/stokes/discretestokesfunctionspacewrapper.hh>
-#include <dune/stokes/discretestokesmodelinterface.hh>
-#include <dune/stokes/stokespass.hh>
-#include <dune/stokes/boundarydata.hh>
+#include <dune/oseen/discretestokesfunctionspacewrapper.hh>
+#include <dune/oseen/discretestokesmodelinterface.hh>
+#include <dune/oseen/stokespass.hh>
+#include <dune/oseen/boundarydata.hh>
 
 #include <dune/stuff/printing.hh>
 #include <dune/stuff/femeoc.hh>

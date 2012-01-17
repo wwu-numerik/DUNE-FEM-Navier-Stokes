@@ -1,7 +1,7 @@
 #ifndef STOKESTRAITS_HH
 #define STOKESTRAITS_HH
 
-#include <dune/stokes/discretestokesmodelinterface.hh>
+#include <dune/oseen/discretestokesmodelinterface.hh>
 #include <dune/navier/rhsadapter.hh>
 
 namespace Dune {
