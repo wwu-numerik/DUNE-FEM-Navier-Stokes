@@ -148,17 +148,17 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 //	CollectiveCommunication comm;// = Dune::MPIManager::helper().getCommunicator();
 	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), mpicomm );
-	OseenTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
+	OseenTraits::OseenModelTraits::DiscreteOseenFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
-	typedef OseenTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
-		DiscreteStokesFunctionWrapperType;
-	DiscreteStokesFunctionWrapperType currentFunctions(  "current_",
+	typedef OseenTraits::OseenModelTraits::DiscreteOseenFunctionWrapperType
+		DiscreteOseenFunctionWrapperType;
+	DiscreteOseenFunctionWrapperType currentFunctions(  "current_",
 						functionSpaceWrapper,
 						gridPart );
-	DiscreteStokesFunctionWrapperType nextFunctions(  "next_",
+	DiscreteOseenFunctionWrapperType nextFunctions(  "next_",
 					functionSpaceWrapper,
 					gridPart );
-	DiscreteStokesFunctionWrapperType errorFunctions(  "error_",
+	DiscreteOseenFunctionWrapperType errorFunctions(  "error_",
 					functionSpaceWrapper,
 					gridPart );
 	OseenTraits::ExactSolutionType exactSolution( timeprovider_,

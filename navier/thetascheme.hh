@@ -108,7 +108,7 @@ namespace Dune {
 					typename BaseType::L2ErrorType::Errors errors_rhs = l2Error_.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForce),
 																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla) );
 					std::cerr << "RHS " << errors_rhs.str();
-					typename Traits::DiscreteStokesFunctionWrapperType
+					typename Traits::DiscreteOseenFunctionWrapperType
 							exactSolution_at_next_time ( "reoh", exactSolution_.space(), gridPart_ );
 					exactSolution_.atTime( timeprovider_.subTime(), exactSolution_at_next_time  );
 

@@ -7,11 +7,11 @@ namespace Dune {
 	namespace NavierStokes {
 
 		template < class TraitsImp >
-		class ExactSolution : public TraitsImp::DiscreteStokesFunctionWrapperType {
+		class ExactSolution : public TraitsImp::DiscreteOseenFunctionWrapperType {
 
 				typedef TraitsImp
 					TraitsType;
-				typedef typename TraitsType::DiscreteStokesFunctionWrapperType
+				typedef typename TraitsType::DiscreteOseenFunctionWrapperType
 					BaseType;
 
 				const typename TraitsType::TimeProviderType&
@@ -27,7 +27,7 @@ namespace Dune {
 			public:
 				ExactSolution(	const typename TraitsType::TimeProviderType& timeprovider,
 								typename TraitsType::GridPartType& gridPart,
-								typename TraitsType::DiscreteStokesFunctionSpaceWrapperType& space_wrapper)
+								typename TraitsType::DiscreteOseenFunctionSpaceWrapperType& space_wrapper)
 					: BaseType( "exact",
 								space_wrapper,
 								gridPart ),

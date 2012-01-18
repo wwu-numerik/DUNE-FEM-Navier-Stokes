@@ -161,7 +161,7 @@ namespace Dune {
 			typedef FractionalTimeProvider< ThetaSchemeDescriptionType, CommunicatorImp>
 				TimeProviderType;
 
-			typedef NonlinearStep::DiscreteStokesModelTraits<
+            typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
 						GridPartType,
 						AnalyticalForceImp,
@@ -173,7 +173,7 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 				OseenModelTraits;
-			typedef NonlinearStep::DiscreteStokesModelTraits<
+            typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
 						GridPartType,
 						AnalyticalForceImp,
@@ -186,7 +186,7 @@ namespace Dune {
 						pressureOrder >
 				StokesModelTraits;
 
-			typedef NonlinearStep::DiscreteStokesModelTraits<
+            typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
 						GridPartType,
 						AnalyticalForceImp,
@@ -199,7 +199,7 @@ namespace Dune {
 						pressureOrder >
 				NonlinearModelTraits;
 
-			typedef NonlinearStep::DiscreteStokesModelTraits<
+            typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
 						GridPartType,
 						AnalyticalForceImp,
@@ -236,38 +236,38 @@ namespace Dune {
 			typedef typename OseenModelTraits::VelocityFunctionSpaceType
 				VelocityFunctionSpaceType;
 
-			typedef typename OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType
-				DiscreteStokesFunctionSpaceWrapperType;
+			typedef typename OseenModelTraits::DiscreteOseenFunctionSpaceWrapperType
+				DiscreteOseenFunctionSpaceWrapperType;
 
-			typedef typename OseenModelTraits::DiscreteStokesFunctionWrapperType
-				DiscreteStokesFunctionWrapperType;
+			typedef typename OseenModelTraits::DiscreteOseenFunctionWrapperType
+				DiscreteOseenFunctionWrapperType;
 			typedef typename OseenModelTraits::RealAnalyticalForceType
 				AnalyticalForceType;
 			typedef typename OseenModelTraits::AnalyticalDirichletDataType
 				AnalyticalDirichletDataType;
 
-			typedef Dune::StartPass< DiscreteStokesFunctionWrapperType, -1 >
+			typedef Dune::StartPass< DiscreteOseenFunctionWrapperType, -1 >
 				StokesStartPassType;
 
 			typedef CommunicatorImp
 				CommunicatorType;
 
-			typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
+            typedef Dune::DiscreteOseenModelDefault< OseenModelTraits >
 				OseenModelType;
-			typedef Dune::DiscreteStokesModelDefault< StokesModelTraits >
+            typedef Dune::DiscreteOseenModelDefault< StokesModelTraits >
 				StokesModelType;
-			typedef Dune::DiscreteStokesModelDefault< NonlinearModelTraits >
+            typedef Dune::DiscreteOseenModelDefault< NonlinearModelTraits >
 				NonlinearModelType;
-			typedef Dune::DiscreteStokesModelDefault< OseenModelAltRhsTraits >
+            typedef Dune::DiscreteOseenModelDefault< OseenModelAltRhsTraits >
 				OseenModelAltRhsType;
 
-            typedef Dune::StokesPass< OseenModelType >
+            typedef Dune::OseenPass< OseenModelType >
 				OseenPassType;
-            typedef Dune::StokesPass< StokesModelType >
-				StokesPassType;
-            typedef Dune::StokesPass< NonlinearModelType >
+            typedef Dune::OseenPass< StokesModelType >
+                StokesPassType;
+            typedef Dune::OseenPass< NonlinearModelType >
 				NonlinearPassType;
-            typedef Dune::StokesPass< OseenModelAltRhsType >
+            typedef Dune::OseenPass< OseenModelAltRhsType >
 				OseenPassAltRhsType;
 		};
 	}

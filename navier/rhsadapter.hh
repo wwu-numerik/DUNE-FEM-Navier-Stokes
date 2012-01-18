@@ -313,8 +313,8 @@ namespace Dune {
 					typedef DirichletAdapterFunction< TimeProviderType, DiricheltDataImp< FunctionSpaceImp > >
 						AnalyticalDirichletDataType;
 
-					template <class DiscreteStokesFunctionWrapper >
-					static AnalyticalDirichletDataType getInstance( const TimeProviderType& timeProvider, const DiscreteStokesFunctionWrapper& wrapper ) {
+					template <class DiscreteOseenFunctionWrapper >
+					static AnalyticalDirichletDataType getInstance( const TimeProviderType& timeProvider, const DiscreteOseenFunctionWrapper& wrapper ) {
 						return 	AnalyticalDirichletDataType( timeProvider, wrapper.discreteVelocitySpace() );
 					}
 				};

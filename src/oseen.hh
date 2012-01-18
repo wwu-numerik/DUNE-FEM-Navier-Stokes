@@ -29,7 +29,7 @@ namespace Oseen {
 			public:
 
 				//! for CRTP trick
-				typedef DiscreteStokesModelDefault < DiscreteModelTraits >
+				typedef DiscreteOseenModelDefault < DiscreteModelTraits >
 					DiscreteModelType;
 
 				//! we use caching quadratures for the entities
@@ -72,29 +72,29 @@ namespace Oseen {
 			public:
 
 				//! discrete function space wrapper type
-				typedef Dune::DiscreteStokesFunctionSpaceWrapper< Dune::DiscreteStokesFunctionSpaceWrapperTraits<
+				typedef Dune::DiscreteOseenFunctionSpaceWrapper< Dune::DiscreteOseenFunctionSpaceWrapperTraits<
 							DiscreteVelocityFunctionSpaceType,
 							DiscretePressureFunctionSpaceType > >
-					DiscreteStokesFunctionSpaceWrapperType;
+					DiscreteOseenFunctionSpaceWrapperType;
 
 			private:
 
 				//! discrete function type for the velocity
-				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
 					DiscreteVelocityFunctionType;
 
 				//! discrete function type for the pressure
-				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
 					DiscretePressureFunctionType;
 
 			public:
 
 				//! discrete function wrapper type
-				typedef Dune::DiscreteStokesFunctionWrapper< Dune::DiscreteStokesFunctionWrapperTraits<
-							DiscreteStokesFunctionSpaceWrapperType,
+				typedef Dune::DiscreteOseenFunctionWrapper< Dune::DiscreteOseenFunctionWrapperTraits<
+							DiscreteOseenFunctionSpaceWrapperType,
 							DiscreteVelocityFunctionType,
 							DiscretePressureFunctionType > >
-					DiscreteStokesFunctionWrapperType;
+					DiscreteOseenFunctionWrapperType;
 
 				//! function space type for sigma
 				typedef Dune::MatrixFunctionSpace<  double,
@@ -133,7 +133,7 @@ namespace Oseen {
 				 *  \{
 				 **/
 				//! return type of the pass
-				typedef DiscreteStokesFunctionWrapperType
+				typedef DiscreteOseenFunctionWrapperType
 					DestinationType;
 				/**
 				 *  \}
@@ -167,9 +167,9 @@ namespace Oseen {
 					velocityOrder,
 					pressureOrder >
 			OseenModelTraits;
-		typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
+		typedef Dune::DiscreteOseenModelDefault< OseenModelTraits >
 			OseenModelType;
-        typedef Dune::StokesPass< OseenModelType >
+        typedef Dune::OseenPass< OseenModelType >
 			OseenPassType;
 
 		typedef OSEEN_DATA_NAMESPACE::Pressure< typename OseenModelTraits::PressureFunctionSpaceType,
@@ -182,13 +182,13 @@ namespace Oseen {
 			ConvectionType;
 		typedef Dune::NavierStokes::ExactSolution<ThisType>
 			ExactSolutionType;
-		typedef typename OseenModelType::DiscreteStokesFunctionWrapperType
-			DiscreteStokesFunctionWrapperType;
-		typedef typename OseenModelType::DiscreteStokesFunctionSpaceWrapperType
-			DiscreteStokesFunctionSpaceWrapperType;
-		typedef typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType::FunctionSpaceType
+		typedef typename OseenModelType::DiscreteOseenFunctionWrapperType
+			DiscreteOseenFunctionWrapperType;
+		typedef typename OseenModelType::DiscreteOseenFunctionSpaceWrapperType
+			DiscreteOseenFunctionSpaceWrapperType;
+		typedef typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType::FunctionSpaceType
 			PressureFunctionSpaceType;
-		typedef typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType::FunctionSpaceType
+		typedef typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType::FunctionSpaceType
 			VelocityFunctionSpaceType;
 
 

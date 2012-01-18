@@ -147,20 +147,20 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 		OseenTraits;
 
 	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
-	OseenTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
+	OseenTraits::OseenModelTraits::DiscreteOseenFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
-	typedef OseenTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
-		DiscreteStokesFunctionWrapperType;
-	DiscreteStokesFunctionWrapperType currentFunctions(  "current_",
+	typedef OseenTraits::OseenModelTraits::DiscreteOseenFunctionWrapperType
+		DiscreteOseenFunctionWrapperType;
+	DiscreteOseenFunctionWrapperType currentFunctions(  "current_",
 						functionSpaceWrapper,
 						gridPart );
-	DiscreteStokesFunctionWrapperType nextFunctions(  "next_",
+	DiscreteOseenFunctionWrapperType nextFunctions(  "next_",
 					functionSpaceWrapper,
 					gridPart );
-	DiscreteStokesFunctionWrapperType tmpFunctions(  "tmp_",
+	DiscreteOseenFunctionWrapperType tmpFunctions(  "tmp_",
 					functionSpaceWrapper,
 					gridPart );
-	DiscreteStokesFunctionWrapperType errorFunctions(  "error_",
+	DiscreteOseenFunctionWrapperType errorFunctions(  "error_",
 					functionSpaceWrapper,
 					gridPart );
 	OseenTraits::ExactSolutionType exactSolution( timeprovider_,
@@ -195,11 +195,11 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 	nextFunctions.clear();
 
 	OseenTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convetion", currentFunctions.discreteVelocity().space() );
+	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convetion", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
 						OseenTraits::ConvectionType,
-						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+						DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
 	OseenTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
@@ -265,13 +265,13 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 					<< "current time: " << timeprovider_.time()
 					<< std::endl;
 
-	typedef Dune::tuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType*,
-							const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType*
+	typedef Dune::tuple<	const DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType*,
+							const DiscreteOseenFunctionWrapperType::DiscretePressureFunctionType*,
+							const DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType*,
+							const DiscreteOseenFunctionWrapperType::DiscretePressureFunctionType*,
+							const DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType*,
+							const DiscreteOseenFunctionWrapperType::DiscretePressureFunctionType*,
+							const DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType*
 						>
 		OutputTupleType;
     typedef Dune::NavierStokes::TimeAwareDataWriter<	OseenTraits::TimeProviderType,

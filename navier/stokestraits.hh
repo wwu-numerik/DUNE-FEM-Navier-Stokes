@@ -14,12 +14,12 @@ namespace Dune {
 						template < class, class > class AnalyticalDirichletDataImp,
 						class ThetaValueArrayType,
 						int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
-			class DiscreteStokesModelTraits
+			class DiscreteOseenModelTraits
 			{
 				public:
 
 					//! for CRTP trick
-					typedef DiscreteStokesModelDefault < DiscreteStokesModelTraits >
+					typedef DiscreteOseenModelDefault < DiscreteOseenModelTraits >
 						DiscreteModelType;
 
 					//! we use caching quadratures for the entities
@@ -60,10 +60,10 @@ namespace Dune {
 				public:
 
 					//! discrete function space wrapper type
-					typedef Dune::DiscreteStokesFunctionSpaceWrapper< Dune::DiscreteStokesFunctionSpaceWrapperTraits<
+					typedef Dune::DiscreteOseenFunctionSpaceWrapper< Dune::DiscreteOseenFunctionSpaceWrapperTraits<
 								DiscreteVelocityFunctionSpaceType,
 								DiscretePressureFunctionSpaceType > >
-						DiscreteStokesFunctionSpaceWrapperType;
+						DiscreteOseenFunctionSpaceWrapperType;
 
 				private:
                     //! function space type for sigma
@@ -83,11 +83,11 @@ namespace Dune {
 
                 #if STOKES_USE_ISTL
                         //! discrete function type for the velocity
-                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
                             DiscreteVelocityFunctionType;
 
                         //! discrete function type for the pressure
-                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
                             DiscretePressureFunctionType;
 
                     public:
@@ -96,11 +96,11 @@ namespace Dune {
                             DiscreteSigmaFunctionType;
                 #else
                         //! discrete function type for the velocity
-                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
                             DiscreteVelocityFunctionType;
 
                         //! discrete function type for the pressure
-                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
                             DiscretePressureFunctionType;
 
                     public:
@@ -112,11 +112,11 @@ namespace Dune {
 				public:
 
 					//! discrete function wrapper type
-					typedef Dune::DiscreteStokesFunctionWrapper< Dune::DiscreteStokesFunctionWrapperTraits<
-								DiscreteStokesFunctionSpaceWrapperType,
+					typedef Dune::DiscreteOseenFunctionWrapper< Dune::DiscreteOseenFunctionWrapperTraits<
+								DiscreteOseenFunctionSpaceWrapperType,
 								DiscreteVelocityFunctionType,
 								DiscretePressureFunctionType > >
-						DiscreteStokesFunctionWrapperType;
+						DiscreteOseenFunctionWrapperType;
 
 				public:
 					//! function type for the analytical force
@@ -144,7 +144,7 @@ namespace Dune {
 					 *  \{
 					 **/
 					//! return type of the pass
-					typedef DiscreteStokesFunctionWrapperType
+					typedef DiscreteOseenFunctionWrapperType
 						DestinationType;
 					/**
 					 *  \}

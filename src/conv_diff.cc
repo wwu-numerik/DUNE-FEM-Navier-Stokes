@@ -197,17 +197,17 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
 
 	ConvDiffTraits::TimeProviderType timeprovider_( ConvDiffTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
-	ConvDiffTraits::OseenModelTraits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
+	ConvDiffTraits::OseenModelTraits::DiscreteOseenFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
 
-	typedef ConvDiffTraits::OseenModelTraits::DiscreteStokesFunctionWrapperType
-		DiscreteStokesFunctionWrapperType;
-	DiscreteStokesFunctionWrapperType currentFunctions(  "current_",
+	typedef ConvDiffTraits::OseenModelTraits::DiscreteOseenFunctionWrapperType
+		DiscreteOseenFunctionWrapperType;
+	DiscreteOseenFunctionWrapperType currentFunctions(  "current_",
 						functionSpaceWrapper,
 						gridPart );
-	DiscreteStokesFunctionWrapperType nextFunctions(  "next_",
+	DiscreteOseenFunctionWrapperType nextFunctions(  "next_",
 					functionSpaceWrapper,
 					gridPart );
-	DiscreteStokesFunctionWrapperType errorFunctions(  "error_",
+	DiscreteOseenFunctionWrapperType errorFunctions(  "error_",
 					functionSpaceWrapper,
 					gridPart );
 	ConvDiffTraits::ExactSolutionType exactSolution( timeprovider_,
@@ -245,13 +245,13 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	ConvDiffTraits::VelocityGradientType velocityGradient( timeprovider_, cont_sigma_space );
 
 	ConvDiffTraits::ConvectionType convection( timeprovider_, continousVelocitySpace );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convection", currentFunctions.discreteVelocity().space() );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_exactConvection( "exact_convection", currentFunctions.discreteVelocity().space() );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType convection_diff( "convection_diff", currentFunctions.discreteVelocity().space() );
+	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType discrete_convection( "convection", currentFunctions.discreteVelocity().space() );
+	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType discrete_exactConvection( "exact_convection", currentFunctions.discreteVelocity().space() );
+	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType convection_diff( "convection_diff", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ConvectionType,
-						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+						DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
 	ConvDiffTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
@@ -268,29 +268,29 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::ExactConvectionType,
-						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+						DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(exactConvection, discrete_exactConvection);
 
-	typedef Stuff::GradientSplitterFunction<	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType,
+	typedef Stuff::GradientSplitterFunction<	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType,
 												ConvDiffTraits::OseenModelTraits::DiscreteSigmaFunctionType >
 			GradientSplitterFunctionType;
 	GradientSplitterFunctionType gradient_splitter(	functionSpaceWrapper.discreteVelocitySpace(),
 									rhs_container.velocity_gradient );
 
 	ConvDiffTraits::VelocityGradientYType velocityGradientY( timeprovider_, continousVelocitySpace );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientY( "velocityGradientY", currentFunctions.discreteVelocity().space() );
+	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientY( "velocityGradientY", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::VelocityGradientYType,
-						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+						DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(velocityGradientY, discrete_velocityGradientY);
 
 	ConvDiffTraits::VelocityGradientXType velocityGradientX( timeprovider_, continousVelocitySpace );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientX( "velocityGradientX", currentFunctions.discreteVelocity().space() );
+	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityGradientX( "velocityGradientX", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::VelocityGradientXType,
-						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+						DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(velocityGradientX, discrete_velocityGradientX);
 
 	Dune::BetterL2Projection
@@ -300,11 +300,11 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 									discrete_velocityGradient );
 
 	ConvDiffTraits::VelocityLaplaceType velocityLaplace( timeprovider_, continousVelocitySpace );
-	DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityLaplace( "exact_laplace", currentFunctions.discreteVelocity().space() );
+	DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType discrete_velocityLaplace( "exact_laplace", currentFunctions.discreteVelocity().space() );
 	Dune::L2Projection< double,
 						double,
 						ConvDiffTraits::VelocityLaplaceType,
-						DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType >
+						DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(velocityLaplace, discrete_velocityLaplace);
 
 	typedef Stuff::L2Error<GridPartType>
@@ -334,7 +334,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //					<< "Mean pressure (exact|discrete): " << meanPressure_exact << " | " << meanPressure_discrete << std::endl
 					<< "\nGD: " << GD << std::endl;
 
-	typedef Stuff::FullTuple<	const DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType* >
+	typedef Stuff::FullTuple<	const DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType* >
 		OutputTupleType;
 	typedef Dune::TimeAwareDataWriter<	ConvDiffTraits::TimeProviderType,
 										GridPartType::GridType,

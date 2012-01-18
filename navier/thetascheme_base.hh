@@ -31,10 +31,10 @@ namespace Dune {
 					CommunicatorType;
 				typedef typename Traits::ExactSolutionType
 					ExactSolutionType;
-				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType,
-											typename Traits::DiscreteStokesFunctionWrapperType,
+				typedef Stuff::TupleSerializer<	typename Traits::DiscreteOseenFunctionWrapperType,
+											typename Traits::DiscreteOseenFunctionWrapperType,
 											ExactSolutionType,
-											typename Traits::DiscreteStokesFunctionWrapperType>
+											typename Traits::DiscreteOseenFunctionWrapperType>
 					TupleSerializerType1;
 				typedef typename TupleSerializerType1::TupleType
 					OutputTupleType1;
@@ -45,7 +45,7 @@ namespace Dune {
 				typedef CheckPointer< typename Traits::GridPartType::GridType,
 									  OutputTupleType1 >
 					CheckPointerType;
-				typedef Stuff::TupleSerializer<	typename Traits::DiscreteStokesFunctionWrapperType >
+				typedef Stuff::TupleSerializer<	typename Traits::DiscreteOseenFunctionWrapperType >
 					TupleSerializerType2;
 				typedef typename TupleSerializerType2::TupleType
 					OutputTupleType2;
@@ -53,9 +53,9 @@ namespace Dune {
 												typename Traits::GridPartType::GridType,
 												OutputTupleType2 >
 					DataWriterType2;
-				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscreteVelocityFunctionType
+				typedef typename Traits::DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType
 					DiscreteVelocityFunctionType;
-				typedef typename Traits::DiscreteStokesFunctionWrapperType::DiscretePressureFunctionType
+				typedef typename Traits::DiscreteOseenFunctionWrapperType::DiscretePressureFunctionType
 					DiscretePressureFunctionType;
 
 				mutable typename Traits::GridPartType gridPart_;
@@ -64,21 +64,21 @@ namespace Dune {
 		protected:
                 CommunicatorType communicator_;
 				typename Traits::TimeProviderType timeprovider_;
-				typename Traits::DiscreteStokesFunctionSpaceWrapperType functionSpaceWrapper_;
-				mutable typename Traits::DiscreteStokesFunctionWrapperType currentFunctions_;
-				mutable typename Traits::DiscreteStokesFunctionWrapperType nextFunctions_;
-				typename Traits::DiscreteStokesFunctionWrapperType errorFunctions_;
+				typename Traits::DiscreteOseenFunctionSpaceWrapperType functionSpaceWrapper_;
+				mutable typename Traits::DiscreteOseenFunctionWrapperType currentFunctions_;
+				mutable typename Traits::DiscreteOseenFunctionWrapperType nextFunctions_;
+				typename Traits::DiscreteOseenFunctionWrapperType errorFunctions_;
 				ExactSolutionType exactSolution_;
-				mutable typename Traits::DiscreteStokesFunctionWrapperType dummyFunctions_;
-				mutable typename Traits::DiscreteStokesFunctionWrapperType updateFunctions_;
-				mutable typename Traits::DiscreteStokesFunctionWrapperType rhsFunctions_;
+				mutable typename Traits::DiscreteOseenFunctionWrapperType dummyFunctions_;
+				mutable typename Traits::DiscreteOseenFunctionWrapperType updateFunctions_;
+				mutable typename Traits::DiscreteOseenFunctionWrapperType rhsFunctions_;
 				OutputTupleType1& data_tuple_1;
 				DataWriterType1 dataWriter1_;
 				CheckPointerType check_pointer_;
 				DataWriterType2 dataWriter2_;
 				const typename Traits::OseenPassType::Traits::DiscreteSigmaFunctionSpaceType sigma_space_;
 				mutable typename Traits::OseenPassType::RhsDatacontainer rhsDatacontainer_;
-				mutable typename Traits::DiscreteStokesFunctionWrapperType lastFunctions_;
+				mutable typename Traits::DiscreteOseenFunctionWrapperType lastFunctions_;
 
 				typedef Stuff::L2Error< typename Traits::GridPartType >
 					L2ErrorType;
@@ -348,7 +348,7 @@ namespace Dune {
 					return exactSolution_;
 				}
 
-				const typename Traits::DiscreteStokesFunctionWrapperType& currentFunctions() const
+				const typename Traits::DiscreteOseenFunctionWrapperType& currentFunctions() const
 				{
 					return currentFunctions_;
 				}

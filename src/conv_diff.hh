@@ -2146,7 +2146,7 @@ namespace ConvDiff {
 			public:
 
 				//! for CRTP trick
-			typedef Dune::DiscreteStokesModelDefault < DiscreteModelTraits >
+			typedef Dune::DiscreteOseenModelDefault < DiscreteModelTraits >
 					DiscreteModelType;
 
 				//! we use caching quadratures for the entities
@@ -2189,29 +2189,29 @@ namespace ConvDiff {
 			public:
 
 				//! discrete function space wrapper type
-				typedef Dune::DiscreteStokesFunctionSpaceWrapper< Dune::DiscreteStokesFunctionSpaceWrapperTraits<
+				typedef Dune::DiscreteOseenFunctionSpaceWrapper< Dune::DiscreteOseenFunctionSpaceWrapperTraits<
 							DiscreteVelocityFunctionSpaceType,
 							DiscretePressureFunctionSpaceType > >
-					DiscreteStokesFunctionSpaceWrapperType;
+					DiscreteOseenFunctionSpaceWrapperType;
 
 			private:
 
 				//! discrete function type for the velocity
-				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
 					DiscreteVelocityFunctionType;
 
 				//! discrete function type for the pressure
-				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
 					DiscretePressureFunctionType;
 
 			public:
 
 				//! discrete function wrapper type
-				typedef Dune::DiscreteStokesFunctionWrapper< Dune::DiscreteStokesFunctionWrapperTraits<
-							DiscreteStokesFunctionSpaceWrapperType,
+				typedef Dune::DiscreteOseenFunctionWrapper< Dune::DiscreteOseenFunctionWrapperTraits<
+							DiscreteOseenFunctionSpaceWrapperType,
 							DiscreteVelocityFunctionType,
 							DiscretePressureFunctionType > >
-					DiscreteStokesFunctionWrapperType;
+					DiscreteOseenFunctionWrapperType;
 
 			public:
 
@@ -2256,7 +2256,7 @@ namespace ConvDiff {
 				 *  \{
 				 **/
 				//! return type of the pass
-				typedef DiscreteStokesFunctionWrapperType
+				typedef DiscreteOseenFunctionWrapperType
 					DestinationType;
 				/**
 				 *  \}
@@ -2290,11 +2290,11 @@ namespace ConvDiff {
 					velocityOrder,
 					pressureOrder >
 			OseenModelTraits;
-		typedef Dune::DiscreteStokesModelDefault< OseenModelTraits >
+		typedef Dune::DiscreteOseenModelDefault< OseenModelTraits >
 			OseenModelType;
-		typedef Dune::StartPass< typename OseenModelTraits::DiscreteStokesFunctionWrapperType, -1 >
+		typedef Dune::StartPass< typename OseenModelTraits::DiscreteOseenFunctionWrapperType, -1 >
 			StartPassType;
-		typedef Dune::StokesPass< OseenModelType,StartPassType >
+		typedef Dune::OseenPass< OseenModelType,StartPassType >
 			OseenPassType;
 
 		typedef CONVDIFF_DATA_NAMESPACE::Pressure< typename OseenModelTraits::PressureFunctionSpaceType,
@@ -2325,13 +2325,13 @@ namespace ConvDiff {
 
 		typedef Dune::NavierStokes::ExactSolution<ThisType>
 			ExactSolutionType;
-		typedef typename OseenModelType::DiscreteStokesFunctionWrapperType
-			DiscreteStokesFunctionWrapperType;
-		typedef typename OseenModelType::DiscreteStokesFunctionSpaceWrapperType
-			DiscreteStokesFunctionSpaceWrapperType;
-		typedef typename DiscreteStokesFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType::FunctionSpaceType
+		typedef typename OseenModelType::DiscreteOseenFunctionWrapperType
+			DiscreteOseenFunctionWrapperType;
+		typedef typename OseenModelType::DiscreteOseenFunctionSpaceWrapperType
+			DiscreteOseenFunctionSpaceWrapperType;
+		typedef typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType::FunctionSpaceType
 			PressureFunctionSpaceType;
-		typedef typename DiscreteStokesFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType::FunctionSpaceType
+		typedef typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType::FunctionSpaceType
 			VelocityFunctionSpaceType;
 
 
