@@ -72,7 +72,7 @@ namespace Dune {
 						beta *= 3.0;
 						beta -= lastFunctions_.discreteVelocity();
 						beta *= 0.5;
-						Dune::BruteForceReconstruction< typename Traits::OseenPassType::RhsDatacontainer, typename Traits::OseenModelType >
+                        Dune::BruteForceReconstruction< typename Traits::OseenModelType >
 															::getConvection( beta, rhsDatacontainer_.velocity_gradient, rhsDatacontainer_.convection );
 					}
 					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >

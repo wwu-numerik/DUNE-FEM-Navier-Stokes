@@ -5,19 +5,20 @@
 #include <dune/navier/thetascheme.hh>
 #include <dune/navier/thetascheme_alt_split.hh>
 #include <dune/navier/global_defines.hh>
+#include <dune/common/static_assert.hh>
 
-template < class GridPartType, class CollectiveCommunicationType >
+template < class GridType, class CollectiveCommunicationType >
 class ThetaschemeRunner {
 	private:
 		typedef Dune::NavierStokes::ThetaSchemeTraits<
 						CollectiveCommunicationType,
-						GridPartType,
+                        GridType,
 						NAVIER_DATA_NAMESPACE::Force,
 						NAVIER_DATA_NAMESPACE::DirichletData,
 						NAVIER_DATA_NAMESPACE::Pressure,
 						NAVIER_DATA_NAMESPACE::Velocity,
 						1,//number of substeps
-						GridPartType::GridType::dimensionworld,
+                        GridType::dimensionworld,
 						POLORDER,
 						VELOCITY_POLORDER,
 						PRESSURE_POLORDER >
@@ -32,13 +33,13 @@ class ThetaschemeRunner {
 			DataOnlySchemeDescriptionType;
 		typedef Dune::NavierStokes::ThetaSchemeTraits<
 						CollectiveCommunicationType,
-						GridPartType,
+                        GridType,
 						NAVIER_DATA_NAMESPACE::Force,
 						NAVIER_DATA_NAMESPACE::DirichletData,
 						NAVIER_DATA_NAMESPACE::Pressure,
 						NAVIER_DATA_NAMESPACE::Velocity,
 						3,//number of substeps
-						GridPartType::GridType::dimensionworld,
+                        GridType::dimensionworld,
 						POLORDER,
 						VELOCITY_POLORDER,
 						PRESSURE_POLORDER >
@@ -49,12 +50,18 @@ class ThetaschemeRunner {
 			ThreeStepThetaSchemeAltSplittingType;
 		typedef typename ThreeStepThetaSchemeTraitsType::ThetaSchemeDescriptionType
 			ThreeStepThetaSchemeDescriptionType;
-	public:
-		ThetaschemeRunner( const GridPartType& grid_part, CollectiveCommunicationType& comm )
-			:grid_part_(grid_part),
-			comm_(comm)
-        {
 
+	public:
+        ThetaschemeRunner( GridType& grid,
+                           CollectiveCommunicationType& comm )
+            :grid_part_(grid),
+            comm_(comm)//create gridpart from passed pointer
+        {
+            typedef boost::is_same< typename ThreeStepThetaSchemeTraitsType::GridPartType,
+                        typename OneStepThetaSchemeTraitsType::GridPartType >
+                IdenticalGridParts;
+            dune_static_assert( IdenticalGridParts::value,
+                                "both traits classes need to produce the same gridpart type, otherwise you're doing it wrong" );
         }
 
 		Stuff::RunInfoTimeMap run(const int scheme_type)
@@ -94,7 +101,7 @@ class ThetaschemeRunner {
 		}
 
 	private:
-		const GridPartType& grid_part_;
+        typename ThreeStepThetaSchemeTraitsType::GridPartType grid_part_;
 		CollectiveCommunicationType& comm_;
 };
 

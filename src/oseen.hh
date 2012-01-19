@@ -4,8 +4,8 @@
 #include <dune/navier/global_defines.hh>
 #include <dune/navier/problems.hh>
 
-#include <dune/oseen/discretestokesmodelinterface.hh>
-#include <dune/oseen/stokespass.hh>
+#include <dune/oseen/discreteoseenmodelinterface.hh>
+#include <dune/oseen/oseenpass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
@@ -14,30 +14,33 @@
 #include <dune/navier/fractionaldatawriter.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
+#include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 #include <cmath>
 
 namespace Dune {
 namespace Oseen {
 
 		template <	class TimeProviderType,
-					class GridPartImp,
+                    class GridImp,
 					template < class, class > class ForceFuntionType,
 					template < class, class > class AnalyticalDirichletDataImp,
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		class DiscreteModelTraits
 		{
 			public:
-
+                //! using DGAdaptiveLeafGridPart is mandated by DUNE-FEM, but not in any way checked...
+                typedef Dune::DGAdaptiveLeafGridPart< GridImp >
+                    GridPartType;
 				//! for CRTP trick
 				typedef DiscreteOseenModelDefault < DiscreteModelTraits >
 					DiscreteModelType;
 
 				//! we use caching quadratures for the entities
-				typedef Dune::CachingQuadrature< GridPartImp, 0 >
+                typedef Dune::CachingQuadrature< GridPartType, 0 >
 					VolumeQuadratureType;
 
 				//! we use caching quadratures for the faces
-				typedef Dune::CachingQuadrature< GridPartImp, 1 >
+                typedef Dune::CachingQuadrature< GridPartType, 1 >
 					FaceQuadratureType;
 
 				//! polynomial order for the discrete sigma function space
@@ -45,7 +48,7 @@ namespace Oseen {
 				//! polynomial order for the discrete velocity function space
 				static const int velocitySpaceOrder = velocityOrder;
 				//! polynomial order for the discrete pressure function space
-				static const int pressureSpaceOrder = pressureOrder;
+                static const int pressureSpaceOrder = pressureOrder;
 
 		//    private:
 
@@ -55,7 +58,7 @@ namespace Oseen {
 
 				//! discrete function space type for the velocity
 				typedef Dune::DiscontinuousGalerkinSpace<   VelocityFunctionSpaceType,
-															GridPartImp,
+                                                            GridPartType,
 															velocitySpaceOrder >
 					DiscreteVelocityFunctionSpaceType;
 
@@ -65,7 +68,7 @@ namespace Oseen {
 
 				//! discrete function space type for the pressure
 				typedef Dune::DiscontinuousGalerkinSpace<   PressureFunctionSpaceType,
-															GridPartImp,
+                                                            GridPartType,
 															pressureSpaceOrder >
 					DiscretePressureFunctionSpaceType;
 
@@ -76,8 +79,6 @@ namespace Oseen {
 							DiscreteVelocityFunctionSpaceType,
 							DiscretePressureFunctionSpaceType > >
 					DiscreteOseenFunctionSpaceWrapperType;
-
-			private:
 
 				//! discrete function type for the velocity
 				typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
@@ -106,7 +107,7 @@ namespace Oseen {
 
 				//! discrete function space type for sigma
 				typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
-															GridPartImp,
+                                                            GridPartType,
 															sigmaSpaceOrder >
 					DiscreteSigmaFunctionSpaceType;
 
@@ -142,16 +143,17 @@ namespace Oseen {
 		};
 
 	template <	class CommunicatorImp,
-				class GridPartImp,
+                class GridImp,
 				int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 	struct Traits {
 		typedef Traits<	CommunicatorImp,
-						GridPartImp,
+                        GridImp,
 						gridDim, sigmaOrder,
 						velocityOrder, pressureOrder >
 			ThisType;
-		typedef GridPartImp
-			GridPartType;
+        //! using DGAdaptiveLeafGridPart is mandated by DUNE-FEM, but not in any way checked...
+        typedef Dune::DGAdaptiveLeafGridPart< GridImp >
+            GridPartType;
 		typedef Dune::NavierStokes::ThetaSchemeDescription<1>
 			SchemeDescriptionType;
 		typedef Dune::NavierStokes::FractionalTimeProvider<SchemeDescriptionType,CommunicatorImp>
@@ -159,7 +161,7 @@ namespace Oseen {
 
 		typedef DiscreteModelTraits<
 					TimeProviderType,
-					GridPartType,
+                    GridType,
 					OSEEN_DATA_NAMESPACE::Force,
 					OSEEN_DATA_NAMESPACE::DirichletData,
 					gridDim,

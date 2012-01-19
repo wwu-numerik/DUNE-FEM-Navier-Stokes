@@ -142,17 +142,14 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
 	const int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
 	gridPtr->globalRefine( refine_level );
-	typedef Dune::AdaptiveLeafGridPart< GridType >
-		GridPartType;
-	GridPartType gridPart( *gridPtr );
 
 	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
-    const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
-    infoStream << (boost::format("  - max grid width: %f\n") % grid_width) << std::endl;
+//    const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
+//    infoStream << (boost::format("  - max grid width: %f\n") % grid_width) << std::endl;
 
 	try {
-		return ThetaschemeRunner<GridPartType,CollectiveCommunication>(gridPart,mpicomm).run( scheme_type );
+        return ThetaschemeRunner<GridType,CollectiveCommunication>(*gridPtr,mpicomm).run( scheme_type );
 	}
 	catch (Dune::Exception &e){
 		std::cerr << "Dune reported error: " << e.what() << std::endl;

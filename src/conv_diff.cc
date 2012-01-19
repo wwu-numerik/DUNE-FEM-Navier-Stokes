@@ -1,3 +1,4 @@
+#include "main.hh"
 #include <dune/navier/global_defines.hh>
 
 #include <cstdio>
@@ -19,9 +20,6 @@
 #include <dune/fem/misc/mpimanager.hh> // An initializer of MPI
 #include <dune/common/exceptions.hh> // We use exceptions
 #include <dune/grid/common/capabilities.hh>
-
-//!ATTENTION: undef's GRIDDIM
-#include <dune/grid/io/file/dgfparser/dgfgridtype.hh> // for the grid
 
 #include "conv_diff.hh"
 
@@ -162,7 +160,17 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
 	gridPtr->globalRefine( refine_level );
 
-	typedef Dune::AdaptiveLeafGridPart< GridType >
+
+    typedef Dune::ConvDiff::Traits<
+            CollectiveCommunication,
+            GridType,
+            gridDim,
+            polOrder,
+            VELOCITY_POLORDER,
+            PRESSURE_POLORDER >
+        ConvDiffTraits;
+
+    typedef typename ConvDiffTraits::GridPartType< GridType >
 		GridPartType;
 	GridPartType gridPart( *gridPtr );
 
@@ -184,15 +192,6 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 	stab_coeff.FactorFromParams( "D12", 0 );
 	stab_coeff.FactorFromParams( "C12", 0 );
 	stab_coeff.Add( "E12", 0.5 );
-
-	typedef Dune::ConvDiff::Traits<
-			CollectiveCommunication,
-			GridPartType,
-			gridDim,
-			polOrder,
-			VELOCITY_POLORDER,
-			PRESSURE_POLORDER >
-		ConvDiffTraits;
 
 	CollectiveCommunication comm = Dune::MPIManager::helper().getCommunicator();
 
@@ -254,7 +253,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 						DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType >
 		()(convection, discrete_convection);
 
-	ConvDiffTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
+    Dune::RhsDatacontainer<typename ConvDiffTraits::OseenModelTraits> rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
 	ConvDiffTraits::OseenPassType oseenPass( startPass,
 							stokesModel,

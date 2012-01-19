@@ -1,14 +1,15 @@
 #ifndef STOKESTRAITS_HH
 #define STOKESTRAITS_HH
 
-#include <dune/oseen/discretestokesmodelinterface.hh>
+#include <dune/oseen/discreteoseenmodelinterface.hh>
 #include <dune/navier/rhsadapter.hh>
+#include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
 namespace Dune {
 	namespace NavierStokes {
 		namespace NonlinearStep {
 			template <	class TimeProviderType,
-						class GridPartImp,
+                        class GridImp,
 						template < class, class > class AnalyticalForceFunctionType,
 						template < class, class, class, class> class ForceAdatperTemplateType,
 						template < class, class > class AnalyticalDirichletDataImp,
@@ -17,17 +18,19 @@ namespace Dune {
 			class DiscreteOseenModelTraits
 			{
 				public:
-
+                    //! using DGAdaptiveLeafGridPart is mandated by DUNE-FEM, but not in any way checked...
+                    typedef Dune::DGAdaptiveLeafGridPart< GridImp >
+                        GridPartType;
 					//! for CRTP trick
 					typedef DiscreteOseenModelDefault < DiscreteOseenModelTraits >
 						DiscreteModelType;
 
 					//! we use caching quadratures for the entities
-					typedef Dune::CachingQuadrature< GridPartImp, 0 >
+                    typedef Dune::CachingQuadrature< GridPartType, 0 >
 						VolumeQuadratureType;
 
 					//! we use caching quadratures for the faces
-					typedef Dune::CachingQuadrature< GridPartImp, 1 >
+                    typedef Dune::CachingQuadrature< GridPartType, 1 >
 						FaceQuadratureType;
 
 					//! polynomial order for the discrete sigma function space
@@ -43,7 +46,7 @@ namespace Dune {
 
 					//! discrete function space type for the velocity
 					typedef Dune::DiscontinuousGalerkinSpace<   VelocityFunctionSpaceType,
-																GridPartImp,
+                                                                GridPartType,
 																velocitySpaceOrder >
 						DiscreteVelocityFunctionSpaceType;
 
@@ -53,7 +56,7 @@ namespace Dune {
 
 					//! discrete function space type for the pressure
 					typedef Dune::DiscontinuousGalerkinSpace<   PressureFunctionSpaceType,
-																GridPartImp,
+                                                                GridPartType,
 																pressureSpaceOrder >
 						DiscretePressureFunctionSpaceType;
 
@@ -74,12 +77,12 @@ namespace Dune {
                                                         gridDim >
                         SigmaFunctionSpaceType;
 
+                public:
                     //! discrete function space type for sigma
                     typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
-                                                                GridPartImp,
+                                                                GridPartType,
                                                                 sigmaSpaceOrder >
                         DiscreteSigmaFunctionSpaceType;
-
 
                 #if STOKES_USE_ISTL
                         //! discrete function type for the velocity
@@ -90,7 +93,6 @@ namespace Dune {
                         typedef Dune::BlockVectorDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
                             DiscretePressureFunctionType;
 
-                    public:
                         //! discrete function type for sigma
                         typedef Dune::BlockVectorDiscreteFunction< DiscreteSigmaFunctionSpaceType >
                             DiscreteSigmaFunctionType;
@@ -103,13 +105,11 @@ namespace Dune {
                         typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
                             DiscretePressureFunctionType;
 
-                    public:
                         //! discrete function type for sigma
                         typedef Dune::AdaptiveDiscreteFunction< DiscreteSigmaFunctionSpaceType >
                             DiscreteSigmaFunctionType;
                 #endif
 
-				public:
 
 					//! discrete function wrapper type
 					typedef Dune::DiscreteOseenFunctionWrapper< Dune::DiscreteOseenFunctionWrapperTraits<
@@ -134,7 +134,7 @@ namespace Dune {
 
 					//! function type for the analytical dirichlet data
 //					typedef typename Dune::NavierStokes::DirichletAdapterFunctionTraits< AnalyticalDirichletDataImp, TimeProviderType >
-//										::template Implementation<VelocityFunctionSpaceType,GridPartImp >
+//										::template Implementation<VelocityFunctionSpaceType,GridPartType >
 //							AnalyticalDirichletDataTraitsImplementation;
 					typedef AnalyticalDirichletDataImp< VelocityFunctionSpaceType, TimeProviderType >
 						AnalyticalDirichletDataType;

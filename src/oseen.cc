@@ -99,15 +99,22 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 		gridPtr->globalRefine( refine_level );
 	}
 
-	typedef Dune::AdaptiveLeafGridPart< GridType >
+    const int polOrder = POLORDER;
+    typedef Dune::Oseen::Traits<
+            CollectiveCommunication,
+            GridType,
+            gridDim,
+            polOrder,
+            VELOCITY_POLORDER,
+            PRESSURE_POLORDER >
+        OseenTraits;
+
+    typedef typename OseenTraits::GridPartType
 		GridPartType;
 	GridPartType gridPart( *gridPtr );
 
 	infoStream << "\n- initialising problem" << std::endl;
-
-	const int polOrder = POLORDER;
 	debugStream << "  - polOrder: " << polOrder << std::endl;
-
 	const double grid_width = Dune::GridWidth::calcGridWidth( gridPart );
 	infoStream << "  - max grid width: " << grid_width << std::endl;
 
@@ -136,15 +143,6 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 //	stab_coeff.FactorFromParams( "C12", 0 );
 //	stab_coeff.Add( "E12", 0.5 );
 //	stab_coeff.FactorFromParams( "E12", 0.5 );
-
-	typedef Dune::Oseen::Traits<
-			CollectiveCommunication,
-			GridPartType,
-			gridDim,
-			polOrder,
-			VELOCITY_POLORDER,
-			PRESSURE_POLORDER >
-		OseenTraits;
 
 	OseenTraits::TimeProviderType timeprovider_( OseenTraits::SchemeDescriptionType::crank_nicholson( 0.5 ), comm );
 	OseenTraits::OseenModelTraits::DiscreteOseenFunctionSpaceWrapperType functionSpaceWrapper ( gridPart );
@@ -203,7 +201,7 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& comm,
 		()(convection, discrete_convection);
 
 	OseenTraits::OseenModelTraits::DiscreteSigmaFunctionSpaceType sigma_space ( gridPart );
-	OseenTraits::OseenPassType::RhsDatacontainer rhs_container ( currentFunctions.discreteVelocity().space(),
+    Dune::Oseen::RhsDatacontainer<typename OseenTraits::OseenModelTraits> rhs_container ( currentFunctions.discreteVelocity().space(),
 																 sigma_space );
     auto beta = exactSolution.discreteVelocity();
     typedef OSEEN_DATA_NAMESPACE::Beta< OseenTraits::OseenModelTraits::VelocityFunctionSpaceType, OseenTraits::TimeProviderType >

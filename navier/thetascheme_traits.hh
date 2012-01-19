@@ -1,8 +1,8 @@
 #ifndef THETASCHEME_TRAITS_HH
 #define THETASCHEME_TRAITS_HH
 
-#include <dune/oseen/discretestokesmodelinterface.hh>
-#include <dune/oseen/stokespass.hh>
+#include <dune/oseen/discreteoseenmodelinterface.hh>
+#include <dune/oseen/oseenpass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
@@ -134,7 +134,7 @@ namespace Dune {
 	    }
 
 		template <	class CommunicatorImp,
-					class GridPartImp,
+                    class GridImp,
 					template < class,class > class AnalyticalForceImp,
 					template < class,class > class AnalyticalDirichletDataImp,
 					template < class,class > class ExactPressureImp,
@@ -143,7 +143,7 @@ namespace Dune {
 					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
 		struct ThetaSchemeTraits {
 			typedef ThetaSchemeTraits<	CommunicatorImp,
-										GridPartImp,
+                                        GridImp,
 										AnalyticalForceImp,
 										AnalyticalDirichletDataImp,
 										ExactPressureImp,
@@ -151,9 +151,8 @@ namespace Dune {
 										subStepCount,
 										gridDim, sigmaOrder, velocityOrder , pressureOrder >
 				ThisType;
-
-			typedef GridPartImp
-				GridPartType;
+            typedef GridImp
+                GridType;
 
 			static const int substep_count = subStepCount;
 			typedef ThetaSchemeDescription< subStepCount >
@@ -163,7 +162,7 @@ namespace Dune {
 
             typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
-						GridPartType,
+                        GridType,
 						AnalyticalForceImp,
 						OseenStep::ForceAdapterFunction,
 						AnalyticalDirichletDataImp,
@@ -173,9 +172,11 @@ namespace Dune {
 						velocityOrder,
 						pressureOrder >
 				OseenModelTraits;
+            typedef typename OseenModelTraits::GridPartType
+                GridPartType;
             typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
-						GridPartType,
+                        GridType,
 						AnalyticalForceImp,
 						StokesStep::ForceAdapterFunction,
 						AnalyticalDirichletDataImp,
@@ -188,7 +189,7 @@ namespace Dune {
 
             typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
-						GridPartType,
+                        GridType,
 						AnalyticalForceImp,
 						NonlinearStep::ForceAdapterFunction,
 						AnalyticalDirichletDataImp,
@@ -201,7 +202,7 @@ namespace Dune {
 
             typedef NonlinearStep::DiscreteOseenModelTraits<
 						TimeProviderType,
-						GridPartType,
+                        GridType,
 						AnalyticalForceImp,
 						OseenStep::DummyForceAdapterFunction,
 						AnalyticalDirichletDataImp,

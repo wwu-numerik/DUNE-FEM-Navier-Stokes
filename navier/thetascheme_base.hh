@@ -19,10 +19,11 @@
 #include <dune/navier/thetascheme_traits.hh>
 #include <dune/navier/fractionaldatawriter.hh>
 #include <dune/navier/global_defines.hh>
+#include <dune/oseen/oseenpass.hh>
 
 namespace Dune {
 	namespace NavierStokes {
-		template < class TraitsImp >
+        template < class TraitsImp >
 		class ThetaSchemeBase {
 			protected:
 				typedef TraitsImp
@@ -53,6 +54,8 @@ namespace Dune {
 												typename Traits::GridPartType::GridType,
 												OutputTupleType2 >
 					DataWriterType2;
+                typedef Dune::Oseen::RhsDatacontainer<typename Traits::OseenModelTraits>
+                    DataContainerType;
 				typedef typename Traits::DiscreteOseenFunctionWrapperType::DiscreteVelocityFunctionType
 					DiscreteVelocityFunctionType;
 				typedef typename Traits::DiscreteOseenFunctionWrapperType::DiscretePressureFunctionType
@@ -77,7 +80,7 @@ namespace Dune {
 				CheckPointerType check_pointer_;
 				DataWriterType2 dataWriter2_;
 				const typename Traits::OseenPassType::Traits::DiscreteSigmaFunctionSpaceType sigma_space_;
-				mutable typename Traits::OseenPassType::RhsDatacontainer rhsDatacontainer_;
+                mutable DataContainerType rhsDatacontainer_;
 				mutable typename Traits::DiscreteOseenFunctionWrapperType lastFunctions_;
 
 				typedef Stuff::L2Error< typename Traits::GridPartType >
@@ -338,7 +341,7 @@ namespace Dune {
 //					check_pointer_.write( timeprovider_.time(), timeprovider_.timeStep() );
 				}
 
-				typename Traits::OseenPassType::RhsDatacontainer& rhsDatacontainer()
+                DataContainerType& rhsDatacontainer()
 				{
 					return rhsDatacontainer_;
 				}
