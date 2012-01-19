@@ -1,7 +1,7 @@
 #ifndef STOKESTRAITS_HH
 #define STOKESTRAITS_HH
 
-#include <dune/oseen/discreteoseenmodelinterface.hh>
+#include <dune/oseen/modelinterface.hh>
 #include <dune/navier/rhsadapter.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
@@ -14,7 +14,8 @@ namespace Dune {
 						template < class, class, class, class> class ForceAdatperTemplateType,
 						template < class, class > class AnalyticalDirichletDataImp,
 						class ThetaValueArrayType,
-						int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
+                        int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder,
+                        template< class, class, int, template<class> class BaseFunctionStorageImp = Dune::CachingStorage > class GalerkinSpaceImp = Dune::DiscontinuousGalerkinSpace>
 			class DiscreteOseenModelTraits
 			{
 				public:
@@ -45,7 +46,7 @@ namespace Dune {
 						VelocityFunctionSpaceType;
 
 					//! discrete function space type for the velocity
-					typedef Dune::DiscontinuousGalerkinSpace<   VelocityFunctionSpaceType,
+                    typedef GalerkinSpaceImp<   VelocityFunctionSpaceType,
                                                                 GridPartType,
 																velocitySpaceOrder >
 						DiscreteVelocityFunctionSpaceType;
@@ -55,7 +56,7 @@ namespace Dune {
 						PressureFunctionSpaceType;
 
 					//! discrete function space type for the pressure
-					typedef Dune::DiscontinuousGalerkinSpace<   PressureFunctionSpaceType,
+                    typedef GalerkinSpaceImp<   PressureFunctionSpaceType,
                                                                 GridPartType,
 																pressureSpaceOrder >
 						DiscretePressureFunctionSpaceType;
@@ -79,7 +80,7 @@ namespace Dune {
 
                 public:
                     //! discrete function space type for sigma
-                    typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
+                    typedef GalerkinSpaceImp<   SigmaFunctionSpaceType,
                                                                 GridPartType,
                                                                 sigmaSpaceOrder >
                         DiscreteSigmaFunctionSpaceType;

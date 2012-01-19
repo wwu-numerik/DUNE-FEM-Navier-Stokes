@@ -4,8 +4,8 @@
 #include <dune/navier/global_defines.hh>
 #include <dune/navier/problems.hh>
 
-#include <dune/oseen/discreteoseenmodelinterface.hh>
-#include <dune/oseen/oseenpass.hh>
+#include <dune/oseen/modelinterface.hh>
+#include <dune/oseen/pass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
@@ -24,7 +24,8 @@ namespace Oseen {
                     class GridImp,
 					template < class, class > class ForceFuntionType,
 					template < class, class > class AnalyticalDirichletDataImp,
-					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
+                    int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder,
+                    template< class, class, int, template<class> class BaseFunctionStorageImp = Dune::CachingStorage > class GalerkinSpaceImp = Dune::DiscontinuousGalerkinSpace>
 		class DiscreteModelTraits
 		{
 			public:
@@ -57,7 +58,7 @@ namespace Oseen {
 					VelocityFunctionSpaceType;
 
 				//! discrete function space type for the velocity
-				typedef Dune::DiscontinuousGalerkinSpace<   VelocityFunctionSpaceType,
+                typedef GalerkinSpaceImp<   VelocityFunctionSpaceType,
                                                             GridPartType,
 															velocitySpaceOrder >
 					DiscreteVelocityFunctionSpaceType;
@@ -67,7 +68,7 @@ namespace Oseen {
 					PressureFunctionSpaceType;
 
 				//! discrete function space type for the pressure
-				typedef Dune::DiscontinuousGalerkinSpace<   PressureFunctionSpaceType,
+                typedef GalerkinSpaceImp<   PressureFunctionSpaceType,
                                                             GridPartType,
 															pressureSpaceOrder >
 					DiscretePressureFunctionSpaceType;
@@ -106,7 +107,7 @@ namespace Oseen {
 					SigmaFunctionSpaceType;
 
 				//! discrete function space type for sigma
-				typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
+                typedef GalerkinSpaceImp<   SigmaFunctionSpaceType,
                                                             GridPartType,
 															sigmaSpaceOrder >
 					DiscreteSigmaFunctionSpaceType;

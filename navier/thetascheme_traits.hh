@@ -1,8 +1,8 @@
 #ifndef THETASCHEME_TRAITS_HH
 #define THETASCHEME_TRAITS_HH
 
-#include <dune/oseen/discreteoseenmodelinterface.hh>
-#include <dune/oseen/oseenpass.hh>
+#include <dune/oseen/modelinterface.hh>
+#include <dune/oseen/pass.hh>
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>

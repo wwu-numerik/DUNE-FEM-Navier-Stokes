@@ -19,7 +19,7 @@
 #include <dune/navier/thetascheme_traits.hh>
 #include <dune/navier/fractionaldatawriter.hh>
 #include <dune/navier/global_defines.hh>
-#include <dune/oseen/oseenpass.hh>
+#include <dune/oseen/pass.hh>
 
 namespace Dune {
 	namespace NavierStokes {

@@ -18,9 +18,9 @@
 #include <dune/fem/misc/gridwidth.hh>
 #include <dune/fem/misc/l2error.hh>
 
-#include <dune/oseen/discreteoseenfunctionspacewrapper.hh>
-#include <dune/oseen/discreteoseenmodelinterface.hh>
-#include <dune/oseen/oseenpass.hh>
+#include <dune/oseen/functionspacewrapper.hh>
+#include <dune/oseen/modelinterface.hh>
+#include <dune/oseen/pass.hh>
 #include <dune/oseen/boundarydata.hh>
 
 #include <dune/stuff/printing.hh>
@@ -2122,8 +2122,8 @@ namespace ConvDiff {
 #include <dune/navier/fractionaltimeprovider.hh>
 #include <dune/navier/stokestraits.hh>
 #include <dune/navier/exactsolution.hh>
-#include <dune/oseen/discreteoseenmodelinterface.hh>
-#include <dune/oseen/oseenpass.hh>
+#include <dune/oseen/modelinterface.hh>
+#include <dune/oseen/pass.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/navier/fractionaldatawriter.hh>
 #include <dune/stuff/functions.hh>
@@ -2140,7 +2140,8 @@ namespace ConvDiff {
 					class GridPartImp,
 					template < class > class ForceFuntionType,
 					template < class > class AnalyticalDirichletDataImp,
-					int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder >
+                    int gridDim, int sigmaOrder, int velocityOrder = sigmaOrder, int pressureOrder = sigmaOrder,
+                    template< class, class, int, template<class> class BaseFunctionStorageImp = Dune::CachingStorage > class GalerkinSpaceImp = Dune::DiscontinuousGalerkinSpace>
 		class DiscreteModelTraits
 		{
 			public:
@@ -2171,7 +2172,7 @@ namespace ConvDiff {
 					VelocityFunctionSpaceType;
 
 				//! discrete function space type for the velocity
-				typedef Dune::DiscontinuousGalerkinSpace<   VelocityFunctionSpaceType,
+                typedef GalerkinSpaceImp<   VelocityFunctionSpaceType,
 															GridPartImp,
 															velocitySpaceOrder >
 					DiscreteVelocityFunctionSpaceType;
@@ -2181,7 +2182,7 @@ namespace ConvDiff {
 					PressureFunctionSpaceType;
 
 				//! discrete function space type for the pressure
-				typedef Dune::DiscontinuousGalerkinSpace<   PressureFunctionSpaceType,
+                typedef GalerkinSpaceImp<   PressureFunctionSpaceType,
 															GridPartImp,
 															pressureSpaceOrder >
 					DiscretePressureFunctionSpaceType;
@@ -2224,7 +2225,7 @@ namespace ConvDiff {
 					SigmaFunctionSpaceType;
 
 				//! discrete function space type for sigma
-				typedef Dune::DiscontinuousGalerkinSpace<   SigmaFunctionSpaceType,
+                typedef GalerkinSpaceImp<   SigmaFunctionSpaceType,
 															GridPartImp,
 															sigmaSpaceOrder >
 					DiscreteSigmaFunctionSpaceType;
