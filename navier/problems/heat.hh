@@ -13,14 +13,15 @@ static const std::string identifier = "Heat";
 static const bool hasExactSolution	= true;
 ALLGOOD_SETUPCHECK;
 
+static const double PI_FAC = 0.5 * M_PI;
 
 template < class DomainType, class RangeType >
 void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& arg, RangeType& ret)
 {
     const double x				= arg[0];
     const double y				= arg[1];
-    ret[0] = std::cos( 2 * M_PI * x );
-    ret[1] = std::cos( 2 * M_PI * y );
+    ret[0] = std::cos( PI_FAC * x );
+    ret[1] = std::cos( PI_FAC * y );
     ret *= ( 1.0 - time );
 }
 
@@ -67,7 +68,7 @@ public:
 	{
 		RangeType u;
         VelocityEvaluate( 0, time, arg, u);
-        u*= ( -1.0 - 4 * M_PI * M_PI);
+        u*= ( -1.0 - PI_FAC * PI_FAC);
 	}
 
 private:
