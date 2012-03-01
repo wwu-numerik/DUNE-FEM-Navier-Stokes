@@ -13,14 +13,15 @@ static const std::string identifier = "Heat";
 static const bool hasExactSolution	= true;
 ALLGOOD_SETUPCHECK;
 
+static const double PI_FAC = 0.5 * M_PI;
 
 template < class DomainType, class RangeType >
 void VelocityEvaluate( const double /*lambda*/, const double time, const DomainType& arg, RangeType& ret)
 {
     const double x				= arg[0];
     const double y				= arg[1];
-    ret[0] = std::cos( 2 * M_PI * x );
-    ret[1] = std::cos( 2 * M_PI * y );
+    ret[0] = std::cos( PI_FAC * x );
+    ret[1] = std::cos( PI_FAC * y );
     ret *= ( 1.0 - time );
 }
 
@@ -65,9 +66,8 @@ public:
 	  **/
     inline void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 	{
-		RangeType u;
-        VelocityEvaluate( 0, time, arg, u);
-        u*= ( -1.0 - 4 * M_PI * M_PI);
+        VelocityEvaluate( 0, time, arg, ret);
+        ret *= ( -1.0 - PI_FAC * PI_FAC);
 	}
 
 private:
@@ -302,8 +302,43 @@ private:
 	double shift_;
 };
 
+template < class FunctionSpaceImp, class TimeProviderImp >
+class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+{
+public:
+    typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
+        ThisType;
+    typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        BaseType;
+    typedef typename BaseType::DomainType
+        DomainType;
+    typedef typename BaseType::RangeType
+        RangeType;
+
+    VelocityLaplace(	const TimeProviderImp& timeprovider,
+                        const FunctionSpaceImp& space,
+                        const double parameter_a = M_PI /2.0 ,
+                        const double parameter_d = M_PI /4.0)
+        : BaseType( timeprovider, space ),
+          parameter_a_( parameter_a ),
+          parameter_d_( parameter_d )
+    {}
+
+    ~VelocityLaplace() {}
+
+    void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
+    {
+        VelocityEvaluate( 0, time, arg, ret);
+        ret *= - PI_FAC * PI_FAC;
+    }
+
+private:
+    static const int dim_ = FunctionSpaceImp::dimDomain ;
+    const double parameter_a_;
+    const double parameter_d_;
+};
+
 NULLFUNCTION_TP(PressureGradient)
-NULLFUNCTION_TP(VelocityLaplace)
 }//end ns
 }//end ns
 
