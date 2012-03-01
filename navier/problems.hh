@@ -11,6 +11,7 @@
 #include "problems/timedisc.hh"
 #include "problems/trivial.hh"
 #include "problems/taylor.hh"
+#include "problems/heat.hh"
 #include "problems/testcase2d.hh"
 #include "problems/testcase3d.hh"
 #include "problems/cockburn.hh"
