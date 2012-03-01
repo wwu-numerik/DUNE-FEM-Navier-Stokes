@@ -326,7 +326,7 @@ public:
 
     ~VelocityLaplace() {}
 
-    void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
     {
         VelocityEvaluate( 0, time, arg, ret);
         ret *= - PI_FAC * PI_FAC;
