@@ -121,6 +121,43 @@ private:
 	static const int dim_ = FunctionSpaceImp::dimDomain;
 };
 
+template < class FunctionSpaceImp, class TimeProviderImp >
+class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , PressureGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+{
+public:
+    typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
+        ThisType;
+    typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        BaseType;
+    typedef typename BaseType::DomainType
+        DomainType;
+    typedef typename BaseType::RangeType
+        RangeType;
+
+    PressureGradient(	const TimeProviderImp& timeprovider,
+                        const FunctionSpaceImp& space,
+                        const double parameter_a = M_PI /2.0 ,
+                        const double parameter_d = M_PI /4.0)
+        : BaseType( timeprovider, space ),
+          parameter_a_( parameter_a ),
+          parameter_d_( parameter_d )
+    {}
+
+    ~PressureGradient()
+    {}
+
+    void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
+    {
+        const double x				= arg[0];
+        const double y				= arg[1];
+        ret[0] = 2 * std::exp( x ) * std::sin( y );
+        ret[1] = 2 * std::exp( x ) * std::cos( y );
+    }
+
+private:
+    const double parameter_a_;
+    const double parameter_d_;
+};
 
 //! gd
 template < class FunctionSpaceImp, class TimeProviderImp >
