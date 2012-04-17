@@ -137,9 +137,11 @@ namespace Dune {
 					tmp.assign( pressure_gradient );
 					tmp *= ( theta_values_[1] );
 					*this -= tmp;
-					*this *= dt_n ;
+					//*this *= dt_n ;
+					tmp.assign( velocity );
+					tmp /= dt_n;
 
-					*this += velocity;
+					*this += tmp;
 				}
 
 

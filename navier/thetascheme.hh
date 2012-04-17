@@ -75,6 +75,8 @@ namespace Dune {
                         Dune::BruteForceReconstruction< typename Traits::OseenModelType >
 															::getConvection( beta, rhsDatacontainer_.velocity_gradient, rhsDatacontainer_.convection );
 					}
+					auto null_f ( exactSolution_.discreteVelocity() );
+					null_f *= 0.0;
 					boost::scoped_ptr< typename Traits::OseenForceAdapterFunctionType >
 							ptr_oseenForceVanilla( first_step //in our very first step no previous computed data is avail. in rhs_container
 												? new typename Traits::OseenForceAdapterFunctionType (	timeprovider_,
@@ -153,11 +155,11 @@ namespace Dune {
 								oseenModel( stab_coeff,
 											do_cheat ? *ptr_oseenForce : *ptr_oseenForceVanilla,
 											oseenDirichletData,
-											theta_values[0] * dt_n / reynolds_, /*viscosity*/
-											1.0f, /*alpha*/
+											theta_values[0] / reynolds_, /*viscosity*/
+											1.0f/ dt_n, /*alpha*/
 //											do_convection_disc ? theta_values[0] * dt_n : 0.0, /*convection_scale_factor*/
-											theta_values[0] * dt_n, /*convection_scale_factor*/
-											theta_values[0] * dt_k/*pressure_gradient_scale_factor*/
+											theta_values[0] , /*convection_scale_factor*/
+											theta_values[0] /*pressure_gradient_scale_factor*/
 						                   );
 
                         typename Traits::OseenPassType oseenPass( oseenModel,
@@ -169,7 +171,7 @@ namespace Dune {
 							oseenPass.printInfo();
 						if ( Parameters().getParam( "silent_stokes", true ) )
 							Logger().Info().Suspend( Stuff::Logging::LogStream::default_suspend_priority + 10 );
-						currentFunctions_.clear();
+						//currentFunctions_.clear();
 						if ( Parameters().getParam( "clear_u" , true ) )
 							nextFunctions_.discreteVelocity().clear();
 						if ( Parameters().getParam( "clear_p" , true ) )
