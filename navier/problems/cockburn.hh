@@ -43,7 +43,6 @@ struct SetupCheck {
 };
 
 NULLFUNCTION_TP(VelocityLaplace)
-NULLFUNCTION_TP(PressureGradient)
 
 template < class DomainType, class RangeType >
 void VelocityEvaluate( const double /*lambda*/, const double /*time*/, const DomainType& arg, RangeType& ret)
@@ -146,7 +145,7 @@ public:
     ~PressureGradient()
     {}
 
-    void evaluateTime( const double time, const DomainType& /*arg*/, RangeType& ret ) const
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
     {
         const double x				= arg[0];
         const double y				= arg[1];
