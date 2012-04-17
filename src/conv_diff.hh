@@ -40,7 +40,7 @@ namespace Dune {
 namespace ConvDiff {
 	namespace TestCase2D {
 		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 		{
 			  public:
 				  typedef Force< FunctionSpaceImp >
@@ -112,7 +112,6 @@ namespace ConvDiff {
 				  const double alpha_;
 				  const double lambda_;
 				  const double gamma_;
-				  static const int dim_ = FunctionSpaceImp::dimDomain;
 		};
 
 		template < class DomainType, class RangeType >
@@ -126,7 +125,7 @@ namespace ConvDiff {
 			ret[1] = (lambda/(2*M_PI)) * e_lambda_x * 	std::sin( 2 * M_PI * y );
 		}
 		template < class FunctionSpaceImp >
-		class Beta : public Function < FunctionSpaceImp , Beta< FunctionSpaceImp > >
+		class Beta : public Fem::Function < FunctionSpaceImp , Beta< FunctionSpaceImp > >
 		{
 			public:
 				typedef Beta< FunctionSpaceImp >
@@ -179,7 +178,7 @@ namespace ConvDiff {
 				  const double lambda_;
 		};
 		template < class FunctionSpaceImp >
-		class ExactConvection : public Function < FunctionSpaceImp , ExactConvection< FunctionSpaceImp > >
+		class ExactConvection : public Fem::Function < FunctionSpaceImp , ExactConvection< FunctionSpaceImp > >
 		{
 			public:
 				typedef ExactConvection< FunctionSpaceImp >
@@ -252,7 +251,7 @@ namespace ConvDiff {
 		*  \todo   extensive docu with latex
 		**/
 		template < class FunctionSpaceImp >
-		class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+		class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 		{
 			public:
 				typedef DirichletData< FunctionSpaceImp >
@@ -433,7 +432,7 @@ namespace ConvDiff {
 	namespace TestCaseTaylor2D {
 
 		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 		{
 			  public:
 				  typedef Force< FunctionSpaceImp >
@@ -527,7 +526,7 @@ namespace ConvDiff {
 		*  \todo   extensive docu with latex
 		**/
 		template < class FunctionSpaceImp >
-		class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+		class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 		{
 			public:
 				typedef DirichletData< FunctionSpaceImp >
@@ -580,7 +579,7 @@ namespace ConvDiff {
 				  const double lambda_;
 		};
 		template < class FunctionSpaceImp >
-		class Beta : public Function < FunctionSpaceImp , Beta< FunctionSpaceImp > >
+		class Beta : public Fem::Function < FunctionSpaceImp , Beta< FunctionSpaceImp > >
 		{
 			public:
 				typedef Beta< FunctionSpaceImp >
@@ -633,7 +632,7 @@ namespace ConvDiff {
 				  const double lambda_;
 		};
 		template < class FunctionSpaceImp >
-		class ExactConvection : public Function < FunctionSpaceImp , ExactConvection< FunctionSpaceImp > >
+		class ExactConvection : public Fem::Function < FunctionSpaceImp , ExactConvection< FunctionSpaceImp > >
 		{
 			public:
 				typedef ExactConvection< FunctionSpaceImp >
@@ -815,7 +814,7 @@ namespace ConvDiff {
 
 	namespace TrivialTestCase {
 		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 		{
 			  public:
 				  typedef Force< FunctionSpaceImp >
@@ -911,7 +910,7 @@ namespace ConvDiff {
 			ret[1] = -y;
 		}
 		template < class FunctionSpaceImp >
-		class Beta : public Function < FunctionSpaceImp , Beta < FunctionSpaceImp > >
+		class Beta : public Fem::Function < FunctionSpaceImp , Beta < FunctionSpaceImp > >
 		{
 			  public:
 				  typedef Beta< FunctionSpaceImp >
@@ -952,7 +951,7 @@ namespace ConvDiff {
 		};
 
 		template < class FunctionSpaceImp >
-		class ExactConvection : public Function < FunctionSpaceImp , ExactConvection < FunctionSpaceImp > >
+		class ExactConvection : public Fem::Function < FunctionSpaceImp , ExactConvection < FunctionSpaceImp > >
 		{
 			  public:
 				  typedef ExactConvection< FunctionSpaceImp >
@@ -1001,7 +1000,7 @@ namespace ConvDiff {
 		*  \todo   extensive docu with latex
 		**/
 		template < class FunctionSpaceImp >
-		class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+		class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 		{
 			public:
 				typedef DirichletData< FunctionSpaceImp >
@@ -1819,7 +1818,7 @@ namespace ConvDiff {
 		NULLFUNCTION_TP(VelocityGradient)
 
 		template < class FunctionSpaceImp >
-		class Force : public Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
+		class Force : public Fem::Function < FunctionSpaceImp , Force < FunctionSpaceImp > >
 		{
 			  public:
 				  typedef Force< FunctionSpaceImp >
@@ -1890,7 +1889,7 @@ namespace ConvDiff {
 		};
 
 		template < class FunctionSpaceImp >
-		class DirichletData : public Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
+		class DirichletData : public Fem::Function < FunctionSpaceImp , DirichletData < FunctionSpaceImp > >
 		{
 			public:
 				typedef DirichletData< FunctionSpaceImp >
