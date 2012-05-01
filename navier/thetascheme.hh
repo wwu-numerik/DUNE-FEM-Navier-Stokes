@@ -70,7 +70,7 @@ namespace Dune {
                     {
                         //reconstruct the prev convection term
                         auto beta = currentFunctions_.discreteVelocity();
-                        beta *= 3.0;
+                        beta *= 1.5;
                         auto dummy = lastFunctions_.discreteVelocity();
                         dummy *= 0.5;
                         beta -= dummy;
@@ -142,7 +142,8 @@ namespace Dune {
                     stab_coeff.FactorFromParams( "C12" );
                     stab_coeff.FactorFromParams( "D11" );
                     stab_coeff.FactorFromParams( "D12" );
-                    typename Traits::AnalyticalDirichletDataType oseenDirichletData ( timeprovider_,functionSpaceWrapper_ );
+                    typename Traits::AnalyticalDirichletDataType oseenDirichletData ( timeprovider_,
+                            functionSpaceWrapper_, theta_values[0], 1 - theta_values[0] );
                     typename Traits::OseenModelType
                             oseenModel( stab_coeff,
                                         *rhs,
