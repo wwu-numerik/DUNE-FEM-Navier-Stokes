@@ -109,7 +109,8 @@ namespace Dune {
 											);
 					typename BaseType::L2ErrorType::Errors errors_rhs = l2Error_.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForce),
 																		static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla) );
-					std::cerr << "RHS " << errors_rhs.str();
+					Logger().Dbg().Resume(9000);
+					Logger().Dbg() << "RHS " << errors_rhs.str() << std::endl;
 					typename Traits::DiscreteOseenFunctionWrapperType
 							exactSolution_at_next_time ( "reoh", exactSolution_.space(), gridPart_ );
 					exactSolution_.atTime( timeprovider_.subTime(), exactSolution_at_next_time  );
@@ -118,6 +119,8 @@ namespace Dune {
 					typename Traits::AnalyticalDirichletDataType oseenDirichletData ( timeprovider_,functionSpaceWrapper_ );
 					Dune::BetterL2Projection
 						::project( timeprovider_, oseenDirichletData, dummyFunctions_.discreteVelocity());
+					const double boundaryInt = Stuff::boundaryIntegral( oseenDirichletData, BaseType::currentFunctions().discreteVelocity().space() );
+					Logger().Dbg() << boost::format("discrete Boundary integral: %e\n") % boundaryInt;
 
 					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1), ValidateGreater<unsigned int>( 0 ) );
 					const double dt_n = timeprovider_.deltaT();
@@ -138,8 +141,9 @@ namespace Dune {
 								&& ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/) )
 						{
 							beta *= 3.0;
-							beta -= lastFunctions_.discreteVelocity();
-							beta *= 0.5;
+                            auto dummy = lastFunctions_.discreteVelocity();
+                            dummy *= 0.5;
+                            beta -= dummy;
 							abort_loop = true; // linCN only needs a single "iteration"
 						}
 						else if ( !do_convection_disc )
