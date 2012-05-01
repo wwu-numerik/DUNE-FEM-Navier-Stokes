@@ -3,6 +3,8 @@
 
 #include <dune/oseen/modelinterface.hh>
 #include <dune/navier/rhsadapter.hh>
+#include <dune/navier/weighed_function.hh>
+
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
 namespace Dune {
@@ -138,6 +140,8 @@ namespace Dune {
 //										::template Implementation<VelocityFunctionSpaceType,GridPartType >
 //							AnalyticalDirichletDataTraitsImplementation;
 					typedef AnalyticalDirichletDataImp< VelocityFunctionSpaceType, TimeProviderType >
+                        AnalyticalDirichletDataFunctionType;
+                    typedef WeighedIntersectionFunction< VelocityFunctionSpaceType, TimeProviderType, AnalyticalDirichletDataFunctionType >
 						AnalyticalDirichletDataType;
 
 					/**

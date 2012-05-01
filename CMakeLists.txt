@@ -188,7 +188,7 @@ HEADERCHECK( ${header} ${oseen} ${navier} )
 ADD_DEFINITIONS( ${MY_CXX_FLAGS} )
 ADD_CPPCHECK( ${CMAKE_CURRENT_SOURCE_DIR}/src/dune_navier_stokes.cc ${COMMON_HEADER} )
 
-SET( PROBLEMS TwoDeeTube Cockburn Null Taylor TwoDee TimeDisc Trivial Runtime)
+SET( PROBLEMS TwoDeeTube Cockburn Null Taylor TwoDee TimeDisc Trivial Runtime DampedParallel)
 SET( INCOMPLETEPROBLEMS ThreeDee )
 
 FOREACH( problem ${PROBLEMS} )

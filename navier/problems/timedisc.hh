@@ -170,6 +170,43 @@ private:
 };
 
 template < class FunctionSpaceImp, class TimeProviderImp >
+class Beta : public Dune::TimeFunction < FunctionSpaceImp , Beta< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+{
+public:
+    typedef Beta< FunctionSpaceImp, TimeProviderImp >
+        ThisType;
+    typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        BaseType;
+    typedef typename BaseType::DomainType
+        DomainType;
+    typedef typename BaseType::RangeType
+        RangeType;
+
+    Beta(	const TimeProviderImp& timeprovider,
+                const FunctionSpaceImp& space,
+                const double parameter_a = M_PI /2.0 ,
+                const double parameter_d = M_PI /4.0)
+        : BaseType( timeprovider, space ),
+          parameter_a_( parameter_a ),
+          parameter_d_( parameter_d )
+    {}
+
+    ~Beta()
+    {}
+
+    void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
+    {
+        dune_static_assert( FunctionSpaceImp::dimDomain == 2  , "Wrong world dim");
+        evaluateTimeVelocity( time, arg, ret );
+    }
+
+private:
+    static const int dim_ = FunctionSpaceImp::dimDomain ;
+    const double parameter_a_;
+    const double parameter_d_;
+};
+
+template < class FunctionSpaceImp, class TimeProviderImp >
 class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , PressureGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 public:
@@ -232,7 +269,6 @@ public:
 
 	void evaluateTime( const double time, const DomainType& arg, RangeType& ret ) const
 	{
-
 		ret = time * arg[0] + arg[1] - ( ( time + 1 ) / 2.0 );
 	}
 
