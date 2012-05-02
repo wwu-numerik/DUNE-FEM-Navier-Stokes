@@ -178,11 +178,11 @@ ADD_EXECUTABLE(navier src/dune_navier_stokes.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(navier ${COMMON_LIBS} )
 
 
-ADD_EXECUTABLE(oseen src/oseen.cc ${COMMON_HEADER} )
-TARGET_LINK_LIBRARIES(oseen ${COMMON_LIBS} )
+#ADD_EXECUTABLE(oseen src/oseen.cc ${COMMON_HEADER} )
+#TARGET_LINK_LIBRARIES(oseen ${COMMON_LIBS} )
 
-ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${COMMON_HEADER} )
-TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
+#ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${COMMON_HEADER} )
+#TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
 
 HEADERCHECK( ${header} ${oseen} ${navier} )
 ADD_DEFINITIONS( ${MY_CXX_FLAGS} )
