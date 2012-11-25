@@ -1,7 +1,7 @@
 #ifndef THETASCHEMEBASE_H
 #define THETASCHEMEBASE_H
 
-#include <dune/navier/exactsolution.hh>
+#include <dune/fem/nvs/exactsolution.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/h1norm.hh>
@@ -16,10 +16,10 @@
 #include <boost/scoped_ptr.hpp>
 #include <algorithm>
 
-#include <dune/navier/thetascheme_traits.hh>
-#include <dune/navier/fractionaldatawriter.hh>
-#include <dune/navier/global_defines.hh>
-#include <dune/oseen/pass.hh>
+#include <dune/fem/nvs/thetascheme_traits.hh>
+#include <dune/fem/nvs/fractionaldatawriter.hh>
+#include <dune/fem/nvs/global_defines.hh>
+#include <dune/fem/oseen/pass.hh>
 
 namespace Dune {
 	namespace NavierStokes {

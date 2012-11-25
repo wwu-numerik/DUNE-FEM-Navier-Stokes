@@ -1,7 +1,7 @@
 #ifndef THETASCHEME_ALT_SPLIT_HH
 #define THETASCHEME_ALT_SPLIT_HH
 
-#include <dune/navier/thetascheme_base.hh>
+#include <dune/fem/nvs/thetascheme_base.hh>
 
 namespace Dune {
 	namespace NavierStokes {

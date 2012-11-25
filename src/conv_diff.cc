@@ -1,5 +1,5 @@
 #include "main.hh"
-#include <dune/navier/global_defines.hh>
+#include <dune/fem/nvs/global_defines.hh>
 
 #include <cstdio>
 #if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)

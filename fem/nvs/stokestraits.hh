@@ -1,9 +1,9 @@
 #ifndef STOKESTRAITS_HH
 #define STOKESTRAITS_HH
 
-#include <dune/oseen/modelinterface.hh>
-#include <dune/navier/rhsadapter.hh>
-#include <dune/navier/weighed_function.hh>
+#include <dune/fem/oseen/modelinterface.hh>
+#include <dune/fem/nvs/rhsadapter.hh>
+#include <dune/fem/nvs/weighed_function.hh>
 
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 

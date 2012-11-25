@@ -1,7 +1,7 @@
 #ifndef CONV_DIFF_HH
 #define CONV_DIFF_HH
 
-#include <dune/navier/global_defines.hh>
+#include <dune/fem/nvs/global_defines.hh>
 
 #ifndef CONVDIFF_DATA_NAMESPACE
 //	#define CONVDIFF_DATA_NAMESPACE Dune::ConvDiff::AdapterFunctionsVectorial
@@ -18,17 +18,17 @@
 #include <dune/fem/misc/gridwidth.hh>
 #include <dune/fem/misc/l2error.hh>
 
-#include <dune/oseen/functionspacewrapper.hh>
-#include <dune/oseen/modelinterface.hh>
-#include <dune/oseen/pass.hh>
-#include <dune/oseen/boundarydata.hh>
+#include <dune/fem/oseen/functionspacewrapper.hh>
+#include <dune/fem/oseen/modelinterface.hh>
+#include <dune/fem/oseen/pass.hh>
+#include <dune/fem/oseen/boundarydata.hh>
 
 #include <dune/stuff/printing.hh>
 #include <dune/stuff/femeoc.hh>
 #include <dune/stuff/misc.hh>
 #include <dune/stuff/logging.hh>
 #include <dune/stuff/parametercontainer.hh>
-#include <dune/oseen/postprocessing.hh>
+#include <dune/fem/oseen/postprocessing.hh>
 #include <dune/stuff/profiler.hh>
 #include <dune/stuff/timeseries.hh>
 #include <dune/stuff/signals.hh>
@@ -2118,18 +2118,18 @@ namespace ConvDiff {
 }
 }
 
-#include <dune/navier/fractionaltimeprovider.hh>
-#include <dune/navier/stokestraits.hh>
-#include <dune/navier/exactsolution.hh>
-#include <dune/oseen/modelinterface.hh>
-#include <dune/oseen/pass.hh>
+#include <dune/fem/nvs/fractionaltimeprovider.hh>
+#include <dune/fem/nvs/stokestraits.hh>
+#include <dune/fem/nvs/exactsolution.hh>
+#include <dune/fem/oseen/modelinterface.hh>
+#include <dune/fem/oseen/pass.hh>
 #include <dune/fem/misc/mpimanager.hh>
-#include <dune/navier/fractionaldatawriter.hh>
+#include <dune/fem/nvs/fractionaldatawriter.hh>
 #include <dune/stuff/functions.hh>
 #include <dune/stuff/timefunction.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
-#include <dune/navier/thetascheme_traits.hh>
+#include <dune/fem/nvs/thetascheme_traits.hh>
 #include <cmath>
 
 namespace Dune {

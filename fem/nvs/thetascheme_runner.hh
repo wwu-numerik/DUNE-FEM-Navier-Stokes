@@ -1,10 +1,10 @@
 #ifndef THETASCHEME_RUNNER_HH
 #define THETASCHEME_RUNNER_HH
 
-#include <dune/navier/thetascheme_traits.hh>
-#include <dune/navier/thetascheme.hh>
-#include <dune/navier/thetascheme_alt_split.hh>
-#include <dune/navier/global_defines.hh>
+#include <dune/fem/nvs/thetascheme_traits.hh>
+#include <dune/fem/nvs/thetascheme.hh>
+#include <dune/fem/nvs/thetascheme_alt_split.hh>
+#include <dune/fem/nvs/global_defines.hh>
 #include <dune/common/static_assert.hh>
 
 template < class GridType, class CollectiveCommunicationType >

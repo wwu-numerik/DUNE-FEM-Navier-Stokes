@@ -1,6 +1,6 @@
 
 #include "main.hh"
-#include <dune/navier/problems.hh>
+#include <dune/fem/nvs/problems.hh>
 
 /** \brief one single application of the discretisation and solver
 

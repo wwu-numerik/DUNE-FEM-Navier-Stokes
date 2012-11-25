@@ -1,7 +1,7 @@
 #ifndef METADATA_HH
 #define METADATA_HH
 
-#include <dune/navier/thetascheme_base.hh>
+#include <dune/fem/nvs/thetascheme_base.hh>
 
 namespace Dune {
 	namespace NavierStokes {

@@ -1,4 +1,4 @@
-Module:dune-navier-stokes
-Version:0.3
+Module:dune-fem-navier-stokes
+Version:0.3.1
 Maintainer:rene.milk@uni-muenster.de
-Depends: dune-common (>= 2.1) dune-grid (>= 2.1) dune-istl (>= 2.1) dune-fem (>= 1.2) dune-stuff (>= 0.3) dune-oseen (>= 0.4)
+Depends: dune-common (>= 2.1) dune-grid (>= 2.1) dune-istl (>= 2.1) dune-fem (>= 1.2) dune-stuff (>= 0.3) dune-fem-oseen (>= 0.4)

@@ -10,7 +10,7 @@
     #include "cmake_config.h"
 #endif
 #include <dune/grid/utility/gridtype.hh>
-#include <dune/navier/global_defines.hh>
+#include <dune/fem/nvs/global_defines.hh>
 
 #include <cstdio>
 #if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)
@@ -42,10 +42,10 @@ typedef Dune::GridSelector::GridType
 #include <dune/fem/function/adaptivefunction.hh> // for AdaptiveDiscreteFunction
 #include <dune/fem/misc/gridwidth.hh>
 
-#include <dune/oseen/functionspacewrapper.hh>
-#include <dune/oseen/modelinterface.hh>
-#include <dune/oseen/pass.hh>
-#include <dune/oseen/boundarydata.hh>
+#include <dune/fem/oseen/functionspacewrapper.hh>
+#include <dune/fem/oseen/modelinterface.hh>
+#include <dune/fem/oseen/pass.hh>
+#include <dune/fem/oseen/boundarydata.hh>
 
 #include <dune/stuff/printing.hh>
 #include <dune/stuff/femeoc.hh>
@@ -57,8 +57,8 @@ typedef Dune::GridSelector::GridType
 #include <dune/stuff/signals.hh>
 #include <dune/stuff/runinfo.hh>
 
-#include <dune/navier/thetascheme_runner.hh>
-#include <dune/navier/fractionaldatawriter.hh>
+#include <dune/fem/nvs/thetascheme_runner.hh>
+#include <dune/fem/nvs/fractionaldatawriter.hh>
 
 #if ENABLE_MPI
         typedef Dune::CollectiveCommunication< MPI_Comm > CollectiveCommunication;

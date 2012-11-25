@@ -1,10 +1,10 @@
 #ifndef RHSADAPTER_HH
 #define RHSADAPTER_HH
 
-#include <dune/navier/fractionaltimeprovider.hh>
+#include <dune/fem/nvs/fractionaltimeprovider.hh>
 #include <dune/stuff/printing.hh>
 #include <dune/stuff/customprojection.hh>
-#include <dune/navier/problems.hh>
+#include <dune/fem/nvs/problems.hh>
 
 namespace Dune {
 	namespace NavierStokes {

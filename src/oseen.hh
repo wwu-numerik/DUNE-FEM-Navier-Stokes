@@ -1,17 +1,17 @@
 #ifndef OSEEN_HH
 #define OSEEN_HH
 
-#include <dune/navier/global_defines.hh>
-#include <dune/navier/problems.hh>
+#include <dune/fem/nvs/global_defines.hh>
+#include <dune/fem/nvs/problems.hh>
 
-#include <dune/oseen/modelinterface.hh>
-#include <dune/oseen/pass.hh>
-#include <dune/navier/fractionaltimeprovider.hh>
-#include <dune/navier/stokestraits.hh>
-#include <dune/navier/exactsolution.hh>
-#include <dune/navier/thetascheme_traits.hh>
+#include <dune/fem/oseen/modelinterface.hh>
+#include <dune/fem/oseen/pass.hh>
+#include <dune/fem/nvs/fractionaltimeprovider.hh>
+#include <dune/fem/nvs/stokestraits.hh>
+#include <dune/fem/nvs/exactsolution.hh>
+#include <dune/fem/nvs/thetascheme_traits.hh>
 #include <dune/fem/misc/mpimanager.hh>
-#include <dune/navier/fractionaldatawriter.hh>
+#include <dune/fem/nvs/fractionaldatawriter.hh>
 #include <dune/stuff/customprojection.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
