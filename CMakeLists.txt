@@ -174,7 +174,7 @@ set_source_files_properties( ${COMMON_HEADER} PROPERTIES HEADER_FILE_ONLY 1 )
 ADD_EXECUTABLE(testing src/testing.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(testing ${COMMON_LIBS} )
 
-ADD_EXECUTABLE(navier src/dune_navier_stokes.cc ${COMMON_HEADER} )
+ADD_EXECUTABLE(navier src/dune_fem_navier_stokes.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(navier ${COMMON_LIBS} )
 
 
@@ -186,14 +186,14 @@ TARGET_LINK_LIBRARIES(navier ${COMMON_LIBS} )
 
 HEADERCHECK( ${header} ${oseen} ${navier} )
 ADD_DEFINITIONS( ${MY_CXX_FLAGS} )
-ADD_CPPCHECK( ${CMAKE_CURRENT_SOURCE_DIR}/src/dune_navier_stokes.cc ${COMMON_HEADER} )
+ADD_CPPCHECK( ${CMAKE_CURRENT_SOURCE_DIR}/src/dune_fem_navier_stokes.cc ${COMMON_HEADER} )
 
 SET( PROBLEMS TwoDeeTube Cockburn Null Taylor TwoDee TimeDisc Trivial Runtime DampedParallel)
 SET( INCOMPLETEPROBLEMS ThreeDee )
 
 FOREACH( problem ${PROBLEMS} )
 	SET( targetName nv_${problem} )
-	ADD_EXECUTABLE(${targetName} ${dune_navier_SOURCE_DIR}/src/dune_navier_stokes.cc ${COMMON_HEADER} )
+	ADD_EXECUTABLE(${targetName} ${dune_navier_SOURCE_DIR}/src/dune_fem_navier_stokes.cc ${COMMON_HEADER} )
 	TARGET_LINK_LIBRARIES( ${targetName} ${COMMON_LIBS} )
 	set_target_properties(${targetName} PROPERTIES COMPILE_FLAGS -DNAVIER_DATA_NAMESPACE=NavierProblems::${problem} )
 ENDFOREACH( problem )
