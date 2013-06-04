@@ -6,8 +6,9 @@
 #include <dune/fem/nvs/fractionaltimeprovider.hh>
 #include <dune/fem/nvs/stokestraits.hh>
 #include <dune/fem/nvs/exactsolution.hh>
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/misc.hh>
+#include <dune/stuff/fem/functions.hh>
+#include <dune/stuff/common/misc.hh>
+#include <dune/stuff/aliases.hh>
 
 namespace Dune {
 	namespace NavierStokes {
@@ -26,7 +27,7 @@ namespace Dune {
 				ThetaValueArray;
 			typedef Dune::array< ThetaValueArray, numberOfSteps >
 				ThetaArray;
-			typedef Stuff::wraparound_array< double, numberOfSteps >
+            typedef DSC::wraparound_array< double, numberOfSteps >
 				TimestepArray;
 			ThetaArray thetas_;
 			TimestepArray step_sizes_;
@@ -44,16 +45,16 @@ namespace Dune {
 			ThetaSchemeDescription( const ThetaArray& a, double dt, std::string id )
 				: thetas_( a ), algo_id( id )
 			{
-				Stuff::fill_entirely( step_sizes_, dt );
+                std::fill( step_sizes_.begin(), step_sizes_.end(), dt );
 			}
 
 		public:
 			static ThetaSchemeDescription<1> crank_nicholson( double delta_t )
 			{
 				ThetaValueArray c;
-				Stuff::fill_entirely( c, 0.5f );
+                std::fill( c.begin(), c.end(), 0.5f );
 				ThetaArray a;
-				Stuff::fill_entirely( a, c );
+                std::fill( a.begin(),a.end(), c );
 				return ThisType ( a, delta_t, scheme_names[3] );
 			}
 			static ThetaSchemeDescription<1> forward_euler( double delta_t )
@@ -61,14 +62,14 @@ namespace Dune {
 				//double braces to silence gcc warnigns (throughout this file)
 				ThetaValueArray c = {{ 0.0f ,  1.0f ,  1.0f ,  0.0f  }}  ;
 				ThetaArray a;
-				Stuff::fill_entirely( a, c );
+                std::fill( a.begin(),a.end(), c );
 				return ThetaSchemeDescription<1> ( a, delta_t, scheme_names[1] );
 			}
 			static ThetaSchemeDescription<1> backward_euler( double delta_t )
 			{
 				ThetaValueArray c = {{ 1.0f ,  0.0f ,  0.0f ,  1.0f  }}  ;
 				ThetaArray a;
-				Stuff::fill_entirely( a, c );
+                std::fill( a.begin(),a.end(), c );
 				return ThetaSchemeDescription<1> ( a, delta_t, scheme_names[2] );
 			}
 			static ThetaSchemeDescription<3> fs0( double delta_t )

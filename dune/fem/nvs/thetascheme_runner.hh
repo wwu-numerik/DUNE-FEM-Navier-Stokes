@@ -64,9 +64,9 @@ class ThetaschemeRunner {
                                 "both traits classes need to produce the same gridpart type, otherwise you're doing it wrong" );
         }
 
-		Stuff::RunInfoTimeMap run(const int scheme_type)
+		DSC::RunInfoTimeMap run(const int scheme_type)
 		{
-			const double dt_ = Parameters().getParam( "fem.timeprovider.dt", double(0.1), Dune::ValidateGreater<double>( 0.0 ) );
+            const double dt_ = DSC_CONFIG_GETV( "fem.timeprovider.dt", double(0.1), DSC::ValidateGreater<double>( 0.0 ) );
 			switch ( scheme_type ) {
 				case 1: return OneStepThetaSchemeType(grid_part_,
 													  OneStepThetaSchemeDescriptionType::forward_euler( dt_ ) )
@@ -77,7 +77,7 @@ class ThetaschemeRunner {
 				case 3: return OneStepThetaSchemeType(grid_part_,
 													  OneStepThetaSchemeDescriptionType::crank_nicholson( dt_ ) )
 									.run();
-				case 4: if ( Parameters().getParam("old_timestep", false) )
+				case 4: if ( DSC_CONFIG_GET("old_timestep", false) )
 							return ThreeStepThetaSchemeAltSplittingType(grid_part_,
 													  ThreeStepThetaSchemeDescriptionType::fs0( dt_ ) )
 									.run();
@@ -85,8 +85,8 @@ class ThetaschemeRunner {
 							return ThreeStepThetaSchemeType(grid_part_,
 													  ThreeStepThetaSchemeDescriptionType::fs0( dt_ ) )
 									.run();
-				default: Logger().Info() << "Using default value for theta scheme type\n";
-				case 5: if ( Parameters().getParam("old_timestep", false) )
+                default: DSC_LOG_INFO << "Using default value for theta scheme type\n";
+				case 5: if ( DSC_CONFIG_GET("old_timestep", false) )
 						return ThreeStepThetaSchemeAltSplittingType(grid_part_,
 												  ThreeStepThetaSchemeDescriptionType::fs1( dt_ ) )
 								.run();

@@ -1,9 +1,9 @@
 #ifndef TWODTUBE_HH
 #define TWODTUBE_HH
 
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/timefunction.hh>
-#include <dune/stuff/parametercontainer.hh>
+#include <dune/stuff/fem/functions.hh>
+#include <dune/stuff/fem/functions/timefunction.hh>
+#include <dune/stuff/common/parameter/configcontainer.hh>
 #include <dune/fem/oseen/boundarydata.hh>
 #include "common.hh"
 
@@ -16,12 +16,12 @@ static const bool hasExactSolution	= false;
 ALLGOOD_SETUPCHECK;
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class DirichletData : public Dune::Stuff::Fem::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 		public:
 			typedef DirichletData< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+            typedef Dune::Stuff::Fem::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -37,7 +37,7 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
 				   const double  /*viscosity*/ = 0.0,
 				   const double /*alpha*/ = 0.0 )
 			: BaseType ( timeprovider, space ),
-			z_max( Parameters().getParam( "z_max", 3.0 ) )
+            z_max( DSC_CONFIG_GET( "z_max", 3.0 ) )
 		{}
 
 		/**

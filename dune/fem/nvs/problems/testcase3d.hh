@@ -1,9 +1,9 @@
 #ifndef NAVIER_PROBLEMS_THREEDEE_HH
 #define NAVIER_PROBLEMS_THREEDEE_HH
 
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/timefunction.hh>
-#include <dune/stuff/parametercontainer.hh>
+#include <dune/stuff/fem/functions.hh>
+#include <dune/stuff/fem/functions/timefunction.hh>
+#include <dune/stuff/common/parameter/configcontainer.hh>
 #include "common.hh"
 
 namespace NavierProblems {

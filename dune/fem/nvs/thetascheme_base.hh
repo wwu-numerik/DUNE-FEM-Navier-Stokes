@@ -6,11 +6,11 @@
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/h1norm.hh>
 #include <dune/fem/misc/gridwidth.hh>
-#include <dune/stuff/tuple.hh>
-#include <dune/stuff/customprojection.hh>
-#include <dune/stuff/error.hh>
-#include <dune/stuff/misc.hh>
-#include <dune/stuff/profiler.hh>
+
+#include <dune/stuff/fem/customprojection.hh>
+#include <dune/stuff/fem/error.hh>
+#include <dune/stuff/common/misc.hh>
+#include <dune/stuff/common/profiler.hh>
 #include <dune/common/collectivecommunication.hh>
 #include <cmath>
 #include <boost/scoped_ptr.hpp>
@@ -23,6 +23,12 @@
 
 namespace Dune {
 	namespace NavierStokes {
+    class singlerun_abort_exception : public std::runtime_error
+    {
+      public:
+       singlerun_abort_exception(std::string msg) : std::runtime_error(msg) {}
+    };
+
         template < class TraitsImp >
 		class ThetaSchemeBase {
 			protected:
@@ -32,7 +38,7 @@ namespace Dune {
 					CommunicatorType;
 				typedef typename Traits::ExactSolutionType
 					ExactSolutionType;
-				typedef Stuff::TupleSerializer<	typename Traits::DiscreteOseenFunctionWrapperType,
+                typedef DSC::TupleSerializer<	typename Traits::DiscreteOseenFunctionWrapperType,
 											typename Traits::DiscreteOseenFunctionWrapperType,
 											ExactSolutionType,
 											typename Traits::DiscreteOseenFunctionWrapperType>
@@ -46,7 +52,7 @@ namespace Dune {
 				typedef CheckPointer< typename Traits::GridPartType::GridType,
 									  OutputTupleType1 >
 					CheckPointerType;
-				typedef Stuff::TupleSerializer<	typename Traits::DiscreteOseenFunctionWrapperType >
+                typedef DSC::TupleSerializer<	typename Traits::DiscreteOseenFunctionWrapperType >
 					TupleSerializerType2;
 				typedef typename TupleSerializerType2::TupleType
 					OutputTupleType2;
@@ -83,7 +89,7 @@ namespace Dune {
                 mutable DataContainerType rhsDatacontainer_;
 				mutable typename Traits::DiscreteOseenFunctionWrapperType lastFunctions_;
 
-				typedef Stuff::L2Error< typename Traits::GridPartType >
+                typedef DSFe::L2Error< typename Traits::GridPartType >
 					L2ErrorType;
 				L2ErrorType l2Error_;
 
@@ -152,18 +158,18 @@ namespace Dune {
 										functionSpaceWrapper_,
 										gridPart_ ),
 					l2Error_( gridPart ),
-					viscosity_( Parameters().getParam( "viscosity", 1.0, Dune::ValidateNotLess<double>(0.0) ) ),
+                    viscosity_( DSC_CONFIG_GETV( "viscosity", double(1.0), DSC::ValidateNotLess<double>(0.0) ) ),
 					d_t_( timeprovider_.deltaT() ),
 					reynolds_( 1.0 / viscosity_ ),
 					current_max_gridwidth_( Dune::GridWidth::calcGridWidth( gridPart_ ) )
 				{
-					Logger().Info() << scheme_params_;
+                    DSC_LOG_INFO << scheme_params_;
                     NAVIER_DATA_NAMESPACE::SetupCheck check;
                     if ( !check( this, gridPart_, scheme_params_, timeprovider_, functionSpaceWrapper_ ) )
                         DUNE_THROW( InvalidStateException, check.error() );
 				}
 
-				void nextStep( const int step, Stuff::RunInfo& info )
+                void nextStep( const int step, DSC::RunInfo& info )
 				{
 					current_max_gridwidth_ = Dune::GridWidth::calcGridWidth( gridPart_ );
 					lastFunctions_.assign( currentFunctions_ );
@@ -172,21 +178,21 @@ namespace Dune {
 					const bool last_substep = ( step == ( Traits::ThetaSchemeDescriptionType::numberOfSteps_ -1) );
 
 					//error calc
-					if ( NAVIER_DATA_NAMESPACE::hasExactSolution && Parameters().getParam( "calculate_errors", true ) ) {
-						Stuff::Profiler::ScopedTiming error_time("error_calc");
+                    if ( NAVIER_DATA_NAMESPACE::hasExactSolution && DSC_CONFIG_GET( "calculate_errors", true ) ) {
+                        DSC::Profiler::ScopedTiming error_time("error_calc");
 
 						errorFunctions_.discretePressure().assign( exactSolution_.discretePressure() );
 						errorFunctions_.discretePressure() -= currentFunctions_.discretePressure();
 						errorFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 						errorFunctions_.discreteVelocity() -= currentFunctions_.discreteVelocity();
 
-						double meanPressure_exact = Stuff::integralAndVolume( exactSolution_.exactPressure(), currentFunctions_.discretePressure().space() ).first;
-						double meanPressure_discrete = Stuff::integralAndVolume( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() ).first;
+                        double meanPressure_exact = DSFe::integralAndVolume( exactSolution_.exactPressure(), currentFunctions_.discretePressure().space() ).first;
+                        double meanPressure_discrete = DSFe::integralAndVolume( currentFunctions_.discretePressure(), currentFunctions_.discretePressure().space() ).first;
 
 						Dune::L2Norm< typename Traits::GridPartType > l2_Error( gridPart_ );
 						Dune::H1Norm< typename Traits::GridPartType > h1_Error( gridPart_ );
 
-//						if ( Parameters().getParam( "error_scaling", false ) ) {
+//						if ( DSC_CONFIG_GET( "error_scaling", false ) ) {
 //								const double scale		= 1 / std::sqrt( viscosity_ );
 //								errorFunctions_.discretePressure() *= scale;
 //								errorFunctions_.discreteVelocity() *= scale;
@@ -210,30 +216,30 @@ namespace Dune {
 						if ( last_substep ) //no need to be so verbose otherwise
 					#endif
 						{
-							Logger().Info().Resume();
-							if ( Parameters().getParam( "parabolic", false ) )
-								Logger().Info() << boost::format ("L2-Error Velocity (abs|rel): %e | %e")
+                            DSC_LOG_INFO.resume();
+                            if ( DSC_CONFIG_GET( "parabolic", false ) )
+                                DSC_LOG_INFO << boost::format ("L2-Error Velocity (abs|rel): %e | %e")
 													% l2_error_velocity_ % relative_l2_error_velocity_;
 							else
-								Logger().Info() << boost::format ("L2-Error Pressure (abs|rel): %e | %e \t Velocity (abs|rel): %e | %e")
+                                DSC_LOG_INFO << boost::format ("L2-Error Pressure (abs|rel): %e | %e \t Velocity (abs|rel): %e | %e")
 													% l2_error_pressure_ % relative_l2_error_pressure_
 													% l2_error_velocity_ % relative_l2_error_velocity_;
 							#ifndef NDEBUG
-								Logger().Info() << boost::format ("\nH1-Error Velocity (abs|rel): %e | %e \t Mean pressure (exact|discrete) %e | %e")
+                                DSC_LOG_INFO << boost::format ("\nH1-Error Velocity (abs|rel): %e | %e \t Mean pressure (exact|discrete) %e | %e")
 													% h1_error_velocity_ % relative_h1_error_velocity_
 													% meanPressure_exact % meanPressure_discrete;
 							#endif
-							Logger().Info() << std::endl;
+                            DSC_LOG_INFO << std::endl;
 						}
-						const double max_l2_error = Parameters().getParam( "max_error", 1e2, Dune::ValidateGreater<double>(0.0) );
+                        const double max_l2_error = DSC_CONFIG_GETV( "max_error", 1e2, DSC::ValidateGreater<double>(0.0) );
 						info.L2Errors		= error_vector;
 						info.H1Errors		= h1_error_vector;
 						if ( l2_error_velocity_ > max_l2_error
-								|| ( !Parameters().getParam( "parabolic", false ) && l2_error_pressure_ > max_l2_error ) )
-							throw Stuff::singlerun_abort_exception( "Aborted, L2 error above " + Stuff::toString(max_l2_error) );
-						if ( !Parameters().getParam( "parabolic", false )
+                                || ( !DSC_CONFIG_GET( "parabolic", false ) && l2_error_pressure_ > max_l2_error ) )
+                            throw singlerun_abort_exception( "Aborted, L2 error above " + DSC::toString(max_l2_error) );
+                        if ( !DSC_CONFIG_GET( "parabolic", false )
 								&& (std::isnan( l2_error_velocity_ ) || std::isnan( l2_error_pressure_ ) )  )
-							throw Stuff::singlerun_abort_exception("L2 error is Nan");
+                            throw singlerun_abort_exception("L2 error is Nan");
 					}
 					//end error calc
 
@@ -244,7 +250,7 @@ namespace Dune {
 
 						info.codim0			= gridPart_.grid().size( 0 );
 						info.grid_width		= current_max_gridwidth_;
-						info.run_time		= profiler().GetTiming( "full_step" );
+                        info.run_time		= DSC_PROFILER.getTiming( "full_step" );
 						info.delta_t		= timeprovider_.deltaT();
 						info.current_time	= timeprovider_.subTime();
 						info.viscosity		= viscosity_;
@@ -254,30 +260,30 @@ namespace Dune {
 						info.c12			= Pair( stabil_coeff.Power( "C12" ), stabil_coeff.Factor( "C12" ) );
 						info.d11			= Pair( stabil_coeff.Power( "D11" ), stabil_coeff.Factor( "D11" ) );
 						info.d12			= Pair( stabil_coeff.Power( "D12" ), stabil_coeff.Factor( "D12" ) );
-						info.bfg			= Parameters().getParam( "do-bfg", true );
+                        info.bfg			= DSC_CONFIG_GET( "do-bfg", true );
 						//TODO gridname
 //						info.gridname		= gridPart_.grid().name();
-						info.refine_level	= Parameters().getParam( "minref", 0, Dune::ValidateNotLess<int>(0) );
+                        info.refine_level	= DSC_CONFIG_GETV( "minref", 0, DSC::ValidateNotLess<int>(0) );
 
 						info.polorder_pressure	= Traits::OseenModelTraits::pressureSpaceOrder;
 						info.polorder_sigma		= Traits::OseenModelTraits::sigmaSpaceOrder;
 						info.polorder_velocity	= Traits::OseenModelTraits::velocitySpaceOrder;
 
-						info.solver_accuracy		= Parameters().getParam( "absLimit", 1e-4 );
-						info.inner_solver_accuracy	= Parameters().getParam( "inner_absLimit", 1e-4 );
-						info.bfg_tau				= Parameters().getParam( "bfg-tau", 0.1 );
+                        info.solver_accuracy		= DSC_CONFIG_GET( "absLimit", 1e-4 );
+                        info.inner_solver_accuracy	= DSC_CONFIG_GET( "inner_absLimit", 1e-4 );
+                        info.bfg_tau				= DSC_CONFIG_GET( "bfg-tau", 0.1 );
 
 						info.problemIdentifier	= NAVIER_DATA_NAMESPACE::identifier;
 						info.algo_id			= scheme_params_.algo_id;
 						info.extra_info			= (boost::format("%s on %s") % COMMIT % std::getenv("HOSTNAME") ).str();
 
-						Logger().Info() << boost::format("current time (substep %d ): %f (%f)\n")
+                        DSC_LOG_INFO << boost::format("current time (substep %d ): %f (%f)\n")
 												% step
 												% timeprovider_.subTime()
 												% timeprovider_.previousSubTime();
 					}
 
-					if ( last_substep || !Parameters().getParam( "write_fulltimestep_only", false ) )
+                    if ( last_substep || !DSC_CONFIG_GET( "write_fulltimestep_only", false ) )
 						writeData();
 					timeprovider_.nextFractional();
 				}
@@ -295,37 +301,37 @@ namespace Dune {
 					//the guard dtor sets current time to t_0 + dt_k
 				}
 
-				Stuff::RunInfoTimeMap run()
+                DSC::RunInfoTimeMap run()
 				{
-					Stuff::RunInfoTimeMap runInfoMap;
+                    DSC::RunInfoTimeMap runInfoMap;
 					Init();
 
 					for( ;timeprovider_.time() <= timeprovider_.endTime(); )
 					{
 						assert( timeprovider_.time() > 0.0 );
-						Stuff::RunInfo info = full_timestep();
+                        DSC::RunInfo info = full_timestep();
 						const double real_time = timeprovider_.subTime();
 						try {
 							nextStep( Traits::substep_count -1 , info );
 						}
-						catch ( Stuff::singlerun_abort_exception& e ) {
-							Logger().Err() << e.what() << std::endl;
+                        catch ( singlerun_abort_exception& e ) {
+                            DSC_LOG_ERROR << e.what() << std::endl;
 							//fill up the map with dummy data so it can still be used in output
 							runInfoMap[real_time] = info;
 							for( ;timeprovider_.time() <= timeprovider_.endTime(); ) {
 								timeprovider_.nextFractional();
-								runInfoMap[timeprovider_.subTime()] = Stuff::RunInfo::dummy();
+                                runInfoMap[timeprovider_.subTime()] = DSC::RunInfo::dummy();
 							}
 							return runInfoMap;
 						}
-						timeprovider_.printRemainderEstimate( Logger().Info() );
+                        timeprovider_.printRemainderEstimate( DSC_LOG_INFO );
 						runInfoMap[real_time] = info;
 					}
 					assert( runInfoMap.size() > 0 );
 					return runInfoMap;
 				}
 
-				virtual Stuff::RunInfo full_timestep() = 0;
+                virtual DSC::RunInfo full_timestep() = 0;
 
 				void setUpdateFunctions() const
 				{
@@ -335,7 +341,7 @@ namespace Dune {
 
 				void writeData()
 				{
-					Stuff::Profiler::ScopedTiming io_time("IO");
+                    DSC::Profiler::ScopedTiming io_time("IO");
 					dataWriter1_.write();
 					dataWriter2_.write();
 //					check_pointer_.write( timeprovider_.time(), timeprovider_.timeStep() );
@@ -372,7 +378,7 @@ namespace Dune {
 																				typename Traits::TimeProviderType >
 							VelocityLaplace;
 					VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-					Dune::BetterL2Projection
+                    DSFe::BetterL2Projection
 						::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
 					currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 
@@ -385,9 +391,9 @@ namespace Dune {
 						PressureGradient;
 					PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
 
-					Dune::BetterL2Projection
+                    DSFe::BetterL2Projection
 						::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient);
-					Dune::BetterL2Projection //we need evals from the _previous_ (t_{k-1}) step
+                    DSFe::BetterL2Projection //we need evals from the _previous_ (t_{k-1}) step
 						::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
 				}
 
@@ -419,10 +425,10 @@ namespace Dune {
 					: BaseType( gridPart, scheme_params, comm )
 				{}
 
-				virtual Stuff::RunInfo full_timestep()
+                virtual DSC::RunInfo full_timestep()
 				{
-				    timeprovider_.printRemainderEstimate( Logger().Info() );
-				    return Stuff::RunInfo();
+                    timeprovider_.printRemainderEstimate( DSC_LOG_INFO );
+                    return DSC::RunInfo();
 				}
 		};
 	}//end namespace NavierStokes

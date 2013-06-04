@@ -2,8 +2,7 @@
 #define RHSADAPTER_HH
 
 #include <dune/fem/nvs/fractionaltimeprovider.hh>
-#include <dune/stuff/printing.hh>
-#include <dune/stuff/customprojection.hh>
+#include <dune/stuff/fem/customprojection.hh>
 #include <dune/fem/nvs/problems.hh>
 
 namespace Dune {
@@ -74,11 +73,11 @@ namespace Dune {
 					DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", velocity.space() );
 					DiscreteVelocityFunctionType pressure_gradient_discrete("velocity_laplace_discrete", velocity.space() );
 
-					Dune::BetterL2Projection //we need evals from the _previous_ (t_{k-1}) step
+                    DSFe::BetterL2Projection //we need evals from the _previous_ (t_{k-1}) step
 						::project( timeProvider_.previousSubTime(), velocity_convection, velocity_convection_discrete );
-					Dune::BetterL2Projection
+                    DSFe::BetterL2Projection
 						::project( timeProvider_.previousSubTime(), velocity_laplace, velocity_laplace_discrete );
-					Dune::BetterL2Projection
+                    DSFe::BetterL2Projection
 						::project( timeProvider_.previousSubTime(), pressure_gradient, pressure_gradient_discrete );
 
 					AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete, pressure_gradient_discrete );
@@ -116,12 +115,12 @@ namespace Dune {
 					this->clear();
 
 					DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
-					Dune::BetterL2Projection
+                    DSFe::BetterL2Projection
 						::project( timeProvider_, force_, tmp );
 					tmp *= ( theta_values_[3] );
 					*this += tmp;
 
-					Dune::BetterL2Projection
+                    DSFe::BetterL2Projection
 						::project( timeProvider_.previousSubTime(), force_, tmp );
 					tmp *= ( theta_values_[2] );
 					*this += tmp;
@@ -216,9 +215,9 @@ namespace Dune {
 						DiscreteVelocityFunctionType velocity_convection_discrete("velocity_convection_discrete", velocity.space() );
 						DiscreteVelocityFunctionType velocity_laplace_discrete("velocity_laplace_discrete", velocity.space() );
 
-						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+                        DSFe::BetterL2Projection //we need evals from the _previous_ (t_0) step
 							::project( timeProvider_.previousSubTime(), velocity_convection, velocity_convection_discrete );
-						Dune::BetterL2Projection
+                        DSFe::BetterL2Projection
 							::project( timeProvider_.previousSubTime(), velocity_laplace, velocity_laplace_discrete );
 
 						AddCommon( velocity, velocity_convection_discrete, velocity_laplace_discrete, weights );
@@ -247,12 +246,12 @@ namespace Dune {
 									const DiscreteVelocityFunctionType& velocity_laplace,
 									const DiscretizationWeightsType&	weights )
 					{
-						Dune::BetterL2Projection
+                        DSFe::BetterL2Projection
 							::project( timeProvider_, force_, *this );//this = f_{n+theta}
 						*this *= weights.alpha;
 
 						DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
-						Dune::BetterL2Projection
+                        DSFe::BetterL2Projection
 							::project( timeProvider_.previousSubTime(), force_, tmp );//tmp = f_{n+theta}
 						tmp *= weights.beta;
 						*this += tmp;
@@ -302,7 +301,7 @@ namespace Dune {
                     inline void evaluate(	const typename AnalyticalDirichletType::DomainType& /*arg*/,
                                             typename AnalyticalDirichletType::RangeType& /*ret*/ ) const
 					{
-						NEEDS_IMPLEMENTATION
+                        DUNE_THROW(InvalidStateException, "");
 					}
 
 			};
@@ -358,12 +357,12 @@ namespace Dune {
 						timeProvider_( timeProvider )
 					{
 						// F = f + \alpha \Re \delta u - \nabla p + ( 1/(1-2 \theta) ) * u				
-						Dune::BetterL2Projection
+                        DSFe::BetterL2Projection
 							::project( timeProvider_, force, *this );//this = f_{n+theta}
 						*this *= weights.beta;
 
 						DiscreteVelocityFunctionType tmp("rhs-ana-tmp", velocity.space() );
-						Dune::BetterL2Projection
+                        DSFe::BetterL2Projection
 							::project( timeProvider_.previousSubTime(), force, tmp );//tmp = f_{n+theta}
 						tmp *= weights.alpha;
 						*this += tmp;

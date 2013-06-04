@@ -13,11 +13,11 @@
 			the set of coefficients to be used in the run. Default is used in all run types but StabRun().
 
 **/
-Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+DSC::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor  );
 
 //! output alert for neg. EOC
-void eocCheck( const Stuff::RunInfoVector& runInfos );
+void eocCheck( const DSC::RunInfoVector& runInfos );
 
 /**
  *  \brief  main function
@@ -39,19 +39,19 @@ int main( int argc, char** argv )
 
 		int err = 0;
 
-		const int minref = Parameters().getParam( "minref", 0 );
+		const int minref = DSC_CONFIG_GET( "minref", 0 );
 		// ensures maxref>=minref
-		const int maxref = Stuff::clamp( Parameters().getParam( "maxref", 0 ), minref, Parameters().getParam( "maxref", 0 ) );
-		profiler().Reset( maxref - minref + 1 );
+		const int maxref = DSC::clamp( DSC_CONFIG_GET( "maxref", 0 ), minref, DSC_CONFIG_GET( "maxref", 0 ) );
+		DSC_PROFILER.reset( maxref - minref + 1 );
 		for ( int ref = minref;
 			  ref <= maxref;
 			  ++ref )
 		{
 			singleRun( mpicomm, ref );
-			profiler().NextRun();
+			DSC_PROFILER.NextRun();
 		}
 
-		Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
+		DSC_LOG_DEBUG << "\nRun from: " << commit_string << std::endl;
 		return err;
 	}
 
@@ -62,8 +62,8 @@ int main( int argc, char** argv )
   }
   catch ( std::bad_alloc& b ) {
 	  std::cerr << "Memory allocation failed: " << b.what() ;
-	  Logger().Info().Resume();
-	  Stuff::meminfo( Logger().Info() );
+	  DSC_LOG_INFO.Resume();
+	  DSC::meminfo( DSC_LOG_INFO );
   }
   catch ( assert_exception& a ) {
 	  std::cerr << "Exception thrown at:\n" << a.what() << std::endl ;
@@ -77,13 +77,13 @@ int main( int argc, char** argv )
 #endif
 }
 
-Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
+DSC::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 					int refine_level_factor )
 {
-	profiler().StartTiming( "SingleRun" );
-	Stuff::Logging::LogStream& infoStream = Logger().Info();
-	Stuff::Logging::LogStream& debugStream = Logger().Dbg();
-	Stuff::RunInfoVector runInfoVector;
+	DSC_PROFILER.StartTiming( "SingleRun" );
+	Stuff::Logging::LogStream& infoStream = DSC_LOG_INFO;
+	Stuff::Logging::LogStream& debugStream = DSC_LOG_DEBUG;
+	DSC::RunInfoVector runInfoVector;
 
 
 	/* ********************************************************************** *
@@ -113,13 +113,13 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 //	Dune::CompileTimeChecker< ( VELOCITY_POLORDER >= 2 ) > RHS_ADAPTER_CRAPS_OUT_WITH_VELOCITY_POLORDER_LESS_THAN_2;
 
-	const double reynolds = Parameters().getParam( "reynolds", 1.0 );
+	const double reynolds = DSC_CONFIG_GET( "reynolds", 1.0 );
 //	const double theta_ = 1.0;
 	const double d_t = 1.0;
 //	const double operator_weight_beta_ = 1.0;
 //	const double operator_weight_alpha_ = 1.0;
-//	const double oseen_alpha = Parameters().getParam( "alpha", 1.0 );
-	const double oseen_viscosity = Parameters().getParam( "viscosity", 1.0 );
+//	const double oseen_alpha = DSC_CONFIG_GET( "alpha", 1.0 );
+	const double oseen_viscosity = DSC_CONFIG_GET( "viscosity", 1.0 );
 	const double lambda = ( reynolds * 0.5 )
 						  - std::sqrt(
 								  ( std::pow( reynolds, 2 ) * 0.25 )
@@ -129,8 +129,8 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 
 //	const double lambda = - 8 *M_PI * M_PI / ( reynolds + std::sqrt(reynolds*reynolds + 64 * M_PI * M_PI));
 
-	Parameters().setParam( "lambda", lambda );
-	Parameters().setParam( "viscosity", oseen_viscosity );
+	DSC_CONFIG.set( "lambda", lambda );
+	DSC_CONFIG.set( "viscosity", oseen_viscosity );
 	Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 	stab_coeff.FactorFromParams( "D12", 0 );
 	stab_coeff.FactorFromParams( "C12", 0 );
@@ -177,16 +177,16 @@ Stuff::RunInfoVector singleRun(  CollectiveCommunication& mpicomm,
 //	PressureFunctionSpaceType pressureFunctionSpace;
 //	Stuff::VolumeDiffFunction<PressureFunctionSpaceType> vol(pressureFunctionSpace, -12.8430582392842 );
 
-//	Dune::BetterL2Projection
+//	DSFe::BetterL2Projection
 //		::project( 0.0, vol, nextFunctions.discretePressure() );
-//	double meanPressure_exact = Stuff::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
-	double meanPressure_discrete = Stuff::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
-//	double GD = Stuff::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
+//	double meanPressure_exact = DSC::integralAndVolume( exactSolution.exactPressure(), nextFunctions.discretePressure().space() ).first;
+	double meanPressure_discrete = DSC::meanValue( nextFunctions.discretePressure(), nextFunctions.discretePressure().space() );
+//	double GD = DSC::boundaryIntegral( stokesDirichletData, nextFunctions.discreteVelocity().space() );
 
 //	Dune::L2Norm< GridPartType > l2_Error( gridPart );
 
-	Logger().Info().Resume();
-	Logger().Info()
+	DSC_LOG_INFO.Resume();
+	DSC_LOG_INFO
 //					<< "L2-Error Pressure (abs|rel): " << std::setw(8) << l2_error_pressure << " | " << relative_l2_error_pressure << "\n"
 //					<< "L2-Error Velocity (abs|rel): " << std::setw(8) << l2_error_velocity << " | " << relative_l2_error_velocity << "\n"
 					<< "Mean pressure (discrete): " << meanPressure_discrete << std::endl

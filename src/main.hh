@@ -47,15 +47,14 @@ typedef Dune::GridSelector::GridType
 #include <dune/fem/oseen/pass.hh>
 #include <dune/fem/oseen/boundarydata.hh>
 
-#include <dune/stuff/printing.hh>
-#include <dune/stuff/femeoc.hh>
-#include <dune/stuff/misc.hh>
-#include <dune/stuff/logging.hh>
-#include <dune/stuff/parametercontainer.hh>
-#include <dune/stuff/profiler.hh>
-#include <dune/stuff/timeseries.hh>
-#include <dune/stuff/signals.hh>
-#include <dune/stuff/runinfo.hh>
+#include <dune/stuff/fem/femeoc.hh>
+#include <dune/stuff/common/misc.hh>
+#include <dune/stuff/common/logging.hh>
+#include <dune/stuff/common/parameter/configcontainer.hh>
+#include <dune/stuff/common/profiler.hh>
+//#include <dune/stuff/fem/timeseries.hh>
+#include <dune/stuff/common/signals.hh>
+#include <dune/fem/oseen/runinfo.hh>
 
 #include <dune/fem/nvs/thetascheme_runner.hh>
 #include <dune/fem/nvs/fractionaldatawriter.hh>
@@ -70,11 +69,11 @@ typedef Dune::GridSelector::GridType
 typedef std::vector<std::string>
     ColumnHeaders;
 
-void eocCheck( const Stuff::RunInfoVector& runInfos )
+void eocCheck( const DSC::RunInfoVector& runInfos )
 {
     bool ups = false;
-    Stuff::RunInfoVector::const_iterator it = runInfos.begin();
-    Stuff::RunInfo last = *it;
+    DSC::RunInfoVector::const_iterator it = runInfos.begin();
+    DSC::RunInfo last = *it;
     ++it;
     for ( ; it != runInfos.end(); ++it ) {
         ups = ( last.L2Errors[0] < it->L2Errors[0]
@@ -82,7 +81,7 @@ void eocCheck( const Stuff::RunInfoVector& runInfos )
         last = *it;
     }
     if ( ups ) {
-        Logger().Err() 	<< 	"----------------------------------------------------------\n"
+        DSC_LOG_ERROR 	<< 	"----------------------------------------------------------\n"
                         <<	"-                                                        -\n"
                         <<	"-                  negative EOC                          -\n"
                         <<	"-                                                        -\n"
@@ -104,21 +103,19 @@ CollectiveCommunication init( int argc, char** argv )
         std::cerr << "\nUsage: " << argv[0] << " parameterfile \n" << "\n\t --- OR --- \n";
         std::cerr << "\nUsage: " << argv[0] << " paramfile:"<<"file" << " more-opts:val ..." << std::endl;
         std::cerr << "\nUsage: " << argv[0] << " -d paramfile "<< "\n\t(for displaying solutions in grape) "<< std::endl;
-        Parameters().PrintParameterSpecs( std::cerr );
         std::cerr << std::endl;
         return 2;
     }
 
-    if ( !(  Parameters().ReadCommandLine( argc, argv ) ) )
-        DUNE_THROW( Dune::IOError, "Error parsing command line arguments" );
+    DSC_CONFIG.readCommandLine( argc, argv );
 
     // LOG_NONE = 1, LOG_ERR = 2, LOG_INFO = 4,LOG_DEBUG = 8,LOG_CONSOLE = 16,LOG_FILE = 32
     //--> LOG_ERR | LOG_INFO | LOG_DEBUG | LOG_CONSOLE | LOG_FILE = 62
     const bool useLogger = false;
-    Logger().Create( Parameters().getParam( "loglevel",         62,                         useLogger ),
-                     Parameters().getParam( "logfile",          std::string("dune_stokes"), useLogger ),
-                     Parameters().getParam( "fem.io.datadir",   std::string("data"),        useLogger ),
-                     Parameters().getParam( "fem.io.logdir",    std::string(),              useLogger )
+    DSC_LOG.create( DSC_CONFIG_GETB( "loglevel",         62,                         useLogger ),
+                     DSC_CONFIG_GETB( "logfile",          std::string("dune_stokes"), useLogger ),
+                     DSC_CONFIG_GETB( "fem.io.datadir",   std::string("data"),        useLogger ),
+                     DSC_CONFIG_GETB( "fem.io.logdir",    std::string(),              useLogger )
                     );
 
     return CollectiveCommunication();//( Dune::MPIManager::helper().getCommunicator() );

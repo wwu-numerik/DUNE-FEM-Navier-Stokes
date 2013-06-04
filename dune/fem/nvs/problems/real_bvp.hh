@@ -1,9 +1,9 @@
 #ifndef REAL_BVP_HH
 #define REAL_BVP_HH
 
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/timefunction.hh>
-#include <dune/stuff/parametercontainer.hh>
+#include <dune/stuff/fem/functions.hh>
+#include <dune/stuff/fem/functions/timefunction.hh>
+#include <dune/stuff/common/parameter/configcontainer.hh>
 #include <dune/fem/oseen/boundarydata.hh>
 #include "common.hh"
 
@@ -30,12 +30,12 @@ static const bool hasExactSolution	= false;
 ALLGOOD_SETUPCHECK;
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class DirichletData : public Dune::Stuff::Fem::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 		public:
 			typedef DirichletData< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+            typedef Dune::Stuff::Fem::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -51,7 +51,7 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
 				   const double  /*viscosity*/ = 0.0,
 				   const double /*alpha*/ = 0.0 )
 			: BaseType ( timeprovider, space ),
-			z_max( Parameters().getParam( "z_max", 3.0 ) )
+            z_max( DSC_CONFIG_GET( "z_max", 3.0 ) )
 		{}
 
 		/**
@@ -72,7 +72,7 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
 		    dune_static_assert( dim_ == 3 ,"__CLASS__ evaluate not implemented for world dimension");
 		    DomainType normal(0);
 		    normal[2] =  1 ;
-		    const double gd_factor = time * Parameters().getParam( "gd_factor", 1.0 );
+            const double gd_factor = time * DSC_CONFIG_GET( "gd_factor", 1.0 );
 		    if ( arg[2] > 0.0 && arg[2] < z_max )
 		    {
 			normal *= 0.0;
@@ -100,11 +100,11 @@ static const std::string identifier = "BVP";
 static const bool hasExactSolution	= false;
 //currently not possible, see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=45114
 //    template < class FunctionSpaceImp, class TimeProviderImp >
-//    using DirichletData = Stuff::InstationaryBoundaryFluxFunction<FunctionSpaceImp, TimeProviderImp>;
+//    using DirichletData = DSC::InstationaryBoundaryFluxFunction<FunctionSpaceImp, TimeProviderImp>;
 //    template < class FunctionSpaceImp, class TimeProviderImp >
-//    class DirichletData : public Stuff::InstationaryBoundaryFluxFunction<FunctionSpaceImp, TimeProviderImp>
+//    class DirichletData : public DSC::InstationaryBoundaryFluxFunction<FunctionSpaceImp, TimeProviderImp>
 //    {
-//	    typedef Stuff::InstationaryBoundaryFluxFunction<FunctionSpaceImp, TimeProviderImp>
+//	    typedef DSC::InstationaryBoundaryFluxFunction<FunctionSpaceImp, TimeProviderImp>
 //		BaseType;
 //	public:
 //	    DirichletData( const TimeProviderImp& timeprovider,
@@ -115,12 +115,12 @@ static const bool hasExactSolution	= false;
 //    };
 
     template < class FunctionSpaceImp, class TimeProviderImp >
-    class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+    class DirichletData : public Dune::Stuff::Fem::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
     {
 		    public:
 			    typedef DirichletData< FunctionSpaceImp, TimeProviderImp >
 				    ThisType;
-			    typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+                typedef Dune::Stuff::Fem::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				    BaseType;
 			    typedef typename BaseType::DomainType
 				    DomainType;
@@ -136,7 +136,7 @@ static const bool hasExactSolution	= false;
 				       const double  /*viscosity*/ = 0.0,
 				       const double /*alpha*/ = 0.0 )
 			    : BaseType ( timeprovider, space ),
-			    z_max( Parameters().getParam( "z_max", 3.0 ) )
+                z_max( DSC_CONFIG_GET( "z_max", 3.0 ) )
 		    {}
 
 		    /**
@@ -155,13 +155,11 @@ static const bool hasExactSolution	= false;
 			void evaluateTime( const double time, const DomainType& arg, RangeType& ret, const IntersectionType& intersection ) const
 		    {
 				const int id = intersection.boundaryId();
-				typedef Dune::FieldVector< typename IntersectionType::ctype, IntersectionType::dimension - 1 >
-					LocalVectorType;
 
-				LocalVectorType center = Stuff::getBarycenterLocal( intersection.intersectionSelfLocal() );
+                auto center = intersection.intersectionSelfLocal().geometry().center();
 				RangeType normal = intersection.unitOuterNormal( center );
 				ret = normal;
-				double factor = Parameters().getParam( "gd_factor", 1.0 ) * time;
+                double factor = DSC_CONFIG_GET( "gd_factor", 1.0 ) * time;
 					switch ( id ) {
 						case 1: {
 							factor = 0;
@@ -195,12 +193,12 @@ static const bool hasExactSolution	= false;
     NULLFUNCTION_TP(VelocityLaplace)
 
     template < class FunctionSpaceImp, class TimeProviderImp >
-    class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+    class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
     {
     public:
 	    typedef Velocity< FunctionSpaceImp, TimeProviderImp >
 		    ThisType;
-	    typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 		    BaseType;
 	    typedef typename BaseType::DomainType
 		    DomainType;
@@ -217,7 +215,7 @@ static const bool hasExactSolution	= false;
                     const double /*parameter_a*/ = M_PI /2.0 ,
                     const double /*parameter_d*/ = M_PI /4.0)
 		    : BaseType( timeprovider, space ),
-		      lambda_( Parameters().getParam( "lambda", 0.0 ) )
+              lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 	    {}
 
 	    /**

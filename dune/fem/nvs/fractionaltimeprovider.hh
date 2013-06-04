@@ -4,8 +4,9 @@
 #include <dune/common/deprecated.hh>
 #include <dune/fem/solver/timeprovider.hh>
 #include <dune/fem/misc/femtimer.hh>
-#include <dune/stuff/misc.hh>
-#include <dune/stuff/math.hh>
+#include <dune/stuff/common/misc.hh>
+#include <dune/stuff/aliases.hh>
+#include <dune/stuff/common/math.hh>
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -54,7 +55,7 @@ namespace Dune {
 					const SchemeParameterType& theta_scheme_parameter_;
 					int current_substep_;
 					ExecutionTimer step_timer_;
-					Stuff::MovingAverage avg_time_per_step_;
+                    DSC::MinMaxAvg<double> avg_time_per_step_;
 					long total_stepcount_estimate_;
 
 				public:
@@ -93,14 +94,14 @@ namespace Dune {
 					double previousSubTime( ) const
 					{
 						const double t = subTime() - theta_scheme_parameter_.step_sizes_[current_substep_-1];
-						return Stuff::clamp( t, double(0.0), t);
+                        return DSC::clamp( t, double(0.0), t);
 					}
 					//! equivalent of t_{k+2}??
 					double nextSubTime( ) const
 					{
 						assert( false ); //currently produces wring results on the interval bounds
 						const double t = subTime() + theta_scheme_parameter_.step_sizes_[current_substep_];
-						return Stuff::clamp( t, double(0.0), t);
+                        return DSC::clamp( t, double(0.0), t);
 					}
 
 					double time () const
@@ -144,7 +145,7 @@ namespace Dune {
 					void printRemainderEstimate( Stream& stream )
 					{
 						long remaining_steps = total_stepcount_estimate_ - ( timeStep_ );
-						double remaining_seconds = remaining_steps * double(avg_time_per_step_);
+                        double remaining_seconds = remaining_steps * avg_time_per_step_.average();
 						boost::posix_time::time_duration diff(0,0,remaining_seconds,0);
 						boost::posix_time::ptime target = boost::posix_time::second_clock::local_time();
 						target += diff;
@@ -166,7 +167,7 @@ namespace Dune {
 						current_substep_ = 0;
 						// timer
 						step_timer_.end();
-						avg_time_per_step_ += std::abs( step_timer_.read() );
+                        avg_time_per_step_(std::abs( step_timer_.read() ));
 						BaseType::next( timeStep );
 						step_timer_.start();
 					}

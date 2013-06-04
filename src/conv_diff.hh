@@ -60,8 +60,8 @@ namespace ConvDiff {
 					  : BaseType ( space ),
 						viscosity_( viscosity ),
 						alpha_( alpha ),
-						lambda_( Parameters().getParam( "lambda", 0.0 ) ),
-						gamma_( Parameters().getParam( "alpha", 0.0 ) )
+						lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) ),
+						gamma_( DSC_CONFIG_GET( "alpha", 0.0 ) )
 				  {}
 
 				  /**
@@ -146,7 +146,7 @@ namespace ConvDiff {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -199,7 +199,7 @@ namespace ConvDiff {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -272,7 +272,7 @@ namespace ConvDiff {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -327,7 +327,7 @@ namespace ConvDiff {
 							const double parameter_a = M_PI /2.0 ,
 							const double parameter_d = M_PI /4.0)
 					: BaseType( timeprovider, space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -384,7 +384,7 @@ namespace ConvDiff {
 						const double parameter_a = M_PI /2.0 ,
 						const double parameter_d = M_PI /4.0)
 				  : BaseType( timeprovider, space ),
-				  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
+				  lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) ),
 				  shift_(0.0)
 			  {}
 
@@ -409,7 +409,7 @@ namespace ConvDiff {
 				void setShift( const double shift )
 				{
 					shift_ = shift;
-					Logger().Info() <<  "Set pressure shift to: " << shift_ << std::endl;
+					DSC_LOG_INFO <<  "Set pressure shift to: " << shift_ << std::endl;
 				}
 
 				/**
@@ -473,7 +473,7 @@ namespace ConvDiff {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
-					  const double a			= Parameters().getParam( "alpha", 1.0 );;
+					  const double a			= DSC_CONFIG_GET( "alpha", 1.0 );;
 					  const double P			= 2 * M_PI;//pi_factor;
 					  const double E			= 1;//std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
 					  const double F			= 1;//std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
@@ -503,7 +503,7 @@ namespace ConvDiff {
 		{
 			const double x				= arg[0];
 			const double y				= arg[1];
-			const double v				= Parameters().getParam( "viscosity", 1.0 );
+			const double v				= DSC_CONFIG_GET( "viscosity", 1.0 );
 			const double F				= 1;//std::exp( -8 * std::pow( M_PI, 2 ) * time );
 			const double P			= 2 * M_PI;//pi_factor;
 			const double S_x			= std::sin( P * x );
@@ -547,7 +547,7 @@ namespace ConvDiff {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -600,7 +600,7 @@ namespace ConvDiff {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -653,7 +653,7 @@ namespace ConvDiff {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -708,7 +708,7 @@ namespace ConvDiff {
 							const double parameter_a = M_PI /2.0 ,
 							const double parameter_d = M_PI /4.0)
 					: BaseType( timeprovider, space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -765,7 +765,7 @@ namespace ConvDiff {
 						const double parameter_a = M_PI /2.0 ,
 						const double parameter_d = M_PI /4.0)
 				  : BaseType( timeprovider, space ),
-				  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
+				  lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) ),
 				  shift_(0.0)
 			  {}
 
@@ -782,7 +782,7 @@ namespace ConvDiff {
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 					const double x				= arg[0];
 					const double y				= arg[1];
-					const double v				= Parameters().getParam( "viscosity", 1.0 );
+					const double v				= DSC_CONFIG_GET( "viscosity", 1.0 );
 					const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
 					const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
 					const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
@@ -793,7 +793,7 @@ namespace ConvDiff {
 				template < class DiscreteFunctionSpace >
 				void setShift( const DiscreteFunctionSpace& space )
 				{
-//					shift_ = -1 * Stuff::meanValue( *this, space );
+//					shift_ = -1 * DSC::meanValue( *this, space );
 				}
 
 				/**
@@ -845,7 +845,7 @@ namespace ConvDiff {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
-					  const double a			= Parameters().getParam( "alpha", 1.0 );
+					  const double a			= DSC_CONFIG_GET( "alpha", 1.0 );
 					  const double P			= 2 * M_PI;//pi_factor;
 					  const double E			= 1;//std::exp( -2 * std::pow( P, 2 ) * viscosity_ * time );
 					  const double F			= 1;//std::exp( -4 * std::pow( P, 2 ) * viscosity_ * time );
@@ -880,7 +880,7 @@ namespace ConvDiff {
 					  // beta = (1,0)
 //					  ret[0] += u[0];
 //					  ret[1] += -u[1];
-					  ret[0] += Parameters().getParam( "conv", 1.0 );
+					  ret[0] += DSC_CONFIG_GET( "conv", 1.0 );
 				  }
 
 			  private:
@@ -894,7 +894,7 @@ namespace ConvDiff {
 		{
 			const double x				= arg[0];
 			const double y				= arg[1];
-			const double v				= Parameters().getParam( "viscosity", 1.0 );
+			const double v				= DSC_CONFIG_GET( "viscosity", 1.0 );
 			const double F				= std::exp( -8 * std::pow( M_PI, 2 ) * time );
 			const double P = 2 * M_PI;
 			const double S_x			= std::sin( P * x );
@@ -940,8 +940,8 @@ namespace ConvDiff {
 				  {
 					 VelocityEvaluate(0,0, arg, ret );
 					 ret = RangeType(0);
-					  ret[0] = Parameters().getParam( "conv", 1.0 );
-//					  ret[1] = Parameters().getParam( "conv", 1.0 );
+					  ret[0] = DSC_CONFIG_GET( "conv", 1.0 );
+//					  ret[1] = DSC_CONFIG_GET( "conv", 1.0 );
 				  }
 
 			  private:
@@ -980,7 +980,7 @@ namespace ConvDiff {
 				  inline void evaluate( const DomainType& arg, RangeType& ret ) const
 				  {
 					 ret = RangeType(0);
-					 ret[0] = Parameters().getParam( "conv", 1.0 );
+					 ret[0] = DSC_CONFIG_GET( "conv", 1.0 );
 //					 ret[1] = -arg[1];
 				  }
 
@@ -1021,7 +1021,7 @@ namespace ConvDiff {
 							 const double parameter_a = M_PI /2.0 ,
 							 const double parameter_d = M_PI /4.0)
 					: BaseType( space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -1076,7 +1076,7 @@ namespace ConvDiff {
 							const double parameter_a = M_PI /2.0 ,
 							const double parameter_d = M_PI /4.0)
 					: BaseType( timeprovider, space ),
-					lambda_( Parameters().getParam( "lambda", 0.0 ) )
+					lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 				{}
 
 				/**
@@ -1132,7 +1132,7 @@ namespace ConvDiff {
 						const double parameter_a = M_PI /2.0 ,
 						const double parameter_d = M_PI /4.0)
 				  : BaseType( timeprovider, space ),
-				  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
+				  lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) ),
 				  shift_(0.0)
 			  {}
 
@@ -1149,7 +1149,7 @@ namespace ConvDiff {
 					Dune::CompileTimeChecker< ( dim_ == 2 ) > Pressure_Unsuitable_WorldDim;
 					const double x				= arg[0];
 					const double y				= arg[1];
-					const double v				= Parameters().getParam( "viscosity", 1.0 );
+					const double v				= DSC_CONFIG_GET( "viscosity", 1.0 );
 					const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
 					const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
 					const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
@@ -1160,7 +1160,7 @@ namespace ConvDiff {
 				template < class DiscreteFunctionSpace >
 				void setShift( const DiscreteFunctionSpace& space )
 				{
-//					shift_ = -1 * Stuff::meanValue( *this, space );
+//					shift_ = -1 * DSC::meanValue( *this, space );
 				}
 
 				/**
@@ -1190,8 +1190,8 @@ namespace ConvDiff {
 				y(arg[1]),
 	//			time_(time),
 				time_(0),
-				v(Parameters().getParam( "viscosity", 1.0 )),
-				alpha(Parameters().getParam( "alpha", 1.0 )),
+				v(DSC_CONFIG_GET( "viscosity", 1.0 )),
+				alpha(DSC_CONFIG_GET( "alpha", 1.0 )),
 				P(pi_factor),
 				E(std::exp( -2. * std::pow( P, 2. ) * v * time_ )),
 				F(std::exp( -4. * std::pow( P, 2. ) * v * time_ )),
@@ -1289,7 +1289,7 @@ namespace ConvDiff {
 					  u *= evals.alpha;
 					  ret += u;
 
-//					  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
+//					  ret *=  DSC_CONFIG_GET( "rhs_factor", 1.0 );
 
 					  ret[0] = -2;
 					  ret[1] = -2;
@@ -1383,12 +1383,12 @@ namespace ConvDiff {
 		};
 
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef Velocity< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1442,14 +1442,14 @@ namespace ConvDiff {
 
 		template <	class FunctionSpaceImp,
 					class TimeProviderImp >
-		class Pressure : public Dune::TimeFunction <	FunctionSpaceImp ,
+		class Pressure : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 												Pressure < FunctionSpaceImp,TimeProviderImp >,
 												TimeProviderImp >
 		{
 			public:
 				typedef Pressure< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1503,14 +1503,14 @@ namespace ConvDiff {
 
 		template <	class FunctionSpaceImp,
 					class TimeProviderImp >
-		class PressureGradient : public Dune::TimeFunction <	FunctionSpaceImp ,
+		class PressureGradient : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 												PressureGradient < FunctionSpaceImp,TimeProviderImp >,
 												TimeProviderImp >
 		{
 			public:
 				typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1560,12 +1560,12 @@ namespace ConvDiff {
 			ret[1] = - 2 * evals.C_y * evals.E * evals.P * evals.S_x * evals.P ;
 		}
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1621,12 +1621,12 @@ namespace ConvDiff {
 	//		ret[1] = - E * E *P * S_y * C_y * ( S_x * S_x - C_x * C_x );
 		}
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1666,12 +1666,12 @@ namespace ConvDiff {
 				const double parameter_d_;
 		};
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class VelocityGradientX : public Dune::TimeFunction < FunctionSpaceImp , VelocityGradientX< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class VelocityGradientX : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityGradientX< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef VelocityGradientX< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1713,12 +1713,12 @@ namespace ConvDiff {
 				const double parameter_d_;
 		};
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class VelocityGradientY : public Dune::TimeFunction < FunctionSpaceImp , VelocityGradientY< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class VelocityGradientY : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityGradientY< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef VelocityGradientY< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1760,12 +1760,12 @@ namespace ConvDiff {
 				const double parameter_d_;
 		};
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class VelocityGradient : public Dune::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class VelocityGradient : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef VelocityGradient< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -1859,7 +1859,7 @@ namespace ConvDiff {
 					  const double x			= arg[0];
 					  const double y			= arg[1];
 					  const double v			= viscosity_;
-					  const double alpha = Parameters().getParam( "alpha", 1.0 );
+					  const double alpha = DSC_CONFIG_GET( "alpha", 1.0 );
 					  ret[0] = std::pow(time,3.0)* arg[1] * arg[1];
 					  ret[1] = std::pow(time,2.0)* arg[0];
 					  ret *= alpha;
@@ -2041,12 +2041,12 @@ namespace ConvDiff {
 				const double parameter_d_;
 		};
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;
@@ -2076,12 +2076,12 @@ namespace ConvDiff {
 				const double parameter_d_;
 		};
 		template < class FunctionSpaceImp, class TimeProviderImp >
-		class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+		class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 		{
 			public:
 				typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 					ThisType;
-				typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+				typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 					BaseType;
 				typedef typename BaseType::DomainType
 					DomainType;

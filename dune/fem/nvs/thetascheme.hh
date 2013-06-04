@@ -40,10 +40,10 @@ namespace Dune {
 				{}
 
 
-				virtual Stuff::RunInfo full_timestep()
+				virtual DSC::RunInfo full_timestep()
 				{
-					Stuff::Profiler::ScopedTiming fullstep_time("full_step");
-					Stuff::RunInfo info;
+                    DSC::Profiler::ScopedTiming fullstep_time("full_step");
+                    DSC::RunInfo info;
 					for ( int i=0; i < Traits::substep_count; ++i )
 					{
 						const double dt_k = scheme_params_.step_sizes_[i];
@@ -63,9 +63,9 @@ namespace Dune {
                                                                        currentFunctions_.discreteVelocity().space() ,
                                                                        viscosity_,
                                                                        0.0 /*stokes alpha*/ );
-                    const bool do_cheat = Parameters().getParam( "rhs_cheat", false );
+                    const bool do_cheat = DSC_CONFIG_GET( "rhs_cheat", false );
 
-                    if ( !Parameters().getParam( "parabolic", false )
+                    if ( !DSC_CONFIG_GET( "parabolic", false )
                             && ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/) )
                     {
                         //reconstruct the prev convection term
@@ -111,8 +111,8 @@ namespace Dune {
                                             );
                     typename BaseType::L2ErrorType::Errors errors_rhs = l2Error_.get(	static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForce),
                                                                         static_cast<typename Traits::StokesForceAdapterType::BaseType>(*ptr_oseenForceVanilla) );
-                    Logger().Dbg().Resume(9000);
-                    Logger().Dbg() << "RHS " << errors_rhs.str() << std::endl;
+                    DSC_LOG_DEBUG.resume(9000);
+                    DSC_LOG_DEBUG << "RHS " << errors_rhs.str() << std::endl;
 
                     rhsFunctions_.discreteVelocity().assign( *ptr_oseenForce );
                     return do_cheat ? ptr_oseenForce : ptr_oseenForceVanilla;
@@ -122,8 +122,8 @@ namespace Dune {
                 {
                     const auto rhs = prepare_rhs(theta_values);
                     const double dt_n = timeprovider_.deltaT();
-                    const bool do_convection_disc = ! ( Parameters().getParam( "navier_no_convection", false )
-                                                            || Parameters().getParam( "parabolic", false ) );
+                    const bool do_convection_disc = ! ( DSC_CONFIG_GET( "navier_no_convection", false )
+                                                            || DSC_CONFIG_GET( "parabolic", false ) );
                     auto beta = currentFunctions_.discreteVelocity();//=u^n = bwe linearization
                     if ( do_convection_disc
                             && ( scheme_params_.algo_id == Traits::ThetaSchemeDescriptionType::scheme_names[3] /*CN*/) )
@@ -166,22 +166,22 @@ namespace Dune {
 				{
                     {
                         typename Traits::AnalyticalDirichletDataType oseenDirichletData ( timeprovider_,functionSpaceWrapper_ );
-                        Dune::BetterL2Projection
+                        DSFe::BetterL2Projection
                             ::project( timeprovider_, oseenDirichletData, dummyFunctions_.discreteVelocity());
-                        const double boundaryInt = Stuff::boundaryIntegral( oseenDirichletData, BaseType::currentFunctions().discreteVelocity().space() );
-                        Logger().Dbg() << boost::format("discrete Boundary integral: %e\n") % boundaryInt;
+                        const double boundaryInt = DSFe::boundaryIntegral( oseenDirichletData, BaseType::currentFunctions().discreteVelocity().space() );
+                        DSC_LOG_DEBUG << boost::format("discrete Boundary integral: %e\n") % boundaryInt;
                     }
                     auto oseenPass = prepare_pass(theta_values);
                     if ( timeprovider_.timeStep() <= 2 )
                         oseenPass.printInfo();
-                    if ( Parameters().getParam( "silent_stokes", true ) )
-                        Logger().Info().Suspend( Stuff::Logging::LogStream::default_suspend_priority + 10 );
-                    if ( Parameters().getParam( "clear_u" , false ) )
+                    if ( DSC_CONFIG_GET( "silent_stokes", true ) )
+                        DSC_LOG_INFO.suspend( DSC::LogStream::default_suspend_priority + 10 );
+                    if ( DSC_CONFIG_GET( "clear_u" , false ) )
                         nextFunctions_.discreteVelocity().clear();
-                    if ( Parameters().getParam( "clear_p" , false ) )
+                    if ( DSC_CONFIG_GET( "clear_p" , false ) )
                         nextFunctions_.discretePressure().clear();
                     oseenPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
-                    Logger().Info().Resume( Stuff::Logging::LogStream::default_suspend_priority + 10 );
+                    DSC_LOG_INFO.resume( DSC::LogStream::default_suspend_priority + 10 );
                     BaseType::setUpdateFunctions();
                     currentFunctions_.assign( nextFunctions_ );
 				}

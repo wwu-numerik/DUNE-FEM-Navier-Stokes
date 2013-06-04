@@ -28,10 +28,6 @@ SET( BLAS_LIB
 	"blas" CACHE STRING
 	"" )
 
-SET( USE_ISTL
-	0 CACHE STRING
-	"Use fem-wrapped istl matrix" )
-		
 SET( GRIDTYPE
 	"YASPGRID" CACHE STRING
 	"GRIDTYPE" )
@@ -88,32 +84,20 @@ SET ( METIS_DIR
 	"/share/dune/Modules/modules_x86_64/ParMetis-3.1.1" CACHE STRING
 	"metis toplevel directory" )
 
-SET_CONFIGHEADER_VARS()
-CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h )
 #needs to come first to include correct config.h
 INCLUDE_DIR( ${dune_navier_BINARY_DIR} )
 INCLUDE_DIR( ${dune_navier_SOURCE_DIR} )
 INCLUDE_DIR( ${dune_navier_SOURCE_DIR}/.. )
 
 IF( ${GRIDTYPE} STREQUAL "UGGRID" )
-	ADD_CXX_FLAGS( -DENABLE_UG )
+	ADD_DEFINITIONS( -DENABLE_UG )
 	INCLUDE_SYS_DIR( ${UGGRID_BASE_PATH}/include )
 	LINK_DIRECTORIES( ${UGGRID_BASE_PATH}/lib/ )
 	SET( UGLIBS "ugS3" "ugS2" "devS")
 ENDIF( ${GRIDTYPE} STREQUAL "UGGRID" )
 
-IF( ${ALUGRID_FOUND} )
-	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include )
-	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/serial  )
-	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/duneinterface  )
-	SET( ALUGRID_LIBS "alugrid" )
-ENDIF( ${ALUGRID_FOUND} )	
-
 SET( ENABLE_ALUGRID OFF )
 IF( ${GRIDTYPE} MATCHES "ALUGRID" )
-#	IF( ${ALUGRID_FOUND} )
-#		MESSAGE( FATAL ) 
-#	ENDIF( ${ALUGRID_FOUND} )	
 	INCLUDE_SYS_DIR( 	${GRAPE_PATH} 
 						${ALUGRID_BASE_PATH}/include 
 						${ALUGRID_BASE_PATH}/include/serial 
@@ -121,6 +105,7 @@ IF( ${GRIDTYPE} MATCHES "ALUGRID" )
 	LINK_DIRECTORIES( "${ALUGRID_BASE_PATH}/lib"  )
 	SET( ALULIBS "alugrid" )
 	SET( ENABLE_ALUGRID ON )
+	ADD_DEFINITIONS( "-DENABLE_ALUGRID" )
 	IF ( ENABLE_PARALELL )
 		INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/parallel )
 	ENDIF ( ENABLE_PARALELL )
@@ -131,43 +116,37 @@ IF ( ENABLE_PARALELL )
 	LINK_DIRECTORIES( ${METIS_DIR} )
 	Set ( ParaLIBS "-lparmetis -lmetis" )
 	INCLUDE_SYS_DIR( ${ALUGRID_BASE_PATH}/include/parallel )
-	ADD_CXX_FLAGS( -DMPIPP_H -DENABLE_MPI=1 )
+	ADD_DEFINITIONS( -DMPIPP_H -DENABLE_MPI=1 )
 ENDIF ( ENABLE_PARALELL )
 
 SET( USE_OMP "0" )
 IF( ENABLE_OMP )
-	ADD_CXX_FLAGS( -fopenmp -DUSE_OMP=1)
+	ADD_DEFINITIONS( -fopenmp -DUSE_OMP=1)
 	LIST( APPEND ParaLIBS "-fopenmp" )
 ELSE( ENABLE_OMP )
-	ADD_CXX_FLAGS( -DUSE_OMP=0)
+	ADD_DEFINITIONS( -DUSE_OMP=0)
 ENDIF( ENABLE_OMP )
 
-IF( USE_ISTL )
-	SET( OUTER_CG_SOLVERTYPE "ISTL${OUTER_SOLVER}Op" )
-	SET( INNER_CG_SOLVERTYPE "ISTL${INNER_SOLVER}Op" )
-ELSE( USE_ISTL )
-	SET( OUTER_CG_SOLVERTYPE "OEM${OUTER_SOLVER}Op" )
-	SET( INNER_CG_SOLVERTYPE "OEM${INNER_SOLVER}Op" )
-ENDIF( USE_ISTL )
+SET( OUTER_CG_SOLVERTYPE "OEM${OUTER_SOLVER}Op" )
+SET( INNER_CG_SOLVERTYPE "OEM${INNER_SOLVER}Op" )
+
 
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h )
 
-ADD_DUNE_MODULES( common istl grid fem geometry )
-ADD_MY_MODULES( stuff fem-oseen )
-INCLUDE_SYS_DIR( ${dune_navier_SOURCE_DIR}/../dune-fem-oseen/oseen/oemsolver/ )
-ADD_CXX_FLAGS( ${CUSTOM_FLAGS} )
+ADD_DUNE_MODULES(common istl grid fem geometry localfunctions stuff fem-oseen)
 
 LINK_DIRECTORIES( "/usr/lib" "${ALUGRID_BASE_PATH}/lib" ${CCGNU_LIBRARY_DIRS} )
 
 FILE( GLOB_RECURSE header "src/*.hh" )
-FILE( GLOB_RECURSE navier "navier/*.hh" )
-FILE( GLOB_RECURSE oseen "oseen/*.hh" )
-FILE( GLOB_RECURSE stokes "../dune-fem-oseen/stokes/*.hh" )
+FILE( GLOB_RECURSE navier "dune/fem/nvs/*.hh" )
+FILE( GLOB_RECURSE oseen "dune/fem/oseen/*.hh" )
+FILE( GLOB_RECURSE stokes "../dune-fem-oseen/fem/oseen/*.hh" )
 FILE( GLOB stokes_src1 "../dune-fem-oseen/src/*.hh" )
 FILE( GLOB stokes_src2 "../dune-fem-oseen/src/*.cc" )
 LIST( APPEND stokes ${stokes_src1} ${stokes_src2} )
 
-set( COMMON_LIBS "dunefem" "dunegrid" "dunecommon" "dunegeometry" ${BLAS_LIB} ${ALUGRID_LIBS} ${UGLIBS} ${ParaLIBS} ${CCGNU_LIBRARIES} "boost_date_time" "boost_filesystem" "boost_system" )
+set( COMMON_LIBS "dunestuff" "dunecommon" "dunegeometry"  "dunefem" "dunegrid"  
+    ${BLAS_LIB} ${ALULIBS} ${UGLIBS}  ${ParaLIBS} ${CCGNU_LIBRARIES}  ${BOOST_LIBS})
 set( COMMON_HEADER ${header} ${stokes} ${stuff} ${navier} ${DUNE_HEADERS} )
 set_source_files_properties( ${COMMON_HEADER} PROPERTIES HEADER_FILE_ONLY 1 )
 
@@ -176,13 +155,6 @@ TARGET_LINK_LIBRARIES(testing ${COMMON_LIBS} )
 
 ADD_EXECUTABLE(navier src/dune_fem_navier_stokes.cc ${COMMON_HEADER} )
 TARGET_LINK_LIBRARIES(navier ${COMMON_LIBS} )
-
-
-#ADD_EXECUTABLE(oseen src/oseen.cc ${COMMON_HEADER} )
-#TARGET_LINK_LIBRARIES(oseen ${COMMON_LIBS} )
-
-#ADD_EXECUTABLE(conv_diff src/conv_diff.cc ${COMMON_HEADER} )
-#TARGET_LINK_LIBRARIES(conv_diff ${COMMON_LIBS} )
 
 HEADERCHECK( ${header} ${oseen} ${navier} )
 ADD_DEFINITIONS( ${MY_CXX_FLAGS} )

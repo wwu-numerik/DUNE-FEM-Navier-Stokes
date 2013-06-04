@@ -3,7 +3,7 @@
 
 #include <dune/fem/io/file/datawriter.hh>
 #include <dune/grid/io/file/vtk/vtkwriter.hh>
-#include <dune/stuff/magnitudefunction.hh>
+#include <dune/stuff/fem/functions/magnitude.hh>
 #include "fractionaltimeprovider.hh"
 
 namespace Dune {
@@ -141,7 +141,7 @@ namespace Dune {
                             return;
 
                         //needs to in same scope as clear() ?
-                        Stuff::MagnitudeFunction<DFType> magnitude( *f );
+                        DSFe::MagnitudeFunction<DFType> magnitude( *f );
 
                         std::string name = genFilename( (parallel_) ? "" : path_, f->name(), step_ );
                         if ( DFType::FunctionSpaceType::DimRange > 1 ) {
@@ -154,7 +154,7 @@ namespace Dune {
                             vtkOut_.addVertexData( *f );
                             vtkOut_.addCellData( *f );
                         }
-                        const bool binary_output = Parameters().getParam( "binary_vtk", true );
+                        const bool binary_output = DSC_CONFIG_GET( "binary_vtk", true );
 
                         if( parallel_ )
                         {

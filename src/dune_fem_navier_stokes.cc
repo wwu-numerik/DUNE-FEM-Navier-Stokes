@@ -1,6 +1,7 @@
 
 #include "main.hh"
 #include <dune/fem/nvs/problems.hh>
+#include <dune/stuff/common/loop_timer.hh>
 
 /** \brief one single application of the discretisation and solver
 
@@ -13,7 +14,7 @@
 			the set of coefficients to be used in the run. Default is used in all run types but StabRun().
 
 **/
-Stuff::RunInfoTimeMap singleRun(	CollectiveCommunication& mpicomm,
+DSC::RunInfoTimeMap singleRun(	CollectiveCommunication& mpicomm,
 							const int refine_level_factor,
 							const int scheme_type );
 //! output alert for neg. EOC
@@ -36,56 +37,56 @@ int main( int argc, char** argv )
     CollectiveCommunication mpicomm( init(argc,argv) );//( Dune::MPIManager::helper().getCommunicator() );
 
 	if ( setSchemeTypeFromString() )
-		Logger().Info() << "overrode scheme id from string" << std::endl;
+        DSC_LOG_INFO << "overrode scheme id from string" << std::endl;
 
 	int err = 0;
-	const unsigned int minref = Parameters().getParam( "minref", 0, Dune::ValidateNotLess<int>(0) );
-	Stuff::RunInfoTimeMapMap rf;
-	const int runtype = Parameters().getParam( "runtype", 5 );
+    const unsigned int minref = DSC_CONFIG_GETV( "minref", 0, DSC::ValidateNotLess<int>(0) );
+    DSC::RunInfoTimeMapMap rf;
+	const int runtype = DSC_CONFIG_GET( "runtype", 5 );
 	switch( runtype ) {
 		case 8: {
-			Logger().Info() << "Reynolds runs\n";
-			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
-			profiler().Reset( dt_steps - 1 );
+            DSC_LOG_INFO << "Reynolds runs\n";
+            const int dt_steps = DSC_CONFIG_GETV( "dt_steps", 3, DSC::ValidateNotLess<int>(2) );
+            DSC_PROFILER.reset( dt_steps - 1 );
 			int current_step = 0;
-			Stuff::LoopTimer<int,Stuff::Logging::LogStream> loop_timer( current_step, dt_steps, Logger().Info() );
-			for ( double viscosity = Parameters().getParam( "viscosity", 0.1, Dune::ValidateNotLess<double>(0.0) );
+            DSC::LoopTimer<int> loop_timer( current_step, dt_steps, DSC_LOG_INFO );
+            for ( double viscosity = DSC_CONFIG_GETV( "viscosity", 0.1, DSC::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
 				  ++loop_timer )
 			{
-				rf[current_step] = singleRun( mpicomm, minref, Parameters().getParam( "scheme_type", 1, true ) );
+                rf[current_step] = singleRun( mpicomm, minref, DSC_CONFIG_GETB( "scheme_type", 1, true ) );
 				assert( rf.size() );
 				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
-				profiler().NextRun();
+                DSC_PROFILER.nextRun();
 				viscosity /= 10.0f;
-				Parameters().setParam( "viscosity", viscosity );
+                DSC_CONFIG.set( "viscosity", viscosity );
 			}
 			break;
 		}
 		case 6: {
-			Logger().Info() << "Time refine runs\n";
-			const int dt_steps = Parameters().getParam( "dt_steps", 3, Dune::ValidateNotLess<int>(2) );
-			profiler().Reset( dt_steps - 1 );
+            DSC_LOG_INFO << "Time refine runs\n";
+            const int dt_steps = DSC_CONFIG_GETV( "dt_steps", 3, DSC::ValidateNotLess<int>(2) );
+            DSC_PROFILER.reset( dt_steps - 1 );
 			int current_step = 0;
-			Stuff::LoopTimer<int,Stuff::Logging::LogStream,Stuff::QuadraticWeights> loop_timer( current_step, dt_steps, Logger().Info() );
-			for ( double dt = Parameters().getParam( "fem.timeprovider.dt", 0.1, Dune::ValidateNotLess<double>(0.0) );
+            DSC::LoopTimer<int,DSC::QuadraticWeights> loop_timer( current_step, dt_steps, DSC_LOG_INFO );
+            for ( double dt = DSC_CONFIG_GETV( "fem.timeprovider.dt", 0.1, DSC::ValidateNotLess<double>(0.0) );
 				  dt_steps > current_step;
 				  ++loop_timer )
 			{
-				rf[current_step] = singleRun( mpicomm, minref, Parameters().getParam( "scheme_type", 1, true ) );
+                rf[current_step] = singleRun( mpicomm, minref, DSC_CONFIG_GETB( "scheme_type", 1, true ) );
 				assert( rf.size() );
 				rf[current_step].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
-				profiler().NextRun();
+                DSC_PROFILER.nextRun();
 				dt /= 2.0f;
-				Parameters().setParam( "fem.timeprovider.dt", dt );
+                DSC_CONFIG.set( "fem.timeprovider.dt", dt );
 			}
 			break;
 		}
 		case 7: {
-			Logger().Info() << "Scheme runs\n";
-			profiler().Reset( 4 );
+            DSC_LOG_INFO << "Scheme runs\n";
+            DSC_PROFILER.reset( 4 );
 			int current_scheme = 2;
-			Stuff::LoopTimer<int,Stuff::Logging::LogStream> loop_timer( current_scheme, 5, Logger().Info() );
+            DSC::LoopTimer<int> loop_timer( current_scheme, 5, DSC_LOG_INFO );
 			for ( ;
 				  current_scheme < 6;
 				  ++loop_timer )
@@ -93,53 +94,55 @@ int main( int argc, char** argv )
 				rf[current_scheme] = singleRun( mpicomm, minref, current_scheme );
 				assert( rf.size() );
 				rf[current_scheme].begin()->second.refine_level = minref;//just in case the key changes from ref to sth else
-				profiler().NextRun();
+                DSC_PROFILER.nextRun();
 			}
 			break;
 		}
 		case 5:
-			Parameters().setParam( "maxref", minref );//only one run with ref=minref
+            DSC_CONFIG.set( "maxref", minref );//only one run with ref=minref
 		case 0:
 		default: {
 			// ensures maxref>=minref
-			const unsigned int maxref = Stuff::clamp( Parameters().getParam( "maxref", (unsigned int)(0) ), minref, Parameters().getParam( "maxref", (unsigned int)(0) ) );
-			profiler().Reset( maxref - minref + 1 );
-			Logger().Info() << "Grid refine runs\n";
+            const unsigned int maxref = DSC::clamp( DSC_CONFIG_GET( "maxref", (unsigned int)(0) ),
+                                                    minref,
+                                                    DSC_CONFIG_GET( "maxref", (unsigned int)(0) ) );
+            DSC_PROFILER.reset( maxref - minref + 1 );
+            DSC_LOG_INFO << "Grid refine runs\n";
 			unsigned int ref = minref;
-			Stuff::LoopTimer<unsigned int,Stuff::Logging::LogStream,Stuff::LinearWeights> loop_timer( ref, maxref - minref + 1, Logger().Info() );
+            DSC::LoopTimer<unsigned int,DSC::LinearWeights> loop_timer( ref, maxref - minref + 1, DSC_LOG_INFO );
 			for ( ;
 				  ref <= maxref;
 				  ++loop_timer )
 			{
-				rf[ref] = singleRun( mpicomm, ref, Parameters().getParam( "scheme_type", 1, true ) );
+                rf[ref] = singleRun( mpicomm, ref, DSC_CONFIG_GETB( "scheme_type", 1, true ) );
 				rf[ref].begin()->second.refine_level = ref;//just in case the key changes from ref to sth else
-				profiler().NextRun();
+                DSC_PROFILER.nextRun();
 			}
 			break;
 		}
 	}
-	profiler().OutputMap( mpicomm, rf );
+//    DSC_PROFILER.outputMap( mpicomm, rf );
 
-	if ( NAVIER_DATA_NAMESPACE::hasExactSolution && Parameters().getParam( "calculate_errors", true ) )
-	{
-	    Stuff::TimeSeriesOutput out( rf );
-	    out.writeTex( Parameters().getParam("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
-	}
+//	if ( NAVIER_DATA_NAMESPACE::hasExactSolution && DSC_CONFIG_GET( "calculate_errors", true ) )
+//	{
+//        DSFe::TimeSeriesOutput out( rf );
+//	    out.writeTex( DSC_CONFIG_GET("fem.io.datadir", std::string(".") ) + std::string("/timeseries") );
+//	}
 
-	Logger().Dbg() << "\nRun from: " << commit_string << std::endl;
+	DSC_LOG_DEBUG << "\nRun from: " << commit_string << std::endl;
 	return err;
 }
 
-Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
+DSC::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 					const int refine_level_factor, const int scheme_type )
 {
-	Stuff::Profiler::ScopedTiming pf_t( "SingleRun" );
-	Stuff::Logging::LogStream& infoStream = Logger().Info();
-	Stuff::Logging::LogStream& debugStream = Logger().Dbg();
+    DSC::Profiler::ScopedTiming pf_t( "SingleRun" );
+    DSC::LogStream& infoStream = DSC_LOG_INFO;
+    DSC::LogStream& debugStream = DSC_LOG_DEBUG;
 
 	infoStream << "\n- initialising grid" << std::endl;
 	const int gridDim = GridType::dimensionworld;
-	Dune::GridPtr< GridType > gridPtr( Parameters().DgfFilename( gridDim ) );
+    Dune::GridPtr< GridType > gridPtr( DSC_CONFIG_GET( "dgf_file", "grid_2d.dgf") );
 	const int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
 	gridPtr->globalRefine( refine_level );
 
@@ -156,8 +159,8 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	}
 	catch ( std::bad_alloc& b ) {
 		std::cerr << "Memory allocation failed: " << b.what() ;
-		Logger().Info().Resume();
-		Stuff::meminfo( Logger().Info() );
+        DSC_LOG_INFO.resume();
+        DSC::meminfo( DSC_LOG_INFO );
 	}
 	catch ( assert_exception& a ) {
 		std::cerr << "Exception thrown at:\n" << a.what() << std::endl ;
@@ -165,7 +168,7 @@ Stuff::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
 	catch (...){
 		std::cerr << "Unknown exception thrown!" << std::endl;
 	}
-	return Stuff::RunInfoTimeMap();
+    return DSC::RunInfoTimeMap();
 }
 
 bool setSchemeTypeFromString()
@@ -174,10 +177,10 @@ bool setSchemeTypeFromString()
 	if ( Dune::Parameter::exists("scheme_type_string") )
 	{
 		const std::vector<std::string>& scheme_names = Dune::NavierStokes::ThetaSchemeDescription<0>::scheme_names;
-		Stuff::ValidateInList<std::string> validator( scheme_names );
-		const std::string scheme_string = Parameters().getParam("scheme_type_string", scheme_names.back(), validator );
-		const int scheme_id = Stuff::getIdx( scheme_names, scheme_string );
-		Parameters().setParam( "scheme_type", scheme_id );
+        DSC::ValidateInList<std::string> validator( scheme_names );
+        const std::string scheme_string = DSC_CONFIG_GETV("scheme_type_string", scheme_names.back(), validator );
+        const int scheme_id = DSC::getIdx( scheme_names, scheme_string );
+        DSC_CONFIG.set( "scheme_type", scheme_id );
 		changed = true;
 	}
 	return changed;

@@ -1,11 +1,11 @@
 #ifndef NAVIER_PROBLEMS_RUNTIME_HH
 #define NAVIER_PROBLEMS_RUNTIME_HH
 
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/timefunction.hh>
-#include <dune/stuff/runtimefunction.hh>
-#include <dune/stuff/parametercontainer.hh>
+#include <dune/stuff/fem/functions.hh>
+#include <dune/stuff/fem/functions/timefunction.hh>
+#include <dune/stuff/common/parameter/configcontainer.hh>
 #include "common.hh"
+#include "runtimefunction.hh"
 
 namespace NavierProblems {
 namespace Runtime {
@@ -23,14 +23,14 @@ NV_RUNTIME_FUNC(PressureGradient);
 NV_RUNTIME_FUNC(Beta);
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
+class DirichletData : public Dune::Stuff::Fem::IntersectionTimeFunction < FunctionSpaceImp ,
                                                               DirichletData< FunctionSpaceImp,TimeProviderImp >,
                                                               TimeProviderImp >
 {
         public:
             typedef DirichletData< FunctionSpaceImp, TimeProviderImp >
                 ThisType;
-            typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+            typedef Dune::Stuff::Fem::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
                 BaseType;
             typedef typename BaseType::DomainType
                 DomainType;

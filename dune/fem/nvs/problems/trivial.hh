@@ -1,9 +1,9 @@
 #ifndef NAVIER_PROBLEMS_TRIVIAL_HH
 #define NAVIER_PROBLEMS_TRIVIAL_HH
 
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/timefunction.hh>
-#include <dune/stuff/parametercontainer.hh>
+#include <dune/stuff/fem/functions.hh>
+#include <dune/stuff/fem/functions/timefunction.hh>
+#include <dune/stuff/common/parameter/configcontainer.hh>
 #include "common.hh"
 
 namespace NavierProblems {
@@ -14,12 +14,12 @@ static const bool hasExactSolution	= true;
 ALLGOOD_SETUPCHECK;
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class Force : public Dune::TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class Force : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Force< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 		public:
 			typedef Force< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+            typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			  typedef typename BaseType::DomainType
 				  DomainType;
@@ -52,7 +52,7 @@ class Force : public Dune::TimeFunction < FunctionSpaceImp , Force< FunctionSpac
 			  ret[0] += -1*time;
 			  ret[1] += 0;
 			  //conv
-			  if ( !Parameters().getParam( "navier_no_convection", false ) ) {
+              if ( !DSC_CONFIG_GET( "navier_no_convection", false ) ) {
 				  assert( false );
 				  ret[0] += -x;
 				  ret[1] += -y;
@@ -75,12 +75,12 @@ void VelocityEvaluate( const double /*lambda*/, const double time, const DomainT
 }
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 	public:
 		typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 			ThisType;
-		typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 			BaseType;
 		  typedef typename BaseType::DomainType
 			  DomainType;
@@ -113,12 +113,12 @@ class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , Veloci
 };
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class DirichletData : public Dune::Stuff::Fem::IntersectionTimeFunction < FunctionSpaceImp , DirichletData< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 		public:
 			typedef DirichletData< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+            typedef Dune::Stuff::Fem::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -160,12 +160,12 @@ class DirichletData : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
 };
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 	public:
 		typedef Velocity< FunctionSpaceImp, TimeProviderImp >
 			ThisType;
-		typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 			BaseType;
 		typedef typename BaseType::DomainType
 			DomainType;
@@ -182,7 +182,7 @@ class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< Functi
 					const double /*parameter_a*/ = M_PI /2.0 ,
 					const double /*parameter_d */= M_PI /4.0)
 			: BaseType( timeprovider, space ),
-			lambda_( Parameters().getParam( "lambda", 0.0 ) )
+            lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 		{}
 
 		/**
@@ -214,12 +214,12 @@ class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< Functi
 };
 
 template <	class FunctionSpaceImp, class TimeProviderImp >
-class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < FunctionSpaceImp,TimeProviderImp >,TimeProviderImp >
+class Pressure : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Pressure < FunctionSpaceImp,TimeProviderImp >,TimeProviderImp >
 {
 	public:
 		typedef Pressure< FunctionSpaceImp, TimeProviderImp >
 			ThisType;
-		typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 			BaseType;
 		typedef typename BaseType::DomainType
 			DomainType;
@@ -236,7 +236,7 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 				const double /*parameter_a*/ = M_PI /2.0 ,
 				const double /*parameter_d*/ = M_PI /4.0)
 		  : BaseType( timeprovider, space ),
-		  lambda_( Parameters().getParam( "lambda", 0.0 ) ),
+          lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) ),
 		  shift_(0.0)
 	  {}
 
@@ -253,7 +253,7 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 			dune_static_assert( dim_ == 2 ,"__CLASS__ evaluate not implemented for world dimension");
 			const double x				= arg[0];
 //			const double y				= arg[1];
-//			const double v				= Parameters().getParam( "viscosity", 1.0 );
+//			const double v				= DSC_CONFIG_GET( "viscosity", 1.0 );
 //			const double F				= std::exp( -16 * std::pow( M_PI, 2 ) * time );
 //			const double C1				= std::cos(4*M_PI* ( x + 0.25 ) );
 //			const double C2				= std::cos(4*M_PI* ( y + 0.5 ) );
@@ -264,7 +264,7 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 		template < class DiscreteFunctionSpace >
         void setShift( const DiscreteFunctionSpace& /*space*/ )
 		{
-//					shift_ = -1 * Stuff::meanValue( *this, space );
+//					shift_ = -1 * DSC::meanValue( *this, space );
 		}
 
 		/**
@@ -283,12 +283,12 @@ class Pressure : public Dune::TimeFunction < FunctionSpaceImp , Pressure < Funct
 };
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 	public:
 		typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 			ThisType;
-		typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 			BaseType;
 		typedef typename BaseType::DomainType
 			DomainType;
@@ -305,7 +305,7 @@ class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityL
 					const double /*parameter_a*/ = M_PI /2.0 ,
 					const double /*parameter_d*/ = M_PI /4.0)
 			: BaseType( timeprovider, space ),
-			lambda_( Parameters().getParam( "lambda", 0.0 ) )
+            lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 		{}
 
 		/**
@@ -338,12 +338,12 @@ class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityL
 
 
 template < class FunctionSpaceImp, class TimeProviderImp >
-class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , PressureGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+class PressureGradient : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , PressureGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 {
 	public:
 		typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
 			ThisType;
-		typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+        typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 			BaseType;
 		typedef typename BaseType::DomainType
 			DomainType;
@@ -360,7 +360,7 @@ class PressureGradient : public Dune::TimeFunction < FunctionSpaceImp , Pressure
 					const double /*parameter_a*/ = M_PI /2.0 ,
 					const double /*parameter_d*/ = M_PI /4.0)
 			: BaseType( timeprovider, space ),
-			lambda_( Parameters().getParam( "lambda", 0.0 ) )
+            lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 		{}
 
 		/**

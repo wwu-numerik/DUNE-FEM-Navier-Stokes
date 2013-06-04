@@ -128,12 +128,12 @@ namespace AdapterFunctions {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef Velocity< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -180,14 +180,14 @@ namespace AdapterFunctions {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class Pressure : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class Pressure : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											Pressure < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef Pressure< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -233,14 +233,14 @@ namespace AdapterFunctions {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class PressureGradient : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class PressureGradient : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											PressureGradient < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -286,12 +286,12 @@ namespace AdapterFunctions {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -337,12 +337,12 @@ namespace AdapterFunctions {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -430,7 +430,7 @@ namespace AdapterFunctionsScalar {
 			   **/
 			  inline void evaluate( const double time, const DomainType& arg, RangeType& ret ) const
 			  {
-				  const double viscosity = Parameters().getParam( "viscosity", 1.0 );
+				  const double viscosity = DSC_CONFIG_GET( "viscosity", 1.0 );
 				  const double x			= arg[0];
 				  const double y			= arg[1];
 				  //conv
@@ -529,12 +529,12 @@ namespace AdapterFunctionsScalar {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef Velocity< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -576,14 +576,14 @@ namespace AdapterFunctionsScalar {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class Pressure : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class Pressure : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											Pressure < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef Pressure< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -629,14 +629,14 @@ namespace AdapterFunctionsScalar {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class PressureGradient : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class PressureGradient : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											PressureGradient < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -682,12 +682,12 @@ namespace AdapterFunctionsScalar {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -730,12 +730,12 @@ namespace AdapterFunctionsScalar {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -791,7 +791,7 @@ namespace AdapterFunctionsVectorial {
 			y(arg[1]),
 			time_(time),
 //			time_(0),
-			v(Parameters().getParam( "viscosity", 1.0 )),
+			v(DSC_CONFIG_GET( "viscosity", 1.0 )),
 			P(pi_factor),
 			E(std::exp( -2. * std::pow( P, 2. ) * v * time_ )),
 			F(std::exp( -4. * std::pow( P, 2. ) * v * time_ )),
@@ -885,7 +885,7 @@ namespace AdapterFunctionsVectorial {
 				  ret[0] += ( -2 * std::pow( evals.P, 2 ) * evals.v ) * u[0];
 				  ret[1] += ( -2 * std::pow( evals.P, 2 ) * evals.v ) * u[1];
 
-				  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
+				  ret *=  DSC_CONFIG_GET( "rhs_factor", 1.0 );
 			  }
 			  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
@@ -968,12 +968,12 @@ namespace AdapterFunctionsVectorial {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef Velocity< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1025,14 +1025,14 @@ namespace AdapterFunctionsVectorial {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class Pressure : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class Pressure : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											Pressure < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef Pressure< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1086,14 +1086,14 @@ namespace AdapterFunctionsVectorial {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class PressureGradient : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class PressureGradient : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											PressureGradient < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1143,12 +1143,12 @@ namespace AdapterFunctionsVectorial {
 		ret[1] = - 2 * evals.C_y * evals.E * evals.P * evals.S_x * evals.P ;
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1200,12 +1200,12 @@ namespace AdapterFunctionsVectorial {
 
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1245,12 +1245,12 @@ namespace AdapterFunctionsVectorial {
 			const double parameter_d_;
 	};
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityGradient : public Dune::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityGradient : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityGradient< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1310,7 +1310,7 @@ namespace AdapterFunctionsVisco {
 			y(arg[1]),
 			time_(time),
 //			time_(1),
-			v(Parameters().getParam( "viscosity", 1.0 )),
+			v(DSC_CONFIG_GET( "viscosity", 1.0 )),
 			P(M_PI),
 			E(std::exp( -8 * std::pow( M_PI, 2 ) * time_ )),
 			F(std::exp( -16 * std::pow( M_PI, 2 ) * time_ )),
@@ -1353,14 +1353,14 @@ namespace AdapterFunctionsVisco {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class PressureGradient : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class PressureGradient : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											PressureGradient < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef PressureGradient< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1469,7 +1469,7 @@ namespace AdapterFunctionsVisco {
 //				  ret[0] += ( -8 * std::pow( M_PI, 2 ) ) * u[0];
 //				  ret[1] += ( -8 * std::pow( M_PI, 2 ) ) * u[1];
 
-//				  ret *=  Parameters().getParam( "rhs_factor", 1.0 );
+//				  ret *=  DSC_CONFIG_GET( "rhs_factor", 1.0 );
 			  }
 			  inline void evaluate( const DomainType& /*arg*/, RangeType& ret ) const {assert(false);}
 
@@ -1554,12 +1554,12 @@ namespace AdapterFunctionsVisco {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class Velocity : public Dune::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velocity< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef Velocity< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1611,14 +1611,14 @@ namespace AdapterFunctionsVisco {
 
 	template <	class FunctionSpaceImp,
 				class TimeProviderImp >
-	class Pressure : public Dune::TimeFunction <	FunctionSpaceImp ,
+	class Pressure : public Dune::Stuff::Fem::TimeFunction <	FunctionSpaceImp ,
 											Pressure < FunctionSpaceImp,TimeProviderImp >,
 											TimeProviderImp >
 	{
 		public:
 			typedef Pressure< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1678,12 +1678,12 @@ namespace AdapterFunctionsVisco {
 		ret[1] = 0 ;
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityLaplace : public Dune::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityLaplace< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityLaplace< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1732,12 +1732,12 @@ namespace AdapterFunctionsVisco {
 		ret[1] = 0;
 	}
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityConvection : public Dune::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityConvection< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityConvection< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;
@@ -1778,12 +1778,12 @@ namespace AdapterFunctionsVisco {
 	};
 
 	template < class FunctionSpaceImp, class TimeProviderImp >
-	class VelocityGradient : public Dune::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
+	class VelocityGradient : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , VelocityGradient< FunctionSpaceImp,TimeProviderImp >, TimeProviderImp >
 	{
 		public:
 			typedef VelocityGradient< FunctionSpaceImp, TimeProviderImp >
 				ThisType;
-			typedef Dune::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+			typedef Dune::Stuff::Fem::TimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
 				BaseType;
 			typedef typename BaseType::DomainType
 				DomainType;

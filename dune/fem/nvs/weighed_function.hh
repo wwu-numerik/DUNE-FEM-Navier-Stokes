@@ -1,9 +1,9 @@
 #ifndef WEIGHED_FUNCTION_HH
 #define WEIGHED_FUNCTION_HH
 
-
-#include <dune/stuff/functions.hh>
-#include <dune/stuff/timefunction.hh>
+#include <dune/stuff/fem/functions.hh>
+#include <dune/stuff/fem/functions/timefunction.hh>
+#include <dune/stuff/common/parameter/configcontainer.hh>
 
 namespace Dune {
 namespace NavierStokes {
@@ -12,13 +12,13 @@ namespace NavierStokes {
  *
  */
 template < class FunctionSpaceImp, class TimeProviderImp, class FunctionImp >
-class WeighedIntersectionFunction : public Dune::IntersectionTimeFunction < FunctionSpaceImp ,
+class WeighedIntersectionFunction : public Dune::Stuff::Fem::IntersectionTimeFunction < FunctionSpaceImp ,
         WeighedIntersectionFunction< FunctionSpaceImp, TimeProviderImp, FunctionImp >, TimeProviderImp >
 {
         public:
             typedef WeighedIntersectionFunction< FunctionSpaceImp, TimeProviderImp, FunctionImp >
                 ThisType;
-            typedef Dune::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
+            typedef Dune::Stuff::Fem::IntersectionTimeFunction< FunctionSpaceImp, ThisType, TimeProviderImp >
                 BaseType;
             typedef typename BaseType::DomainType
                 DomainType;

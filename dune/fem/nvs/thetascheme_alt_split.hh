@@ -38,23 +38,23 @@ namespace Dune {
 					: BaseType( gridPart, scheme_params, comm )
 				{}
 
-				virtual Stuff::RunInfo full_timestep()
+				virtual DSC::RunInfo full_timestep()
 				{
-					Stuff::RunInfo info;
+					DSC::RunInfo info;
 					{
-						Stuff::Profiler::ScopedTiming fullstep_time("full_step");
-						Stuff::RunInfo info_dummy;
+						DSC::Profiler::ScopedTiming fullstep_time("full_step");
+						DSC::RunInfo info_dummy;
 						//stokes step A
 						typename BaseType::DiscreteVelocityFunctionType u_n( "u_n", dummyFunctions_.discreteVelocity().space() );
 						u_n.assign( currentFunctions_.discreteVelocity() );
 						stokesStep( scheme_params_.step_sizes_[0], scheme_params_.thetas_[0] );
 						BaseType::nextStep( 0, info_dummy );
 
-						Parameters().setParam( "reduced_oseen_solver", true );
+                        DSC_CONFIG.set( "reduced_oseen_solver", true );
 						//Nonlinear step
 						nonlinearStep( scheme_params_.step_sizes_[1], scheme_params_.thetas_[1], u_n );
 						BaseType::nextStep( 1, info_dummy );
-						Parameters().setParam( "reduced_oseen_solver", false );
+                        DSC_CONFIG.set( "reduced_oseen_solver", false );
 
 						//stokes step B
 						info = stokesStep( scheme_params_.step_sizes_[2], scheme_params_.thetas_[2] );
@@ -76,12 +76,12 @@ namespace Dune {
 					{}
 				};
 
-				Stuff::RunInfo stokesStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/ ) const
+				DSC::RunInfo stokesStep( const double /*dt_k*/,const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& /*theta_values*/ ) const
 				{
 					DiscretizationWeights discretization_weights(BaseType::d_t_, viscosity_);
 
-					if ( Parameters().getParam( "silent_stokes", true ) )
-						Logger().Suspend( Stuff::Logging::LogStream::default_suspend_priority + 1 );
+					if ( DSC_CONFIG_GET( "silent_stokes", true ) )
+                        DSC_LOG.suspend( DSC::LogStream::default_suspend_priority + 1 );
 
 					const bool first_stokes_step = timeprovider_.timeStep() <= 1;
 					const typename Traits::AnalyticalForceType force ( timeprovider_,
@@ -102,12 +102,12 @@ namespace Dune {
 																										  rhsDatacontainer_ )
 											);
 
-					typedef Stuff::L2Error<typename Traits::GridPartType>
+                    typedef DSFe::L2Error<typename Traits::GridPartType>
 							L2ErrorType;
 					L2ErrorType l2Error( gridPart_ );
 
 					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
-					const bool do_cheat = Parameters().getParam( "rhs_cheat", false ) && !first_stokes_step ;
+					const bool do_cheat = DSC_CONFIG_GET( "rhs_cheat", false ) && !first_stokes_step ;
 					dummyFunctions_.discreteVelocity().assign( currentFunctions_.discreteVelocity() );
 //					if ( do_cheat ) //do cheat rhs assembly unconditionally, below we'll choose according to do_cheat which rhs to put into the model
 					{
@@ -118,14 +118,14 @@ namespace Dune {
 																typename Traits::TimeProviderType >
 							VelocityConvection;
 						VelocityConvection velocity_convection( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+						DSFe::BetterL2Projection //we need evals from the _previous_ (t_0) step
 							::project( timeprovider_.previousSubTime(), velocity_convection, rhsDatacontainer_.convection );
 //						// ----
 						typedef NAVIER_DATA_NAMESPACE::VelocityLaplace<	VelocityFunctionSpaceType,
 																					typename Traits::TimeProviderType >
 								VelocityLaplace;
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection //this seems currently inconsequential to the produced error
+						DSFe::BetterL2Projection //this seems currently inconsequential to the produced error
 							::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
 
 //						typename L2ErrorType::Errors errors_convection = l2Error.get(	exactSolution_.discreteVelocity() ,
@@ -156,7 +156,7 @@ namespace Dune {
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
 
 					{
-//					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+//					if ( DSC_CONFIG_GET( "stab_coeff_visc_scale", true ) ) {
 //						stab_coeff.Factor( "D11", ( 1 / stokes_viscosity ) );
 //						stab_coeff.Factor( "C11", stokes_viscosity );
 //					}
@@ -167,7 +167,7 @@ namespace Dune {
 //					stab_coeff.FactorFromParams("D12");
 //					stab_coeff.FactorFromParams("C12");
 //					stab_coeff.Add( "E12", 0.5 );
-//					stab_coeff.print( Logger().Info() );
+//					stab_coeff.print( DSC_LOG_INFO );
 					}
 
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData ( timeprovider_,
@@ -189,10 +189,10 @@ namespace Dune {
 
 					stokesPass.apply( currentFunctions_, nextFunctions_, &rhsDatacontainer_ );
 					BaseType::setUpdateFunctions();
-					Stuff::RunInfo info;
+					DSC::RunInfo info;
 					stokesPass.getRuninfo( info );
-					if ( Parameters().getParam( "silent_stokes", true ) )
-						Logger().Resume( Stuff::Logging::LogStream::default_suspend_priority + 1 );
+					if ( DSC_CONFIG_GET( "silent_stokes", true ) )
+                        DSC_LOG.resume( DSC::LogStream::default_suspend_priority + 1 );
 					return info;
 				}
 
@@ -209,7 +209,7 @@ namespace Dune {
 																	   0.0 /*stokes alpha*/ );
 
 					// CHEAT (projecting the anaylitcal evals into the container filled by last pass
-					if ( Parameters().getParam( "rhs_cheat", false ) ) {
+					if ( DSC_CONFIG_GET( "rhs_cheat", false ) ) {
 						typedef typename BaseType::DiscreteVelocityFunctionType::FunctionSpaceType::FunctionSpaceType
 								VelocityFunctionSpaceType;
 						VelocityFunctionSpaceType continousVelocitySpace_;
@@ -218,14 +218,14 @@ namespace Dune {
 								typename Traits::TimeProviderType >
 								PressureGradient;
 						PressureGradient pressure_gradient( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection //we need evals from the _previous_ (t_0) step
+						DSFe::BetterL2Projection //we need evals from the _previous_ (t_0) step
 								::project( timeprovider_.previousSubTime(), pressure_gradient, rhsDatacontainer_.pressure_gradient );
 						// ----
 						typedef NAVIER_DATA_NAMESPACE::VelocityLaplace<	VelocityFunctionSpaceType,
 								typename Traits::TimeProviderType >
 								VelocityLaplace;
 						VelocityLaplace velocity_laplace( timeprovider_, continousVelocitySpace_ );
-						Dune::BetterL2Projection
+						DSFe::BetterL2Projection
 								::project( timeprovider_.previousSubTime(), velocity_laplace, rhsDatacontainer_.velocity_laplace );
 						currentFunctions_.discreteVelocity().assign( exactSolution_.discreteVelocity() );
 					}// END CHEAT
@@ -237,7 +237,7 @@ namespace Dune {
 																					  rhsDatacontainer_ );
 
 					rhsFunctions_.discreteVelocity().assign( nonlinearForce );
-					unsigned int oseen_iterations = Parameters().getParam( "oseen_iterations", (unsigned int)(1) );
+					unsigned int oseen_iterations = DSC_CONFIG_GET( "oseen_iterations", (unsigned int)(1) );
 					assert( oseen_iterations > 0 );
 					nonlinearStepSingle( nonlinearForce, discretization_weights, u_n );
 				}
@@ -252,7 +252,7 @@ namespace Dune {
 					typename Traits::AnalyticalDirichletDataType stokesDirichletData ( timeprovider_,
 										  functionSpaceWrapper_ );
 					Dune::StabilizationCoefficients stab_coeff = Dune::StabilizationCoefficients::getDefaultStabilizationCoefficients();
-//					if ( Parameters().getParam( "stab_coeff_visc_scale", true ) ) {
+//					if ( DSC_CONFIG_GET( "stab_coeff_visc_scale", true ) ) {
 //						stab_coeff.Factor( "D11", ( 1 / oseen_viscosity )  );
 //						stab_coeff.Factor( "C11", oseen_viscosity );
 //					}
@@ -264,7 +264,7 @@ namespace Dune {
 //					stab_coeff.FactorFromParams("C12");
 //					stab_coeff.Add( "E12", 0.5 );
 
-//					stab_coeff.print( Logger().Info() );
+//					stab_coeff.print( DSC_LOG_INFO );
 
 					typename BaseType::DiscreteVelocityFunctionType beta( "beta", dummyFunctions_.discreteVelocity().space() );
 					typename BaseType::DiscreteVelocityFunctionType tmp( "tmp", dummyFunctions_.discreteVelocity().space() );
