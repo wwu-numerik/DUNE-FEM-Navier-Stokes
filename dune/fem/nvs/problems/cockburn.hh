@@ -2,7 +2,7 @@
 #define NAVIER_PROBLEMS_COCKBURN_HH
 
 #include <dune/common/float_cmp.hh>
-#include <dune/stuff/fem/functions.hh>
+
 #include <dune/stuff/fem/functions/timefunction.hh>
 #include <dune/stuff/common/parameter/configcontainer.hh>
 #include <dune/stuff/grid/information.hh>

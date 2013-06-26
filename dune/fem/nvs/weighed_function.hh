@@ -1,7 +1,7 @@
 #ifndef WEIGHED_FUNCTION_HH
 #define WEIGHED_FUNCTION_HH
 
-#include <dune/stuff/fem/functions.hh>
+
 #include <dune/stuff/fem/functions/timefunction.hh>
 #include <dune/stuff/common/parameter/configcontainer.hh>
 
@@ -32,13 +32,13 @@ class WeighedIntersectionFunction : public Dune::Stuff::Fem::IntersectionTimeFun
         *  doing nothing besides Base init
         **/
         WeighedIntersectionFunction( const TimeProviderImp& timeprovider,
-                   const FunctionSpaceImp& space,
+                   const FunctionSpaceImp& space_in,
                    const double weight_a = 1.0,
                    const double weight_b = 0.0 )
-            : BaseType ( timeprovider, space ),
+            : BaseType ( timeprovider, space_in ),
               weight_a_(weight_a),
               weight_b_(weight_b),
-              function_(timeprovider, space)
+              function_(timeprovider, space_in)
         {}
 
         /**

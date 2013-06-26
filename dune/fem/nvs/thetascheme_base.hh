@@ -19,7 +19,7 @@
 #include <dune/fem/nvs/thetascheme_traits.hh>
 #include <dune/fem/nvs/fractionaldatawriter.hh>
 #include <dune/fem/nvs/global_defines.hh>
-#include <dune/fem/oseen/pass.hh>
+#include <dune/fem/oseen/ldg_method.hh>
 
 namespace Dune {
 	namespace NavierStokes {
@@ -85,7 +85,7 @@ namespace Dune {
 				DataWriterType1 dataWriter1_;
 				CheckPointerType check_pointer_;
 				DataWriterType2 dataWriter2_;
-				const typename Traits::OseenPassType::Traits::DiscreteSigmaFunctionSpaceType sigma_space_;
+				const typename Traits::OseenLDGMethodType::Traits::DiscreteSigmaFunctionSpaceType sigma_space_;
                 mutable DataContainerType rhsDatacontainer_;
 				mutable typename Traits::DiscreteOseenFunctionWrapperType lastFunctions_;
 

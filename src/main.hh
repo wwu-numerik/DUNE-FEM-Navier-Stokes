@@ -13,12 +13,8 @@
 #include <dune/fem/nvs/global_defines.hh>
 
 #include <cstdio>
-#if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)
+#if defined(USE_PARDG_ODE_SOLVER)
     #warning ("USE_PARDG_ODE_SOLVER enabled, might conflict with custom solvers")
-#endif
-
-#if defined(UGGRID) && defined(DEBUG)
-    #warning ("UGGRID in debug mode is likely to produce a segfault")
 #endif
 
 #include <vector>
@@ -44,7 +40,7 @@ typedef Dune::GridSelector::GridType
 
 #include <dune/fem/oseen/functionspacewrapper.hh>
 #include <dune/fem/oseen/modelinterface.hh>
-#include <dune/fem/oseen/pass.hh>
+#include <dune/fem/oseen/ldg_method.hh>
 #include <dune/fem/oseen/boundarydata.hh>
 
 #include <dune/stuff/fem/femeoc.hh>

@@ -2,11 +2,11 @@
 #define THETASCHEME_TRAITS_HH
 
 #include <dune/fem/oseen/modelinterface.hh>
-#include <dune/fem/oseen/pass.hh>
+#include <dune/fem/oseen/ldg_method.hh>
 #include <dune/fem/nvs/fractionaltimeprovider.hh>
 #include <dune/fem/nvs/stokestraits.hh>
 #include <dune/fem/nvs/exactsolution.hh>
-#include <dune/stuff/fem/functions.hh>
+
 #include <dune/stuff/common/misc.hh>
 #include <dune/stuff/aliases.hh>
 
@@ -263,14 +263,14 @@ namespace Dune {
             typedef Dune::DiscreteOseenModelDefault< OseenModelAltRhsTraits >
 				OseenModelAltRhsType;
 
-            typedef Dune::OseenPass< OseenModelType >
-				OseenPassType;
-            typedef Dune::OseenPass< StokesModelType >
+            typedef Dune::OseenLDGMethod< OseenModelType >
+				OseenLDGMethodType;
+            typedef Dune::OseenLDGMethod< StokesModelType >
                 StokesPassType;
-            typedef Dune::OseenPass< NonlinearModelType >
+            typedef Dune::OseenLDGMethod< NonlinearModelType >
 				NonlinearPassType;
-            typedef Dune::OseenPass< OseenModelAltRhsType >
-				OseenPassAltRhsType;
+            typedef Dune::OseenLDGMethod< OseenModelAltRhsType >
+				OseenLDGMethodAltRhsType;
 		};
 	}
 }

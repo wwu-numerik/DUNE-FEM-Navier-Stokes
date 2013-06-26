@@ -263,14 +263,14 @@ namespace Dune {
                     for (IteratorType it = func->space().begin(); it != endit; ++it) {
                         CachingQuadrature<GridPartType,0> quad(*it,func->space().order());
                         LocalFunctionType lf = func->localFunction(*it);
-                        for (size_t i=0;i<quad.nop();++i) {
+                        for (size_t q=0;q<quad.nop();++q) {
                             RangeType u;
-                            DomainType x = it->geometry().global(quad.point(i));
-                            lf.evaluate(quad[i],u);
+                            DomainType x = it->geometry().global(quad.point(q));
+                            lf.evaluate(quad[q],u);
                             for (int i = 0; i < dimDomain; ++i)
                                 gnuout << x[i] << " ";
-                            for (int i = 0; i < dimRange; ++i)
-                                gnuout << u[i] << " ";
+                            for (int j = 0; j < dimRange; ++j)
+                                gnuout << u[j] << " ";
                             gnuout << time_ << "\n";
                         }
                     }

@@ -2,6 +2,7 @@
 #define METADATA_HH
 
 #include <dune/fem/nvs/thetascheme_base.hh>
+#include <dune/fem/oseen/modeldefault.hh>
 
 namespace Dune {
 	namespace NavierStokes {
@@ -118,7 +119,7 @@ namespace Dune {
                     return do_cheat ? ptr_oseenForce : ptr_oseenForceVanilla;
                 }
 
-                typename Traits::OseenPassType prepare_pass(const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
+                typename Traits::OseenLDGMethodType prepare_pass(const typename Traits::ThetaSchemeDescriptionType::ThetaValueArray& theta_values )
                 {
                     const auto rhs = prepare_rhs(theta_values);
                     const double dt_n = timeprovider_.deltaT();
@@ -155,7 +156,7 @@ namespace Dune {
                                         theta_values[0] /*pressure_gradient_scale_factor*/
                                        );
 
-                    return typename Traits::OseenPassType( oseenModel,
+                    return typename Traits::OseenLDGMethodType( oseenModel,
                                             gridPart_,
                                             functionSpaceWrapper_,
                                             beta /*beta*/,
@@ -172,8 +173,6 @@ namespace Dune {
                         DSC_LOG_DEBUG << boost::format("discrete Boundary integral: %e\n") % boundaryInt;
                     }
                     auto oseenPass = prepare_pass(theta_values);
-                    if ( timeprovider_.timeStep() <= 2 )
-                        oseenPass.printInfo();
                     if ( DSC_CONFIG_GET( "silent_stokes", true ) )
                         DSC_LOG_INFO.suspend( DSC::LogStream::default_suspend_priority + 10 );
                     if ( DSC_CONFIG_GET( "clear_u" , false ) )

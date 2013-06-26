@@ -172,8 +172,8 @@ namespace Oseen {
 			OseenModelTraits;
 		typedef Dune::DiscreteOseenModelDefault< OseenModelTraits >
 			OseenModelType;
-        typedef Dune::OseenPass< OseenModelType >
-			OseenPassType;
+        typedef Dune::OseenLDGMethod< OseenModelType >
+			OseenLDGMethodType;
 
 		typedef OSEEN_DATA_NAMESPACE::Pressure< typename OseenModelTraits::PressureFunctionSpaceType,
 								  TimeProviderType >

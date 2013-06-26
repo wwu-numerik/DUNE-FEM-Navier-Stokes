@@ -87,32 +87,17 @@ namespace Dune {
                                                                 sigmaSpaceOrder >
                         DiscreteSigmaFunctionSpaceType;
 
-                #if STOKES_USE_ISTL
-                        //! discrete function type for the velocity
-                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
-                            DiscreteVelocityFunctionType;
+                    //! discrete function type for the velocity
+                    typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
+                        DiscreteVelocityFunctionType;
 
-                        //! discrete function type for the pressure
-                        typedef Dune::BlockVectorDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
-                            DiscretePressureFunctionType;
+                    //! discrete function type for the pressure
+                    typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
+                        DiscretePressureFunctionType;
 
-                        //! discrete function type for sigma
-                        typedef Dune::BlockVectorDiscreteFunction< DiscreteSigmaFunctionSpaceType >
-                            DiscreteSigmaFunctionType;
-                #else
-                        //! discrete function type for the velocity
-                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscreteVelocityFunctionSpaceType >
-                            DiscreteVelocityFunctionType;
-
-                        //! discrete function type for the pressure
-                        typedef Dune::AdaptiveDiscreteFunction< typename DiscreteOseenFunctionSpaceWrapperType::DiscretePressureFunctionSpaceType >
-                            DiscretePressureFunctionType;
-
-                        //! discrete function type for sigma
-                        typedef Dune::AdaptiveDiscreteFunction< DiscreteSigmaFunctionSpaceType >
-                            DiscreteSigmaFunctionType;
-                #endif
-
+                    //! discrete function type for sigma
+                    typedef Dune::AdaptiveDiscreteFunction< DiscreteSigmaFunctionSpaceType >
+                        DiscreteSigmaFunctionType;
 
 					//! discrete function wrapper type
 					typedef Dune::DiscreteOseenFunctionWrapper< Dune::DiscreteOseenFunctionWrapperTraits<

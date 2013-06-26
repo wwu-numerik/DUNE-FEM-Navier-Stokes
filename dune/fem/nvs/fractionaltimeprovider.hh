@@ -161,14 +161,14 @@ namespace Dune {
 					}
 
 				protected:
-					void next ( const double timeStep )
+                    void next ( const double timestep )
 					{
-						assert( timeStep > 0 );
+                        assert( timestep > 0 );
 						current_substep_ = 0;
 						// timer
 						step_timer_.end();
                         avg_time_per_step_(std::abs( step_timer_.read() ));
-						BaseType::next( timeStep );
+                        BaseType::next( timestep );
 						step_timer_.start();
 					}
 

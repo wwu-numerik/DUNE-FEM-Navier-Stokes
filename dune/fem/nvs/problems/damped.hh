@@ -1,7 +1,7 @@
 #ifndef DAMPED_HH
 #define DAMPED_HH
 
-#include <dune/stuff/fem/functions.hh>
+
 #include <dune/stuff/fem/functions/timefunction.hh>
 #include <dune/stuff/common/parameter/configcontainer.hh>
 #include <dune/fem/oseen/boundarydata.hh>

@@ -22,11 +22,6 @@ namespace std { class type_info; }
     #define NAVIER_DATA_NAMESPACE NavierProblems::Runtime
 #endif
 
-//the adaption manager might be troublesome with certain gridparts/spaces, so we needed a easy way to disable it
-#ifndef ENABLE_ADAPTIVE
-#define ENABLE_ADAPTIVE 1
-#endif
-
 #ifndef COMMIT
 #define COMMIT "undefined"
 #endif

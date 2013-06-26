@@ -1,7 +1,7 @@
 #ifndef NAVIER_PROBLEMS_TRIVIAL_HH
 #define NAVIER_PROBLEMS_TRIVIAL_HH
 
-#include <dune/stuff/fem/functions.hh>
+
 #include <dune/stuff/fem/functions/timefunction.hh>
 #include <dune/stuff/common/parameter/configcontainer.hh>
 #include "common.hh"
@@ -30,8 +30,8 @@ class Force : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Force< 
 		   *  \brief  constructor
 		   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
 		   **/
-		  Force( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space, const double  viscosity = 0.0, const double alpha = 0.0 )
-			  : BaseType ( timeprovider, space ),
+          Force( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space_in, const double  viscosity = 0.0, const double alpha = 0.0 )
+              : BaseType ( timeprovider, space_in ),
 				viscosity_( viscosity ),
 				alpha_( alpha )
 		  {}
@@ -91,8 +91,8 @@ class VelocityConvection : public Dune::Stuff::Fem::TimeFunction < FunctionSpace
 		   *  \brief  constructor
 		   *  \param  viscosity   viscosity \f$\mu\f$ of the fluid
 		   **/
-		  VelocityConvection( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space, const double  viscosity = 0.0, const double alpha = 0.0 )
-			  : BaseType ( timeprovider, space ),
+          VelocityConvection( const TimeProviderImp& timeprovider, const FunctionSpaceImp& space_in, const double  viscosity = 0.0, const double alpha = 0.0 )
+              : BaseType ( timeprovider, space_in ),
 				viscosity_( viscosity ),
 				alpha_( alpha )
 		  {}
@@ -130,10 +130,10 @@ class DirichletData : public Dune::Stuff::Fem::IntersectionTimeFunction < Functi
 		*  doing nothing besides Base init
 		**/
 		DirichletData( const TimeProviderImp& timeprovider,
-				   const FunctionSpaceImp& space,
+                   const FunctionSpaceImp& space_in,
 				   const double  /*viscosity*/ = 0.0,
 				   const double /*alpha*/ = 0.0 )
-			: BaseType ( timeprovider, space )
+            : BaseType ( timeprovider, space_in )
 		{}
 
 		/**
@@ -178,10 +178,10 @@ class Velocity : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Velo
 		*  doing nothing besides Base init
 		**/
 		Velocity(	const TimeProviderImp& timeprovider,
-					const FunctionSpaceImp& space,
+                    const FunctionSpaceImp& space_in,
 					const double /*parameter_a*/ = M_PI /2.0 ,
 					const double /*parameter_d */= M_PI /4.0)
-			: BaseType( timeprovider, space ),
+            : BaseType( timeprovider, space_in ),
             lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 		{}
 
@@ -232,10 +232,10 @@ class Pressure : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp , Pres
 	   *  doing nothing besides Base init
 	   **/
 	  Pressure( const TimeProviderImp& timeprovider,
-				const FunctionSpaceImp& space,
+                const FunctionSpaceImp& space_in,
 				const double /*parameter_a*/ = M_PI /2.0 ,
 				const double /*parameter_d*/ = M_PI /4.0)
-		  : BaseType( timeprovider, space ),
+          : BaseType( timeprovider, space_in ),
           lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) ),
 		  shift_(0.0)
 	  {}
@@ -301,10 +301,10 @@ class VelocityLaplace : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceImp
 		*  doing nothing besides Base init
 		**/
 		VelocityLaplace(	const TimeProviderImp& timeprovider,
-					const FunctionSpaceImp& space,
+                    const FunctionSpaceImp& space_in,
 					const double /*parameter_a*/ = M_PI /2.0 ,
 					const double /*parameter_d*/ = M_PI /4.0)
-			: BaseType( timeprovider, space ),
+            : BaseType( timeprovider, space_in ),
             lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 		{}
 
@@ -356,10 +356,10 @@ class PressureGradient : public Dune::Stuff::Fem::TimeFunction < FunctionSpaceIm
 		*  doing nothing besides Base init
 		**/
 		PressureGradient(	const TimeProviderImp& timeprovider,
-					const FunctionSpaceImp& space,
+                    const FunctionSpaceImp& space_in,
 					const double /*parameter_a*/ = M_PI /2.0 ,
 					const double /*parameter_d*/ = M_PI /4.0)
-			: BaseType( timeprovider, space ),
+            : BaseType( timeprovider, space_in ),
             lambda_( DSC_CONFIG_GET( "lambda", 0.0 ) )
 		{}
 

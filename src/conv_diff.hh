@@ -2294,8 +2294,8 @@ namespace ConvDiff {
 			OseenModelType;
 		typedef Dune::StartPass< typename OseenModelTraits::DiscreteOseenFunctionWrapperType, -1 >
 			StartPassType;
-		typedef Dune::OseenPass< OseenModelType,StartPassType >
-			OseenPassType;
+		typedef Dune::OseenLDGMethod< OseenModelType,StartPassType >
+			OseenLDGMethodType;
 
 		typedef CONVDIFF_DATA_NAMESPACE::Pressure< typename OseenModelTraits::PressureFunctionSpaceType,
 								  TimeProviderType >

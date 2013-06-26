@@ -13,9 +13,6 @@
 #define HAVE_ALUGRID 1
 #cmakedefine @ENABLE_ALUGRID@ 
 
-#define STOKES_USE_ISTL @USE_ISTL@
-#define DUNE_ISTL_WITH_CHECKING 1
-
 #include "config.h"
 #define HAVE_BOOST 1
 #define HAVE_BOOST_FUSION 1
@@ -63,21 +60,12 @@
     #define OUTER_CG_SOLVERTYPE OEMCGOp
 #endif
 
-#if defined(USE_BFG_CG_SCHEME) || defined(FORCE_CUSTOM_SOLVER)
-    #include <utility>
-    //< iteration no , < absLimit, residuum > >
-    typedef std::pair<int,std::pair<double,double> >
-        IterationInfo;
-    #include <dune/fem/oseen/oemsolver/oemsolver.hh>
-    #define SOLVER_NAMESPACE DuneStokes
-    #define SOLVER_INTERFACE_NAMESPACE StokesOEMSolver
-#else
-    #include <dune/fem/solver/oemsolver/oemsolver.hh>
-    #define SOLVER_NAMESPACE Dune
-    #define SOLVER_INTERFACE_NAMESPACE OEMSolver
-#endif
+#include <utility>
+//< iteration no , < absLimit, residuum > >
+typedef std::pair<int,std::pair<double,double> >
+    IterationInfo;
 
-#if defined(USE_PARDG_ODE_SOLVER) && defined(USE_BFG_CG_SCHEME)
+#if defined(USE_PARDG_ODE_SOLVER)
     #warning ("USE_PARDG_ODE_SOLVER enabled, might conflict with custom solvers")
 #endif
 

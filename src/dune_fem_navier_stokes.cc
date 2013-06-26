@@ -141,7 +141,6 @@ DSC::RunInfoTimeMap singleRun(  CollectiveCommunication& mpicomm,
     DSC::LogStream& debugStream = DSC_LOG_DEBUG;
 
 	infoStream << "\n- initialising grid" << std::endl;
-	const int gridDim = GridType::dimensionworld;
     Dune::GridPtr< GridType > gridPtr( DSC_CONFIG_GET( "dgf_file", "grid_2d.dgf") );
 	const int refine_level = ( refine_level_factor  ) * Dune::DGFGridInfo< GridType >::refineStepsForHalf();
 	gridPtr->globalRefine( refine_level );
